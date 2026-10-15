@@ -1,0 +1,25 @@
+{
+  "name": "@bring-vene/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@livekit/components-react": "2.9.24",
+    "livekit-client": "2.22.4",
+    "lucide-react": "0.468.0",
+    "next": "15.5.27",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "@types/react": "18.3.31",
+    "@types/react-dom": "18.3.7",
+    "typescript": "5.9.3"
+  }
+}

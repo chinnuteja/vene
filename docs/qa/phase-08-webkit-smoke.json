@@ -1,0 +1,13 @@
+{
+  "checked_at": "2026-10-15T08:28:52.617Z",
+  "browser": "webkit",
+  "platform": "Windows",
+  "forms": "passed",
+  "capabilities": {
+    "rtc": false,
+    "microphone": false
+  },
+  "room": "unavailable in this browser build; accessible error verified",
+  "microphone": "not exercised",
+  "full_media_gate": false
+}

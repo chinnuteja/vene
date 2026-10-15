@@ -1,0 +1,30 @@
+{
+  "checked_at": "2026-10-15T08:25:42.716Z",
+  "baseline_maria": "complete workflow in workflow.spec.ts and x_continuity.spec.ts",
+  "variations": [
+    {
+      "case": "james",
+      "encounter_id": "6b4ac68d-f3ff-58e0-98bd-2633ee1d8e77",
+      "date": "2026-10-21",
+      "place": "Harbor Lab",
+      "window": "morning",
+      "missing_order_blocked": true,
+      "office_rejection_exercised": true,
+      "receipt_id": "f1aa21e6-2b60-455a-a415-85a7ef464fd2",
+      "private_payload_absent": true
+    },
+    {
+      "case": "asha",
+      "encounter_id": "2821deac-2335-5c46-90db-8da45f65c67b",
+      "date": "2026-10-23",
+      "place": "Hilltop Lab",
+      "window": "afternoon",
+      "missing_order_blocked": true,
+      "office_rejection_exercised": false,
+      "receipt_id": "60ee6024-84fa-48ba-a73c-65d17ad48985",
+      "private_payload_absent": true
+    }
+  ],
+  "scripted": true,
+  "free_form_model_quality": false
+}

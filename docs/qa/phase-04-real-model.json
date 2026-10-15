@@ -1,0 +1,334 @@
+{
+  "provider": "deepseek",
+  "requested_model": "deepseek-flash",
+  "returned_models": [
+    "deepseek-flash",
+    "deepseek-flash",
+    "deepseek-flash",
+    "deepseek-flash"
+  ],
+  "prompt_version": "visit-extraction-v4",
+  "synthetic_only": true,
+  "free_form_extraction": "passed",
+  "checked_at": "2026-10-15T07:28:25.895821+00:00",
+  "observations": [
+    {
+      "input": {
+        "encounter_version": 3,
+        "consent_epoch": 1,
+        "revision": 1,
+        "prompt_version": "visit-extraction-v4",
+        "sources": [
+          {
+            "id": "8abeb3b4-2711-4d39-919f-cbcc421bc795",
+            "version": 1,
+            "speaker": "Dr. Chris Chen",
+            "text": "This is an original fictional conversation for testing. Maria will...",
+            "origin": "fixture"
+          }
+        ],
+        "priorities": [
+          {
+            "id": "20000000-0000-4000-8000-000000000001",
+            "title": "What is holding up my referral?",
+            "detail": "I'd like to leave knowing who will send the missing document and what happens next."
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000002",
+            "title": "Where should I arrange my lab visit?",
+            "detail": "Ask which location to use, who places the order, and when it needs to happen."
+          }
+        ]
+      },
+      "output": {
+        "answers": [],
+        "steps": []
+      },
+      "returned_model": "deepseek-flash",
+      "duration_ms": 4515
+    },
+    {
+      "input": {
+        "encounter_version": 6,
+        "consent_epoch": 1,
+        "revision": 2,
+        "prompt_version": "visit-extraction-v4",
+        "sources": [
+          {
+            "id": "8abeb3b4-2711-4d39-919f-cbcc421bc795",
+            "version": 1,
+            "speaker": "Dr. Chris Chen",
+            "text": "This is an original fictional conversation for testing. Maria will...",
+            "origin": "fixture"
+          },
+          {
+            "id": "8f402dff-dcd6-4d70-b0ee-f83b031b3067",
+            "version": 1,
+            "speaker": "Dr. Chris Chen",
+            "text": "Here is the lab plan we discussed: Maria will arrange the lab visit at Harbor Lab on Wednesday, after the office sends the order. No appointment has been booked.",
+            "origin": "fixture"
+          }
+        ],
+        "priorities": [
+          {
+            "id": "20000000-0000-4000-8000-000000000001",
+            "title": "What is holding up my referral?",
+            "detail": "I'd like to leave knowing who will send the missing document and what happens next."
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000002",
+            "title": "Where should I arrange my lab visit?",
+            "detail": "Ask which location to use, who places the order, and when it needs to happen."
+          }
+        ]
+      },
+      "output": {
+        "answers": [
+          {
+            "priority_id": "20000000-0000-4000-8000-000000000002",
+            "status": "partly_answered",
+            "explanation": "The location is stated as Harbor Lab, and the timing is Wednesday after the office sends the order. The source does not say who places the order, only that the office sends it, and no appointment has been booked.",
+            "citations": [
+              {
+                "source_id": "8f402dff-dcd6-4d70-b0ee-f83b031b3067",
+                "version": 1,
+                "quote": "Here is the lab plan we discussed: Maria will arrange the lab visit at Harbor Lab on Wednesday, after the office sends the order. No appointment has been booked."
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "topic": "lab",
+            "title": "Arrange your lab visit at Harbor Lab",
+            "detail": "Arrange the lab visit at Harbor Lab on Wednesday, after the office sends the order. No appointment has been booked yet.",
+            "owner": "Maria",
+            "timeframe": "Wednesday",
+            "location": "Harbor Lab",
+            "dependencies": [
+              "the office sends the order"
+            ],
+            "needs_clarification": false,
+            "explanation": "The plan states Maria will arrange the lab visit at Harbor Lab on Wednesday, after the office sends the order, and that no appointment has been booked.",
+            "citations": [
+              {
+                "source_id": "8f402dff-dcd6-4d70-b0ee-f83b031b3067",
+                "version": 1,
+                "quote": "Here is the lab plan we discussed: Maria will arrange the lab visit at Harbor Lab on Wednesday, after the office sends the order. No appointment has been booked."
+              }
+            ]
+          }
+        ]
+      },
+      "returned_model": "deepseek-flash",
+      "duration_ms": 2234
+    },
+    {
+      "input": {
+        "encounter_version": 9,
+        "consent_epoch": 1,
+        "revision": 3,
+        "prompt_version": "visit-extraction-v4",
+        "sources": [
+          {
+            "id": "8abeb3b4-2711-4d39-919f-cbcc421bc795",
+            "version": 1,
+            "speaker": "Dr. Chris Chen",
+            "text": "This is an original fictional conversation for testing. Maria will...",
+            "origin": "fixture"
+          },
+          {
+            "id": "8f402dff-dcd6-4d70-b0ee-f83b031b3067",
+            "version": 1,
+            "speaker": "Dr. Chris Chen",
+            "text": "Here is the lab plan we discussed: Maria will arrange the lab visit at Harbor Lab on Wednesday, after the office sends the order. No appointment has been booked.",
+            "origin": "fixture"
+          },
+          {
+            "id": "aabe2ece-c191-4765-846f-7ea443e88788",
+            "version": 1,
+            "speaker": "Dr. Chris Chen",
+            "text": "One correction for the lab visit: Friday, not Wednesday. The location is still Harbor Lab. Maria will arrange the lab visit after the office sends the order.",
+            "origin": "fixture"
+          }
+        ],
+        "priorities": [
+          {
+            "id": "20000000-0000-4000-8000-000000000001",
+            "title": "What is holding up my referral?",
+            "detail": "I'd like to leave knowing who will send the missing document and what happens next."
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000002",
+            "title": "Where should I arrange my lab visit?",
+            "detail": "Ask which location to use, who places the order, and when it needs to happen."
+          }
+        ]
+      },
+      "output": {
+        "answers": [
+          {
+            "priority_id": "20000000-0000-4000-8000-000000000002",
+            "status": "answered",
+            "explanation": "The lab visit location is Harbor Lab, and the office sends the order before Maria arranges the visit. The timing was corrected from Wednesday to Friday.",
+            "citations": [
+              {
+                "source_id": "8f402dff-dcd6-4d70-b0ee-f83b031b3067",
+                "version": 1,
+                "quote": "Maria will arrange the lab visit at Harbor Lab on Wednesday, after the office sends the order."
+              },
+              {
+                "source_id": "aabe2ece-c191-4765-846f-7ea443e88788",
+                "version": 1,
+                "quote": "One correction for the lab visit: Friday, not Wednesday. The location is still Harbor Lab. Maria will arrange the lab visit after the office sends the order."
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "topic": "lab",
+            "title": "Arrange your lab visit at Harbor Lab",
+            "detail": "Arrange the lab visit at Harbor Lab on Friday, after the office sends the order. No appointment has been booked yet.",
+            "owner": "Maria",
+            "timeframe": "Friday",
+            "location": "Harbor Lab",
+            "dependencies": [
+              "The office sends the order"
+            ],
+            "needs_clarification": false,
+            "explanation": "The lab plan says Maria will arrange the visit at Harbor Lab, and the later correction changes the day to Friday. The office must send the order first, and no appointment has been booked.",
+            "citations": [
+              {
+                "source_id": "8f402dff-dcd6-4d70-b0ee-f83b031b3067",
+                "version": 1,
+                "quote": "Maria will arrange the lab visit at Harbor Lab on Wednesday, after the office sends the order. No appointment has been booked."
+              },
+              {
+                "source_id": "aabe2ece-c191-4765-846f-7ea443e88788",
+                "version": 1,
+                "quote": "One correction for the lab visit: Friday, not Wednesday. The location is still Harbor Lab. Maria will arrange the lab visit after the office sends the order."
+              }
+            ]
+          }
+        ]
+      },
+      "returned_model": "deepseek-flash",
+      "duration_ms": 2203
+    },
+    {
+      "input": {
+        "encounter_version": 12,
+        "consent_epoch": 1,
+        "revision": 4,
+        "prompt_version": "visit-extraction-v4",
+        "sources": [
+          {
+            "id": "8abeb3b4-2711-4d39-919f-cbcc421bc795",
+            "version": 1,
+            "speaker": "Dr. Chris Chen",
+            "text": "This is an original fictional conversation for testing. Maria will...",
+            "origin": "fixture"
+          },
+          {
+            "id": "8f402dff-dcd6-4d70-b0ee-f83b031b3067",
+            "version": 1,
+            "speaker": "Dr. Chris Chen",
+            "text": "Here is the lab plan we discussed: Maria will arrange the lab visit at Harbor Lab on Wednesday, after the office sends the order. No appointment has been booked.",
+            "origin": "fixture"
+          },
+          {
+            "id": "aabe2ece-c191-4765-846f-7ea443e88788",
+            "version": 1,
+            "speaker": "Dr. Chris Chen",
+            "text": "One correction for the lab visit: Friday, not Wednesday. The location is still Harbor Lab. Maria will arrange the lab visit after the office sends the order.",
+            "origin": "fixture"
+          },
+          {
+            "id": "c3941e9d-8293-49cc-ae84-f71c0ad2d401",
+            "version": 1,
+            "speaker": "Dr. Chris Chen",
+            "text": "For that lab visit on Friday at Harbor Lab, they will arrange it. We have not clarified who 'they' means. Keep the owner unknown.",
+            "origin": "fixture"
+          }
+        ],
+        "priorities": [
+          {
+            "id": "20000000-0000-4000-8000-000000000001",
+            "title": "What is holding up my referral?",
+            "detail": "I'd like to leave knowing who will send the missing document and what happens next."
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000002",
+            "title": "Where should I arrange my lab visit?",
+            "detail": "Ask which location to use, who places the order, and when it needs to happen."
+          }
+        ]
+      },
+      "output": {
+        "answers": [
+          {
+            "priority_id": "20000000-0000-4000-8000-000000000002",
+            "status": "partly_answered",
+            "explanation": "The location is answered as Harbor Lab, and the timing is Friday. The office must send the order first, and it is not clear who will arrange the visit, so the owner remains unknown.",
+            "citations": [
+              {
+                "source_id": "8f402dff-dcd6-4d70-b0ee-f83b031b3067",
+                "version": 1,
+                "quote": "Maria will arrange the lab visit at Harbor Lab on Wednesday, after the office sends the order."
+              },
+              {
+                "source_id": "aabe2ece-c191-4765-846f-7ea443e88788",
+                "version": 1,
+                "quote": "One correction for the lab visit: Friday, not Wednesday. The location is still Harbor Lab."
+              },
+              {
+                "source_id": "c3941e9d-8293-49cc-ae84-f71c0ad2d401",
+                "version": 1,
+                "quote": "For that lab visit on Friday at Harbor Lab, they will arrange it. We have not clarified who 'they' means. Keep the owner unknown."
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "topic": "lab",
+            "title": "Arrange your lab visit at Harbor Lab",
+            "detail": "Arrange the lab visit at Harbor Lab on Friday. The office must send the order first. It is not yet clear who will arrange the visit, so confirm that before proceeding.",
+            "owner": null,
+            "timeframe": "Friday",
+            "location": "Harbor Lab",
+            "dependencies": [
+              "The office sends the order"
+            ],
+            "needs_clarification": true,
+            "explanation": "The lab visit is corrected to Friday at Harbor Lab, and it should happen after the office sends the order. The person responsible for arranging it is explicitly unresolved.",
+            "citations": [
+              {
+                "source_id": "8f402dff-dcd6-4d70-b0ee-f83b031b3067",
+                "version": 1,
+                "quote": "Maria will arrange the lab visit at Harbor Lab on Wednesday, after the office sends the order."
+              },
+              {
+                "source_id": "aabe2ece-c191-4765-846f-7ea443e88788",
+                "version": 1,
+                "quote": "One correction for the lab visit: Friday, not Wednesday. The location is still Harbor Lab. Maria will arrange the lab visit after the office sends the order."
+              },
+              {
+                "source_id": "c3941e9d-8293-49cc-ae84-f71c0ad2d401",
+                "version": 1,
+                "quote": "For that lab visit on Friday at Harbor Lab, they will arrange it. We have not clarified who 'they' means. Keep the owner unknown."
+              }
+            ]
+          }
+        ]
+      },
+      "returned_model": "deepseek-flash",
+      "duration_ms": 2797
+    }
+  ],
+  "unrelated_speech_no_invented_steps": "passed",
+  "correction": "passed",
+  "ambiguous_owner": "passed",
+  "no_automatic_authorization": "passed"
+}

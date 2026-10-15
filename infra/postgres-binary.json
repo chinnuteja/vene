@@ -1,0 +1,9 @@
+{
+  "version": "17.11",
+  "platform": "windows-x64",
+  "url": "https://sbp.enterprisedb.com/getfile.jsp?fileid=1260616",
+  "sha256": "80379b2c04d51c30225532e0ae04509899141e9957ed096fe749d7fd9df8f82f",
+  "source_page": "https://www.enterprisedb.com/download-postgresql-binaries",
+  "note": "SHA-256 pins the HTTPS-downloaded archive for reproducibility; it is not a vendor signature verification."
+}
+

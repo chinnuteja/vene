@@ -1,0 +1,19 @@
+[project]
+name = "bring-vene-workspace"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = ["bring-vene-backend"]
+
+[tool.uv.sources]
+bring-vene-backend = { workspace = true }
+
+[tool.uv.workspace]
+members = ["services/backend"]
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "httpx>=0.28,<1"]
+
+[tool.pytest.ini_options]
+testpaths = ["services/backend/tests"]
+addopts = "-ra"
+

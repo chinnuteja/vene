@@ -1,0 +1,11 @@
+LiveKit Agents multiparty transcription example
+Source: livekit/agents at b58e83f5c77d5b4bd4c8586793885151a91c4c83
+Path: examples/other/transcription/multi-user-transcriber.py
+License: Apache License 2.0 (included in LIVEKIT_AGENTS_LICENSE)
+
+supervisor.py adapts the participant/task lifecycle structure. It replaces
+AgentSession startup with consent-gated, per-track raw audio supervision.
+Changes include registered pending tasks, cancellation-safe cleanup, source
+and consent epochs, no draining after pause, no transcript logging, and no
+shared transcript publication. The provider adapters are original code using
+maintained SDKs. Other source snapshots remain read-only research references.

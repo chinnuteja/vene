@@ -1,0 +1,14 @@
+{
+  "checked_at": "2026-10-15T08:18:43.396Z",
+  "transport": "real local WebRTC",
+  "voice": "Windows offline speech; no audio files",
+  "private_cues": "absent from guest API and UI",
+  "completed_playout_ms": 5189,
+  "self_transcription_sources": 0,
+  "human_interruption": "human_interruption",
+  "interrupted_full_text_saved": false,
+  "pause": "acknowledged",
+  "physical_acoustics": "not tested",
+  "live_tts": "not tested",
+  "live_stt_model": "not tested"
+}

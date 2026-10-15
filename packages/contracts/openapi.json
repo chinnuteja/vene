@@ -1,0 +1,5423 @@
+{
+  "components": {
+    "schemas": {
+      "ActionView": {
+        "properties": {
+          "checked_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checked At"
+          },
+          "clinician_confirmed": {
+            "default": false,
+            "title": "Clinician Confirmed",
+            "type": "boolean"
+          },
+          "digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Digest"
+          },
+          "fingerprint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fingerprint"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "item_id": {
+            "format": "uuid",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "order_available": {
+            "default": false,
+            "title": "Order Available",
+            "type": "boolean"
+          },
+          "patient_authorized": {
+            "default": false,
+            "title": "Patient Authorized",
+            "type": "boolean"
+          },
+          "receipt": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receipt"
+          },
+          "scope_allowed": {
+            "default": false,
+            "title": "Scope Allowed",
+            "type": "boolean"
+          },
+          "slot": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slot"
+          },
+          "source": {
+            "default": "Local sandbox office",
+            "title": "Source",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "window": {
+            "enum": [
+              "morning",
+              "afternoon"
+            ],
+            "title": "Window",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "item_id",
+          "title",
+          "window",
+          "state",
+          "message"
+        ],
+        "title": "ActionView",
+        "type": "object"
+      },
+      "ApprovalRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "digest": {
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "digest"
+        ],
+        "title": "ApprovalRequest",
+        "type": "object"
+      },
+      "AudioReceipt": {
+        "additionalProperties": false,
+        "properties": {
+          "connection_id": {
+            "format": "uuid",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "consent_epoch": {
+            "title": "Consent Epoch",
+            "type": "integer"
+          },
+          "first_received_at": {
+            "format": "date-time",
+            "title": "First Received At",
+            "type": "string"
+          },
+          "frames": {
+            "title": "Frames",
+            "type": "integer"
+          },
+          "last_received_at": {
+            "format": "date-time",
+            "title": "Last Received At",
+            "type": "string"
+          },
+          "non_silent_frames": {
+            "title": "Non Silent Frames",
+            "type": "integer"
+          },
+          "samples": {
+            "title": "Samples",
+            "type": "integer"
+          },
+          "track_epoch": {
+            "title": "Track Epoch",
+            "type": "integer"
+          },
+          "track_sid": {
+            "title": "Track Sid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connection_id",
+          "track_sid",
+          "track_epoch",
+          "consent_epoch",
+          "frames",
+          "samples",
+          "non_silent_frames",
+          "first_received_at",
+          "last_received_at"
+        ],
+        "title": "AudioReceipt",
+        "type": "object"
+      },
+      "CallAdmission": {
+        "additionalProperties": false,
+        "properties": {
+          "call": {
+            "$ref": "#/components/schemas/CallView"
+          },
+          "connection_id": {
+            "format": "uuid",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "server_url": {
+            "title": "Server Url",
+            "type": "string"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connection_id",
+          "token",
+          "server_url",
+          "expires_at",
+          "call"
+        ],
+        "title": "CallAdmission",
+        "type": "object"
+      },
+      "CallControl": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "format": "uuid",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "silenced": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Silenced"
+          },
+          "type": {
+            "enum": [
+              "pause",
+              "resume",
+              "silence",
+              "end"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "command_id",
+          "type",
+          "expected_revision"
+        ],
+        "title": "CallControl",
+        "type": "object"
+      },
+      "CallDiagnostics": {
+        "additionalProperties": false,
+        "properties": {
+          "active_tasks": {
+            "title": "Active Tasks",
+            "type": "integer"
+          },
+          "receipts": {
+            "items": {
+              "$ref": "#/components/schemas/AudioReceipt"
+            },
+            "title": "Receipts",
+            "type": "array"
+          },
+          "stopped_epoch": {
+            "title": "Stopped Epoch",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "active_tasks",
+          "stopped_epoch",
+          "receipts"
+        ],
+        "title": "CallDiagnostics",
+        "type": "object"
+      },
+      "CallParticipant": {
+        "additionalProperties": false,
+        "properties": {
+          "connection_id": {
+            "format": "uuid",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "consent": {
+            "enum": [
+              "pending",
+              "agreed",
+              "declined"
+            ],
+            "title": "Consent",
+            "type": "string"
+          },
+          "membership_id": {
+            "format": "uuid",
+            "title": "Membership Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "present": {
+            "title": "Present",
+            "type": "boolean"
+          },
+          "role": {
+            "enum": [
+              "patient",
+              "clinician",
+              "family"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "track_epoch": {
+            "title": "Track Epoch",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "connection_id",
+          "membership_id",
+          "name",
+          "role",
+          "present",
+          "consent",
+          "track_epoch"
+        ],
+        "title": "CallParticipant",
+        "type": "object"
+      },
+      "CallView": {
+        "additionalProperties": false,
+        "properties": {
+          "audio_recorded": {
+            "const": false,
+            "default": false,
+            "title": "Audio Recorded",
+            "type": "boolean"
+          },
+          "consent_epoch": {
+            "title": "Consent Epoch",
+            "type": "integer"
+          },
+          "encounter_id": {
+            "format": "uuid",
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "gap_since": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gap Since"
+          },
+          "generation": {
+            "format": "uuid",
+            "title": "Generation",
+            "type": "string"
+          },
+          "manual_pause": {
+            "title": "Manual Pause",
+            "type": "boolean"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "output_silenced": {
+            "title": "Output Silenced",
+            "type": "boolean"
+          },
+          "own_connection_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Own Connection Id"
+          },
+          "participants": {
+            "items": {
+              "$ref": "#/components/schemas/CallParticipant"
+            },
+            "title": "Participants",
+            "type": "array"
+          },
+          "provider": {
+            "enum": [
+              "fixture",
+              "deepgram",
+              "unavailable"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "waiting",
+              "consent_needed",
+              "active",
+              "paused",
+              "stopping",
+              "unavailable",
+              "ended"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "terms_version": {
+            "const": "voice-processing-v1",
+            "default": "voice-processing-v1",
+            "title": "Terms Version",
+            "type": "string"
+          },
+          "transcripts_shared": {
+            "const": false,
+            "default": false,
+            "title": "Transcripts Shared",
+            "type": "boolean"
+          },
+          "worker_ready": {
+            "title": "Worker Ready",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "observed_at",
+          "encounter_id",
+          "generation",
+          "revision",
+          "consent_epoch",
+          "state",
+          "manual_pause",
+          "output_silenced",
+          "worker_ready",
+          "provider",
+          "participants"
+        ],
+        "title": "CallView",
+        "type": "object"
+      },
+      "CommandEnvelope": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "discriminator": {
+              "mapping": {
+                "encounter.title_changed": "#/components/schemas/TitleChanged",
+                "preparation.approved": "#/components/schemas/PreparationApproved",
+                "priority.edited": "#/components/schemas/PriorityEdited",
+                "priority.selection_changed": "#/components/schemas/PrioritySelectionChanged",
+                "sharing.changed": "#/components/schemas/SharingChanged",
+                "suggestion.added": "#/components/schemas/SuggestionAdded",
+                "suggestion.reviewed": "#/components/schemas/SuggestionReviewed"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TitleChanged"
+              },
+              {
+                "$ref": "#/components/schemas/PrioritySelectionChanged"
+              },
+              {
+                "$ref": "#/components/schemas/SharingChanged"
+              },
+              {
+                "$ref": "#/components/schemas/PreparationApproved"
+              },
+              {
+                "$ref": "#/components/schemas/PriorityEdited"
+              },
+              {
+                "$ref": "#/components/schemas/SuggestionAdded"
+              },
+              {
+                "$ref": "#/components/schemas/SuggestionReviewed"
+              }
+            ],
+            "title": "Command"
+          },
+          "command_id": {
+            "format": "uuid",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "evidence_refs": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "command_id",
+          "expected_version",
+          "command"
+        ],
+        "title": "CommandEnvelope",
+        "type": "object"
+      },
+      "CommandResult": {
+        "additionalProperties": false,
+        "properties": {
+          "duplicate": {
+            "title": "Duplicate",
+            "type": "boolean"
+          },
+          "encounter": {
+            "$ref": "#/components/schemas/EncounterView"
+          },
+          "event": {
+            "$ref": "#/components/schemas/EventEnvelope"
+          }
+        },
+        "required": [
+          "duplicate",
+          "event",
+          "encounter"
+        ],
+        "title": "CommandResult",
+        "type": "object"
+      },
+      "ConsentRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "format": "uuid",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "connection_id": {
+            "format": "uuid",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "decision": {
+            "enum": [
+              "agreed",
+              "declined"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "terms_version": {
+            "const": "voice-processing-v1",
+            "title": "Terms Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "command_id",
+          "connection_id",
+          "decision",
+          "terms_version"
+        ],
+        "title": "ConsentRequest",
+        "type": "object"
+      },
+      "ContextView": {
+        "additionalProperties": false,
+        "properties": {
+          "audience": {
+            "enum": [
+              "patient",
+              "clinician",
+              "family"
+            ],
+            "title": "Audience",
+            "type": "string"
+          },
+          "consent_epoch": {
+            "title": "Consent Epoch",
+            "type": "integer"
+          },
+          "encounter_id": {
+            "format": "uuid",
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "plan": {
+            "items": {
+              "$ref": "#/components/schemas/PlanItem"
+            },
+            "title": "Plan",
+            "type": "array"
+          },
+          "priorities": {
+            "items": {
+              "$ref": "#/components/schemas/Priority"
+            },
+            "title": "Priorities",
+            "type": "array"
+          }
+        },
+        "required": [
+          "encounter_id",
+          "consent_epoch",
+          "audience",
+          "priorities",
+          "plan",
+          "evidence"
+        ],
+        "title": "ContextView",
+        "type": "object"
+      },
+      "ContinuityView": {
+        "additionalProperties": false,
+        "properties": {
+          "callback_count": {
+            "title": "Callback Count",
+            "type": "integer"
+          },
+          "conversation_gap_since": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Gap Since"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentView"
+            },
+            "title": "Documents",
+            "type": "array"
+          },
+          "family_recipients": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Family Recipients",
+            "type": "array"
+          },
+          "family_updates": {
+            "items": {
+              "$ref": "#/components/schemas/FamilyUpdateView"
+            },
+            "title": "Family Updates",
+            "type": "array"
+          },
+          "next_visits": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Next Visits",
+            "type": "array"
+          },
+          "sandbox_tools_enabled": {
+            "default": false,
+            "title": "Sandbox Tools Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "documents",
+          "family_updates",
+          "family_recipients",
+          "next_visits",
+          "callback_count"
+        ],
+        "title": "ContinuityView",
+        "type": "object"
+      },
+      "CueApproval": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "format": "uuid",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "cue_id": {
+            "format": "uuid",
+            "title": "Cue Id",
+            "type": "string"
+          },
+          "digest": {
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "command_id",
+          "cue_id",
+          "digest"
+        ],
+        "title": "CueApproval",
+        "type": "object"
+      },
+      "DeleteRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "confirmation": {
+            "const": "DELETE SYNTHETIC VISIT",
+            "title": "Confirmation",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "confirmation",
+          "expected_version"
+        ],
+        "title": "DeleteRequest",
+        "type": "object"
+      },
+      "Difference": {
+        "additionalProperties": false,
+        "properties": {
+          "end": {
+            "title": "End",
+            "type": "integer"
+          },
+          "expected": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected"
+          },
+          "explanation": {
+            "title": "Explanation",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "timing",
+              "location",
+              "clinical_instruction",
+              "review"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "plan_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Id"
+          },
+          "source_quote": {
+            "title": "Source Quote",
+            "type": "string"
+          },
+          "start": {
+            "title": "Start",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "source_quote",
+          "start",
+          "end",
+          "explanation"
+        ],
+        "title": "Difference",
+        "type": "object"
+      },
+      "DigestRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "digest": {
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "digest"
+        ],
+        "title": "DigestRequest",
+        "type": "object"
+      },
+      "DocumentUpload": {
+        "additionalProperties": false,
+        "properties": {
+          "file_base64": {
+            "anyOf": [
+              {
+                "maxLength": 350000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Base64"
+          },
+          "format": {
+            "default": "text",
+            "enum": [
+              "text",
+              "pdf"
+            ],
+            "title": "Format",
+            "type": "string"
+          },
+          "plan_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Plan Ids",
+            "type": "array"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "maxLength": 12000,
+                "minLength": 3,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "title": {
+            "maxLength": 120,
+            "minLength": 3,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "DocumentUpload",
+        "type": "object"
+      },
+      "DocumentView": {
+        "additionalProperties": false,
+        "properties": {
+          "differences": {
+            "items": {
+              "$ref": "#/components/schemas/Difference"
+            },
+            "title": "Differences",
+            "type": "array"
+          },
+          "fingerprint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fingerprint"
+          },
+          "format": {
+            "enum": [
+              "text",
+              "pdf"
+            ],
+            "title": "Format",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "pages": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Pages",
+            "type": "array"
+          },
+          "review_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          },
+          "review_state": {
+            "enum": [
+              "unresolved",
+              "reviewed",
+              "stale"
+            ],
+            "title": "Review State",
+            "type": "string"
+          },
+          "reviewed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Evidence"
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "format",
+          "sha256",
+          "pages",
+          "differences",
+          "review_state"
+        ],
+        "title": "DocumentView",
+        "type": "object"
+      },
+      "EncounterSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "patient_name": {
+            "title": "Patient Name",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "patient_name",
+          "version"
+        ],
+        "title": "EncounterSummary",
+        "type": "object"
+      },
+      "EncounterView": {
+        "additionalProperties": false,
+        "properties": {
+          "clinician": {
+            "title": "Clinician",
+            "type": "string"
+          },
+          "consent_epoch": {
+            "default": 0,
+            "title": "Consent Epoch",
+            "type": "integer"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "patient": {
+            "$ref": "#/components/schemas/Patient"
+          },
+          "plan": {
+            "items": {
+              "$ref": "#/components/schemas/PlanItem"
+            },
+            "title": "Plan",
+            "type": "array"
+          },
+          "preparation_approved": {
+            "default": false,
+            "title": "Preparation Approved",
+            "type": "boolean"
+          },
+          "priorities": {
+            "items": {
+              "$ref": "#/components/schemas/Priority"
+            },
+            "title": "Priorities",
+            "type": "array"
+          },
+          "processing_state": {
+            "enum": [
+              "preparing",
+              "active",
+              "paused",
+              "ended"
+            ],
+            "title": "Processing State",
+            "type": "string"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/Suggestion"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          },
+          "synthetic": {
+            "const": true,
+            "default": true,
+            "title": "Synthetic",
+            "type": "boolean"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "understanding": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UnderstandingStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 0.0,
+            "title": "Version",
+            "type": "integer"
+          },
+          "viewer_role": {
+            "default": "patient",
+            "enum": [
+              "patient",
+              "clinician",
+              "family"
+            ],
+            "title": "Viewer Role",
+            "type": "string"
+          },
+          "visit_at": {
+            "format": "date-time",
+            "title": "Visit At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "patient",
+          "title",
+          "clinician",
+          "visit_at",
+          "processing_state",
+          "priorities",
+          "plan",
+          "evidence",
+          "updated_at"
+        ],
+        "title": "EncounterView",
+        "type": "object"
+      },
+      "EventEnvelope": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted_at": {
+            "format": "date-time",
+            "title": "Accepted At",
+            "type": "string"
+          },
+          "command": {
+            "discriminator": {
+              "mapping": {
+                "encounter.title_changed": "#/components/schemas/TitleChanged",
+                "preparation.approved": "#/components/schemas/PreparationApproved",
+                "priority.edited": "#/components/schemas/PriorityEdited",
+                "priority.selection_changed": "#/components/schemas/PrioritySelectionChanged",
+                "sharing.changed": "#/components/schemas/SharingChanged",
+                "suggestion.added": "#/components/schemas/SuggestionAdded",
+                "suggestion.reviewed": "#/components/schemas/SuggestionReviewed"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TitleChanged"
+              },
+              {
+                "$ref": "#/components/schemas/PrioritySelectionChanged"
+              },
+              {
+                "$ref": "#/components/schemas/SharingChanged"
+              },
+              {
+                "$ref": "#/components/schemas/PreparationApproved"
+              },
+              {
+                "$ref": "#/components/schemas/PriorityEdited"
+              },
+              {
+                "$ref": "#/components/schemas/SuggestionAdded"
+              },
+              {
+                "$ref": "#/components/schemas/SuggestionReviewed"
+              }
+            ],
+            "title": "Command"
+          },
+          "command_id": {
+            "format": "uuid",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "encounter_id": {
+            "format": "uuid",
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "evidence_refs": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "sequence": {
+            "minimum": 1.0,
+            "title": "Sequence",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "encounter_id",
+          "sequence",
+          "command_id",
+          "accepted_at",
+          "evidence_refs",
+          "command"
+        ],
+        "title": "EventEnvelope",
+        "type": "object"
+      },
+      "Evidence": {
+        "additionalProperties": false,
+        "properties": {
+          "audiences": {
+            "items": {
+              "enum": [
+                "clinician",
+                "family"
+              ],
+              "type": "string"
+            },
+            "maxItems": 2,
+            "title": "Audiences",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "enum": [
+                  "fixture",
+                  "deepgram",
+                  "human"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin"
+          },
+          "source_type": {
+            "enum": [
+              "patient_report",
+              "office_message",
+              "imported_record",
+              "conversation"
+            ],
+            "title": "Source Type",
+            "type": "string"
+          },
+          "speaker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speaker"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "default": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "source_type",
+          "title",
+          "text",
+          "observed_at"
+        ],
+        "title": "Evidence",
+        "type": "object"
+      },
+      "ExecutionView": {
+        "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/ActionView"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "sandbox": {
+            "const": true,
+            "default": true,
+            "title": "Sandbox",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "configured",
+          "actions"
+        ],
+        "title": "ExecutionView",
+        "type": "object"
+      },
+      "FamilyDraftRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "fields": {
+            "items": {
+              "enum": [
+                "title",
+                "owner",
+                "timeframe",
+                "office_status"
+              ],
+              "type": "string"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Fields",
+            "type": "array"
+          },
+          "plan_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Plan Ids",
+            "type": "array"
+          },
+          "recipient_id": {
+            "format": "uuid",
+            "title": "Recipient Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "recipient_id",
+          "plan_ids",
+          "fields"
+        ],
+        "title": "FamilyDraftRequest",
+        "type": "object"
+      },
+      "FamilyUpdateView": {
+        "additionalProperties": false,
+        "properties": {
+          "digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Digest"
+          },
+          "fields": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "receipt": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receipt"
+          },
+          "recipient_id": {
+            "format": "uuid",
+            "title": "Recipient Id",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "recipient_id",
+          "state",
+          "text",
+          "fields"
+        ],
+        "title": "FamilyUpdateView",
+        "type": "object"
+      },
+      "FixtureLaunch": {
+        "additionalProperties": false,
+        "properties": {
+          "case": {
+            "default": "maria",
+            "enum": [
+              "maria",
+              "james",
+              "asha"
+            ],
+            "title": "Case",
+            "type": "string"
+          },
+          "persona": {
+            "enum": [
+              "patient",
+              "clinician",
+              "family"
+            ],
+            "title": "Persona",
+            "type": "string"
+          }
+        },
+        "required": [
+          "persona"
+        ],
+        "title": "FixtureLaunch",
+        "type": "object"
+      },
+      "FixtureTurn": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "format": "uuid",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "speaker": {
+            "enum": [
+              "patient",
+              "clinician",
+              "family"
+            ],
+            "title": "Speaker",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 2000,
+            "minLength": 3,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "command_id",
+          "speaker",
+          "text"
+        ],
+        "title": "FixtureTurn",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Health": {
+        "additionalProperties": false,
+        "properties": {
+          "database": {
+            "anyOf": [
+              {
+                "enum": [
+                  "ready",
+                  "unavailable"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Database"
+          },
+          "status": {
+            "enum": [
+              "alive",
+              "ready",
+              "unavailable"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "Health",
+        "type": "object"
+      },
+      "Identity": {
+        "additionalProperties": false,
+        "properties": {
+          "csrf_token": {
+            "title": "Csrf Token",
+            "type": "string"
+          },
+          "encounter_id": {
+            "format": "uuid",
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "membership_id": {
+            "format": "uuid",
+            "title": "Membership Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "patient",
+              "clinician",
+              "family"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "membership_id",
+          "encounter_id",
+          "role",
+          "name",
+          "csrf_token"
+        ],
+        "title": "Identity",
+        "type": "object"
+      },
+      "Invitation": {
+        "additionalProperties": false,
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "token",
+          "expires_at"
+        ],
+        "title": "Invitation",
+        "type": "object"
+      },
+      "InviteRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "membership_id": {
+            "format": "uuid",
+            "title": "Membership Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "membership_id"
+        ],
+        "title": "InviteRequest",
+        "type": "object"
+      },
+      "LookupRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "day": {
+            "default": "2026-10-20",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "title": "Day",
+            "type": "string"
+          },
+          "location": {
+            "default": "Riverside Lab",
+            "enum": [
+              "Riverside Lab",
+              "Harbor Lab",
+              "Hilltop Lab"
+            ],
+            "title": "Location",
+            "type": "string"
+          },
+          "window": {
+            "enum": [
+              "morning",
+              "afternoon"
+            ],
+            "title": "Window",
+            "type": "string"
+          }
+        },
+        "required": [
+          "window"
+        ],
+        "title": "LookupRequest",
+        "type": "object"
+      },
+      "MemberView": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "revoked": {
+            "title": "Revoked",
+            "type": "boolean"
+          },
+          "role": {
+            "enum": [
+              "patient",
+              "clinician",
+              "family"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "name",
+          "revoked"
+        ],
+        "title": "MemberView",
+        "type": "object"
+      },
+      "ModeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "format": "uuid",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "private",
+              "on_request",
+              "closeout"
+            ],
+            "title": "Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "command_id",
+          "mode"
+        ],
+        "title": "ModeRequest",
+        "type": "object"
+      },
+      "Mutation": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "format": "uuid",
+            "title": "Command Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "command_id"
+        ],
+        "title": "Mutation",
+        "type": "object"
+      },
+      "NextVisitCreated": {
+        "additionalProperties": false,
+        "properties": {
+          "encounter_id": {
+            "format": "uuid",
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "invitation": {
+            "$ref": "#/components/schemas/Invitation"
+          }
+        },
+        "required": [
+          "encounter_id",
+          "invitation"
+        ],
+        "title": "NextVisitCreated",
+        "type": "object"
+      },
+      "NextVisitRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "plan_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Plan Ids",
+            "type": "array"
+          },
+          "visit_at": {
+            "format": "date-time",
+            "title": "Visit At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "plan_ids",
+          "visit_at"
+        ],
+        "title": "NextVisitRequest",
+        "type": "object"
+      },
+      "Patient": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "maximum": 120.0,
+            "minimum": 18.0,
+            "title": "Age",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "preferred_name": {
+            "title": "Preferred Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "preferred_name",
+          "age"
+        ],
+        "title": "Patient",
+        "type": "object"
+      },
+      "PlanCorrection": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "format": "uuid",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "detail": {
+            "maxLength": 1200,
+            "minLength": 3,
+            "title": "Detail",
+            "type": "string"
+          },
+          "expected_item_revision": {
+            "minimum": 1.0,
+            "title": "Expected Item Revision",
+            "type": "integer"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "timeframe": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeframe"
+          }
+        },
+        "required": [
+          "command_id",
+          "expected_item_revision",
+          "detail",
+          "owner",
+          "timeframe",
+          "location"
+        ],
+        "title": "PlanCorrection",
+        "type": "object"
+      },
+      "PlanItem": {
+        "additionalProperties": false,
+        "properties": {
+          "audiences": {
+            "items": {
+              "enum": [
+                "clinician",
+                "family"
+              ],
+              "type": "string"
+            },
+            "maxItems": 2,
+            "title": "Audiences",
+            "type": "array"
+          },
+          "clinician_confirmed": {
+            "default": false,
+            "title": "Clinician Confirmed",
+            "type": "boolean"
+          },
+          "dependencies": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Dependencies",
+            "type": "array"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "evidence_refs": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "explanation": {
+            "default": "",
+            "title": "Explanation",
+            "type": "string"
+          },
+          "external_completed": {
+            "default": false,
+            "title": "External Completed",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "needs_clarification": {
+            "default": true,
+            "title": "Needs Clarification",
+            "type": "boolean"
+          },
+          "order_available": {
+            "default": false,
+            "title": "Order Available",
+            "type": "boolean"
+          },
+          "origin": {
+            "default": "preparation",
+            "enum": [
+              "preparation",
+              "interpretation",
+              "human"
+            ],
+            "title": "Origin",
+            "type": "string"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "patient_authorized": {
+            "default": false,
+            "title": "Patient Authorized",
+            "type": "boolean"
+          },
+          "revision": {
+            "default": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "status": {
+            "default": "draft",
+            "enum": [
+              "draft",
+              "waiting",
+              "confirmed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "timeframe": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeframe"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "detail",
+          "evidence_refs"
+        ],
+        "title": "PlanItem",
+        "type": "object"
+      },
+      "PreparationApproved": {
+        "additionalProperties": false,
+        "properties": {
+          "approved": {
+            "title": "Approved",
+            "type": "boolean"
+          },
+          "type": {
+            "const": "preparation.approved",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "approved"
+        ],
+        "title": "PreparationApproved",
+        "type": "object"
+      },
+      "PrerequisiteRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_fingerprint": {
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Expected Fingerprint",
+            "type": "string"
+          },
+          "order": {
+            "default": false,
+            "title": "Order",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "expected_fingerprint"
+        ],
+        "title": "PrerequisiteRequest",
+        "type": "object"
+      },
+      "Priority": {
+        "additionalProperties": false,
+        "properties": {
+          "answer_audiences": {
+            "items": {
+              "enum": [
+                "clinician",
+                "family"
+              ],
+              "type": "string"
+            },
+            "title": "Answer Audiences",
+            "type": "array"
+          },
+          "answer_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Detail"
+          },
+          "answer_refs": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Answer Refs",
+            "type": "array"
+          },
+          "approved": {
+            "default": false,
+            "title": "Approved",
+            "type": "boolean"
+          },
+          "audiences": {
+            "items": {
+              "enum": [
+                "clinician",
+                "family"
+              ],
+              "type": "string"
+            },
+            "maxItems": 2,
+            "title": "Audiences",
+            "type": "array"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "evidence_refs": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "selected": {
+            "title": "Selected",
+            "type": "boolean"
+          },
+          "status": {
+            "default": "open",
+            "enum": [
+              "open",
+              "partly_answered",
+              "answered",
+              "deferred"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "detail",
+          "selected",
+          "evidence_refs"
+        ],
+        "title": "Priority",
+        "type": "object"
+      },
+      "PriorityEdited": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "maxLength": 1200,
+            "minLength": 3,
+            "title": "Detail",
+            "type": "string"
+          },
+          "priority_id": {
+            "format": "uuid",
+            "title": "Priority Id",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 3,
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "const": "priority.edited",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "priority_id",
+          "title",
+          "detail"
+        ],
+        "title": "PriorityEdited",
+        "type": "object"
+      },
+      "PrioritySelectionChanged": {
+        "additionalProperties": false,
+        "properties": {
+          "priority_id": {
+            "format": "uuid",
+            "title": "Priority Id",
+            "type": "string"
+          },
+          "selected": {
+            "title": "Selected",
+            "type": "boolean"
+          },
+          "type": {
+            "const": "priority.selection_changed",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "priority_id",
+          "selected"
+        ],
+        "title": "PrioritySelectionChanged",
+        "type": "object"
+      },
+      "PrivateCue": {
+        "additionalProperties": false,
+        "properties": {
+          "blocked_reason": {
+            "title": "Blocked Reason",
+            "type": "string"
+          },
+          "digest": {
+            "title": "Digest",
+            "type": "string"
+          },
+          "eligible_to_speak": {
+            "title": "Eligible To Speak",
+            "type": "boolean"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "public_text": {
+            "title": "Public Text",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "suggestion": {
+            "title": "Suggestion",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "digest",
+          "title",
+          "suggestion",
+          "public_text",
+          "score",
+          "state",
+          "expires_at",
+          "eligible_to_speak",
+          "blocked_reason"
+        ],
+        "title": "PrivateCue",
+        "type": "object"
+      },
+      "ProcessingRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "format": "uuid",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "command_id",
+          "enabled"
+        ],
+        "title": "ProcessingRequest",
+        "type": "object"
+      },
+      "RedeemRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "token": {
+            "maxLength": 128,
+            "minLength": 30,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "title": "RedeemRequest",
+        "type": "object"
+      },
+      "ReviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "fingerprint": {
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Fingerprint",
+            "type": "string"
+          },
+          "note": {
+            "maxLength": 300,
+            "minLength": 3,
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fingerprint",
+          "note"
+        ],
+        "title": "ReviewRequest",
+        "type": "object"
+      },
+      "ScenarioRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "enum": [
+              "normal",
+              "no_slot",
+              "expired",
+              "delayed",
+              "rejected",
+              "timeout_after_write",
+              "duplicate_callback"
+            ],
+            "title": "Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode"
+        ],
+        "title": "ScenarioRequest",
+        "type": "object"
+      },
+      "ScopeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed": {
+            "title": "Allowed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "allowed"
+        ],
+        "title": "ScopeRequest",
+        "type": "object"
+      },
+      "SharingChanged": {
+        "additionalProperties": false,
+        "properties": {
+          "audiences": {
+            "items": {
+              "enum": [
+                "clinician",
+                "family"
+              ],
+              "type": "string"
+            },
+            "maxItems": 2,
+            "title": "Audiences",
+            "type": "array"
+          },
+          "item_id": {
+            "format": "uuid",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "type": {
+            "const": "sharing.changed",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "item_id",
+          "audiences"
+        ],
+        "title": "SharingChanged",
+        "type": "object"
+      },
+      "SourceCorrection": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "format": "uuid",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "expected_source_version": {
+            "minimum": 1.0,
+            "title": "Expected Source Version",
+            "type": "integer"
+          },
+          "text": {
+            "maxLength": 2000,
+            "minLength": 3,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "command_id",
+          "expected_source_version",
+          "text"
+        ],
+        "title": "SourceCorrection",
+        "type": "object"
+      },
+      "SpeakingConsent": {
+        "additionalProperties": false,
+        "properties": {
+          "agreed": {
+            "title": "Agreed",
+            "type": "boolean"
+          },
+          "connection_id": {
+            "format": "uuid",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connection_id",
+          "name",
+          "agreed"
+        ],
+        "title": "SpeakingConsent",
+        "type": "object"
+      },
+      "SpeechAction": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "format": "uuid",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "refresh",
+              "stop",
+              "closeout"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "command_id",
+          "type"
+        ],
+        "title": "SpeechAction",
+        "type": "object"
+      },
+      "SpeechAgreement": {
+        "additionalProperties": false,
+        "properties": {
+          "agreed": {
+            "title": "Agreed",
+            "type": "boolean"
+          },
+          "command_id": {
+            "format": "uuid",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "connection_id": {
+            "format": "uuid",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "mode_revision": {
+            "minimum": 0.0,
+            "title": "Mode Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "command_id",
+          "connection_id",
+          "mode_revision",
+          "agreed"
+        ],
+        "title": "SpeechAgreement",
+        "type": "object"
+      },
+      "SpeechReceipt": {
+        "additionalProperties": false,
+        "properties": {
+          "approval_to_audio_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approval To Audio Ms"
+          },
+          "approved_at": {
+            "format": "date-time",
+            "title": "Approved At",
+            "type": "string"
+          },
+          "end_of_input_to_audio_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Of Input To Audio Ms"
+          },
+          "first_audio_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Audio At"
+          },
+          "hearing_confirmed": {
+            "const": false,
+            "default": false,
+            "title": "Hearing Confirmed",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "played_ms": {
+            "title": "Played Ms",
+            "type": "integer"
+          },
+          "played_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Played Text"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "recognition_delay_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recognition Delay Ms"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "stop_detected_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stop Detected At"
+          },
+          "stopped_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stopped At"
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "played_text",
+          "played_ms",
+          "reason",
+          "approved_at",
+          "first_audio_at",
+          "stopped_at",
+          "approval_to_audio_ms",
+          "end_of_input_to_audio_ms"
+        ],
+        "title": "SpeechReceipt",
+        "type": "object"
+      },
+      "SpeechView": {
+        "additionalProperties": false,
+        "properties": {
+          "consents": {
+            "items": {
+              "$ref": "#/components/schemas/SpeakingConsent"
+            },
+            "title": "Consents",
+            "type": "array"
+          },
+          "cues": {
+            "items": {
+              "$ref": "#/components/schemas/PrivateCue"
+            },
+            "title": "Cues",
+            "type": "array"
+          },
+          "floor": {
+            "enum": [
+              "idle",
+              "waiting",
+              "generating",
+              "speaking",
+              "paused",
+              "unavailable"
+            ],
+            "title": "Floor",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "private",
+              "on_request",
+              "closeout"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "mode_revision": {
+            "title": "Mode Revision",
+            "type": "integer"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "provider": {
+            "enum": [
+              "fixture",
+              "cartesia",
+              "unavailable"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "provider_model": {
+            "title": "Provider Model",
+            "type": "string"
+          },
+          "quiet_seconds": {
+            "title": "Quiet Seconds",
+            "type": "number"
+          },
+          "receipts": {
+            "items": {
+              "$ref": "#/components/schemas/SpeechReceipt"
+            },
+            "title": "Receipts",
+            "type": "array"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "observed_at",
+          "mode",
+          "mode_revision",
+          "revision",
+          "floor",
+          "provider",
+          "provider_model",
+          "quiet_seconds",
+          "consents",
+          "cues",
+          "receipts",
+          "message"
+        ],
+        "title": "SpeechView",
+        "type": "object"
+      },
+      "Suggestion": {
+        "additionalProperties": false,
+        "properties": {
+          "author_id": {
+            "format": "uuid",
+            "title": "Author Id",
+            "type": "string"
+          },
+          "author_name": {
+            "title": "Author Name",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "default": "pending",
+            "enum": [
+              "pending",
+              "accepted",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "author_id",
+          "author_name",
+          "title",
+          "detail"
+        ],
+        "title": "Suggestion",
+        "type": "object"
+      },
+      "SuggestionAdded": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "maxLength": 1200,
+            "minLength": 3,
+            "title": "Detail",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 3,
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "const": "suggestion.added",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "detail"
+        ],
+        "title": "SuggestionAdded",
+        "type": "object"
+      },
+      "SuggestionReviewed": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "enum": [
+              "accepted",
+              "rejected"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "suggestion_id": {
+            "format": "uuid",
+            "title": "Suggestion Id",
+            "type": "string"
+          },
+          "type": {
+            "const": "suggestion.reviewed",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "suggestion_id",
+          "decision"
+        ],
+        "title": "SuggestionReviewed",
+        "type": "object"
+      },
+      "TitleChanged": {
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "maxLength": 160,
+            "minLength": 3,
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "const": "encounter.title_changed",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title"
+        ],
+        "title": "TitleChanged",
+        "type": "object"
+      },
+      "UnderstandingStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "fixture_input_enabled": {
+            "default": false,
+            "title": "Fixture Input Enabled",
+            "type": "boolean"
+          },
+          "message": {
+            "default": "",
+            "title": "Message",
+            "type": "string"
+          },
+          "model": {
+            "default": "original-scenarios-v1",
+            "title": "Model",
+            "type": "string"
+          },
+          "processed_revision": {
+            "default": 0,
+            "title": "Processed Revision",
+            "type": "integer"
+          },
+          "prompt_version": {
+            "default": "visit-extraction-v4",
+            "title": "Prompt Version",
+            "type": "string"
+          },
+          "provider": {
+            "default": "fixture",
+            "enum": [
+              "fixture",
+              "openai",
+              "deepseek",
+              "unavailable"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "revision": {
+            "default": 0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "state": {
+            "default": "off",
+            "enum": [
+              "off",
+              "queued",
+              "processing",
+              "ready",
+              "unavailable",
+              "paused"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "title": "UnderstandingStatus",
+        "type": "object"
+      },
+      "Utterance": {
+        "additionalProperties": false,
+        "properties": {
+          "connection_id": {
+            "format": "uuid",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "consent_epoch": {
+            "title": "Consent Epoch",
+            "type": "integer"
+          },
+          "finalized_at": {
+            "format": "date-time",
+            "title": "Finalized At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "membership_id": {
+            "format": "uuid",
+            "title": "Membership Id",
+            "type": "string"
+          },
+          "provider": {
+            "const": "deepgram",
+            "title": "Provider",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "track_epoch": {
+            "title": "Track Epoch",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "connection_id",
+          "membership_id",
+          "track_epoch",
+          "consent_epoch",
+          "text",
+          "finalized_at",
+          "provider"
+        ],
+        "title": "Utterance",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Patient-controlled synthetic visit preparation.",
+    "title": "Bring Vene",
+    "version": "0.2.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/auth/logout": {
+      "post": {
+        "operationId": "logout_auth_logout_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Logout"
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "me_auth_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Identity"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Me"
+      }
+    },
+    "/auth/redeem": {
+      "post": {
+        "operationId": "redeem_invitation_auth_redeem_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Identity"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Redeem Invitation"
+      }
+    },
+    "/dev/cases": {
+      "get": {
+        "operationId": "fixture_cases_dev_cases_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Fixture Cases"
+      }
+    },
+    "/dev/fixture": {
+      "get": {
+        "operationId": "fixture_info_dev_fixture_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Fixture Info"
+      }
+    },
+    "/dev/invitations": {
+      "post": {
+        "operationId": "fixture_invitation_dev_invitations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FixtureLaunch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invitation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Fixture Invitation"
+      }
+    },
+    "/encounters": {
+      "get": {
+        "operationId": "encounters_encounters_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EncounterSummary"
+                  },
+                  "title": "Response Encounters Encounters Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Encounters"
+      }
+    },
+    "/encounters/{encounter_id}": {
+      "get": {
+        "operationId": "encounter_encounters__encounter_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EncounterView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Encounter"
+      }
+    },
+    "/encounters/{encounter_id}/call": {
+      "get": {
+        "operationId": "state_encounters__encounter_id__call_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "State"
+      }
+    },
+    "/encounters/{encounter_id}/call/admit": {
+      "post": {
+        "operationId": "admit_encounters__encounter_id__call_admit_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallAdmission"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Admit"
+      }
+    },
+    "/encounters/{encounter_id}/call/connections/{connection_id}/leave": {
+      "post": {
+        "operationId": "leave_encounters__encounter_id__call_connections__connection_id__leave_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Connection Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Leave"
+      }
+    },
+    "/encounters/{encounter_id}/call/connections/{connection_id}/verify": {
+      "post": {
+        "operationId": "verify_encounters__encounter_id__call_connections__connection_id__verify_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Connection Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Verify"
+      }
+    },
+    "/encounters/{encounter_id}/call/consent": {
+      "post": {
+        "operationId": "consent_encounters__encounter_id__call_consent_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Consent"
+      }
+    },
+    "/encounters/{encounter_id}/call/controls": {
+      "post": {
+        "operationId": "control_encounters__encounter_id__call_controls_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CallControl"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Control"
+      }
+    },
+    "/encounters/{encounter_id}/call/diagnostics": {
+      "get": {
+        "operationId": "diagnostics_encounters__encounter_id__call_diagnostics_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallDiagnostics"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Diagnostics"
+      }
+    },
+    "/encounters/{encounter_id}/call/utterances": {
+      "get": {
+        "operationId": "utterances_encounters__encounter_id__call_utterances_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Utterance"
+                  },
+                  "title": "Response Utterances Encounters  Encounter Id  Call Utterances Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Utterances"
+      }
+    },
+    "/encounters/{encounter_id}/commands": {
+      "post": {
+        "operationId": "command_encounters__encounter_id__commands_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandEnvelope"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Command"
+      }
+    },
+    "/encounters/{encounter_id}/context": {
+      "get": {
+        "operationId": "context_encounters__encounter_id__context_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContextView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Context"
+      }
+    },
+    "/encounters/{encounter_id}/context/shared": {
+      "get": {
+        "operationId": "shared_context_encounters__encounter_id__context_shared_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "audience",
+            "required": true,
+            "schema": {
+              "enum": [
+                "clinician",
+                "family"
+              ],
+              "title": "Audience",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContextView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Shared Context"
+      }
+    },
+    "/encounters/{encounter_id}/continuity": {
+      "get": {
+        "operationId": "state_encounters__encounter_id__continuity_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContinuityView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "State"
+      }
+    },
+    "/encounters/{encounter_id}/continuity/delete": {
+      "post": {
+        "operationId": "delete_visit_encounters__encounter_id__continuity_delete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Visit"
+      }
+    },
+    "/encounters/{encounter_id}/continuity/documents": {
+      "post": {
+        "operationId": "upload_encounters__encounter_id__continuity_documents_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentUpload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContinuityView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload"
+      }
+    },
+    "/encounters/{encounter_id}/continuity/documents/{document_id}/review": {
+      "post": {
+        "operationId": "review_encounters__encounter_id__continuity_documents__document_id__review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContinuityView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Review"
+      }
+    },
+    "/encounters/{encounter_id}/continuity/family-updates": {
+      "post": {
+        "operationId": "draft_encounters__encounter_id__continuity_family_updates_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FamilyDraftRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContinuityView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Draft"
+      }
+    },
+    "/encounters/{encounter_id}/continuity/family-updates/{update_id}/approve": {
+      "post": {
+        "operationId": "approve_encounters__encounter_id__continuity_family_updates__update_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "update_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Update Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DigestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContinuityView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve"
+      }
+    },
+    "/encounters/{encounter_id}/continuity/next-visit": {
+      "post": {
+        "operationId": "next_visit_encounters__encounter_id__continuity_next_visit_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NextVisitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NextVisitCreated"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Next Visit"
+      }
+    },
+    "/encounters/{encounter_id}/continuity/sandbox-callbacks/{action_id}": {
+      "post": {
+        "operationId": "repeat_callback_encounters__encounter_id__continuity_sandbox_callbacks__action_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Action Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Repeat Callback"
+      }
+    },
+    "/encounters/{encounter_id}/evidence/{evidence_id}": {
+      "get": {
+        "operationId": "evidence_encounters__encounter_id__evidence__evidence_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "evidence_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Evidence Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Evidence"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Evidence"
+      }
+    },
+    "/encounters/{encounter_id}/execution": {
+      "get": {
+        "operationId": "state_encounters__encounter_id__execution_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "State"
+      }
+    },
+    "/encounters/{encounter_id}/execution/actions/{action_id}/approve": {
+      "post": {
+        "operationId": "approve_encounters__encounter_id__execution_actions__action_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Action Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve"
+      }
+    },
+    "/encounters/{encounter_id}/execution/actions/{action_id}/prerequisites": {
+      "post": {
+        "operationId": "prerequisites_encounters__encounter_id__execution_actions__action_id__prerequisites_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Action Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrerequisiteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Prerequisites"
+      }
+    },
+    "/encounters/{encounter_id}/execution/items/{item_id}/lookup": {
+      "post": {
+        "operationId": "lookup_encounters__encounter_id__execution_items__item_id__lookup_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Lookup"
+      }
+    },
+    "/encounters/{encounter_id}/execution/items/{item_id}/scope": {
+      "post": {
+        "operationId": "scope_encounters__encounter_id__execution_items__item_id__scope_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScopeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Scope"
+      }
+    },
+    "/encounters/{encounter_id}/execution/scenario": {
+      "post": {
+        "operationId": "scenario_encounters__encounter_id__execution_scenario_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenarioRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Scenario"
+      }
+    },
+    "/encounters/{encounter_id}/invitations": {
+      "post": {
+        "operationId": "invite_encounters__encounter_id__invitations_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invitation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Invite"
+      }
+    },
+    "/encounters/{encounter_id}/invitations/{invitation_id}/revoke": {
+      "post": {
+        "operationId": "revoke_invite_encounters__encounter_id__invitations__invitation_id__revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "invitation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Invitation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Invite"
+      }
+    },
+    "/encounters/{encounter_id}/members": {
+      "get": {
+        "operationId": "members_encounters__encounter_id__members_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MemberView"
+                  },
+                  "title": "Response Members Encounters  Encounter Id  Members Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Members"
+      }
+    },
+    "/encounters/{encounter_id}/members/{membership_id}/revoke": {
+      "post": {
+        "operationId": "revoke_member_encounters__encounter_id__members__membership_id__revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "membership_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Membership Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EncounterView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Member"
+      }
+    },
+    "/encounters/{encounter_id}/speech": {
+      "get": {
+        "operationId": "state_encounters__encounter_id__speech_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpeechView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "State"
+      }
+    },
+    "/encounters/{encounter_id}/speech/actions": {
+      "post": {
+        "operationId": "action_encounters__encounter_id__speech_actions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpeechAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpeechView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Action"
+      }
+    },
+    "/encounters/{encounter_id}/speech/agreement": {
+      "post": {
+        "operationId": "agree_encounters__encounter_id__speech_agreement_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpeechAgreement"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpeechView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Agree"
+      }
+    },
+    "/encounters/{encounter_id}/speech/approve": {
+      "post": {
+        "operationId": "approve_encounters__encounter_id__speech_approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CueApproval"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpeechView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve"
+      }
+    },
+    "/encounters/{encounter_id}/speech/mode": {
+      "post": {
+        "operationId": "mode_encounters__encounter_id__speech_mode_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpeechView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mode"
+      }
+    },
+    "/encounters/{encounter_id}/stream": {
+      "get": {
+        "operationId": "stream_encounters__encounter_id__stream_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stream"
+      }
+    },
+    "/encounters/{encounter_id}/understanding": {
+      "get": {
+        "operationId": "state_encounters__encounter_id__understanding_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnderstandingStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "State"
+      }
+    },
+    "/encounters/{encounter_id}/understanding/fixture-turns": {
+      "post": {
+        "operationId": "turn_encounters__encounter_id__understanding_fixture_turns_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FixtureTurn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EncounterView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Turn"
+      }
+    },
+    "/encounters/{encounter_id}/understanding/plan/{item_id}/correct": {
+      "post": {
+        "operationId": "plan_encounters__encounter_id__understanding_plan__item_id__correct_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanCorrection"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EncounterView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Plan"
+      }
+    },
+    "/encounters/{encounter_id}/understanding/processing": {
+      "post": {
+        "operationId": "processing_encounters__encounter_id__understanding_processing_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProcessingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EncounterView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Processing"
+      }
+    },
+    "/encounters/{encounter_id}/understanding/retry": {
+      "post": {
+        "operationId": "retry_encounters__encounter_id__understanding_retry_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Mutation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EncounterView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Retry"
+      }
+    },
+    "/encounters/{encounter_id}/understanding/sources/{source_id}/correct": {
+      "post": {
+        "operationId": "source_encounters__encounter_id__understanding_sources__source_id__correct_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceCorrection"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EncounterView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Source"
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "live_health_live_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Live"
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "ready_health_ready_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Ready"
+      }
+    },
+    "/integrations/office/results": {
+      "post": {
+        "operationId": "office_callback_integrations_office_results_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Office Callback"
+      }
+    }
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "copied_source": [
+    {
+      "repository": "livekit/agents",
+      "commit": "b58e83f5c77d5b4bd4c8586793885151a91c4c83",
+      "upstream_path": "examples/other/transcription/multi-user-transcriber.py",
+      "local_path": "services/backend/src/bring_vene/voice/supervisor.py",
+      "license": "Apache-2.0",
+      "adaptation": "Lifecycle structure rewritten for registered pending tasks, per-track/consent epochs, immediate cancellation, bounded raw streams, and no transcript logging/publication.",
+      "license_file": "services/backend/src/bring_vene/voice/licenses/LIVEKIT_AGENTS_LICENSE",
+      "notice_file": "services/backend/src/bring_vene/voice/licenses/NOTICE"
+    }
+  ],
+  "references": [
+    {
+      "source": "https://chromium.googlesource.com/chromium/src/+/HEAD/content/public/common/content_switches.cc",
+      "use": "Primary reference for the allow-loopback-in-peer-connection flag used by controlled local WebRTC tests. No Chromium source copied; no recording or encryption bypass flags enabled."
+    },
+    {
+      "source": "https://www.psycopg.org/psycopg3/docs/advanced/async.html",
+      "use": "Original Phase 5 dedicated LISTEN connection and commit-time permission invalidation triggers. Synchronous psycopg notification consumption in an owned background thread keeps Windows Proactor subprocess support; notifications carry only a visit UUID and reason. No example source copied."
+    },
+    {
+      "source": "https://docs.livekit.io/agents/multimodality/audio/",
+      "use": "Phase 5 AgentSession, SpeechHandle and AudioOutput API reference. Original server-fenced single-track output, with no RoomIO input, public transcript publication or copied SDK example source. livekit-agents 1.8.6 and livekit RTC 1.1.20 are pinned dependencies."
+    },
+    {
+      "source": "https://docs.livekit.io/agents/models/tts/cartesia/",
+      "use": "Phase 5 maintained livekit-plugins-cartesia 1.8.6 (Apache-2.0) dependency and explicit sonic-3-2026-01-12 configuration. Original provider wrapper and cancellation; no application example copied. Live credential/quality gate remains open."
+    },
+    {
+      "source": "Windows System.Speech platform API",
+      "use": "Original scripts/synthesize-fixture.ps1 generates original synthetic text in memory using the locally installed voice. No voice model, recorded audio or platform binary is copied or redistributed. This is an offline local fixture, not a live provider accuracy claim."
+    },
+    {
+      "source": "https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses",
+      "use": "Phase 4 Responses/Pydantic integration reference. Original bounded gateway and validators; no example application source copied. OpenAI Python SDK dependency pinned at 2.54.0, Apache-2.0, in uv.lock."
+    },
+    {
+      "repository": "livekit-examples/meet",
+      "commit": "13e4fd88d6f3c238060746a8f476e32af5c97fbf",
+      "path": "package.json",
+      "license": "Apache-2.0",
+      "use": "Compatibility reference for React 18 and Next.js 15; select dependencies only, update Next patch, omit telemetry and optional audio filters."
+    },
+    {
+      "source": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
+      "use": "Phase 2 design reference for opaque session IDs and cookie attributes; no source copied."
+    },
+    {
+      "source": "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html",
+      "use": "Phase 2 design reference for mutation-origin and session CSRF checks; no source copied."
+    },
+    {
+      "repository": "livekit-examples/meet",
+      "commit": "13e4fd88d6f3c238060746a8f476e32af5c97fbf",
+      "path": "app/rooms/[roomName]/PageClientImpl.tsx",
+      "license": "Apache-2.0",
+      "use": "Phase 3 pre-join/device/RoomContext pattern reference; custom audience-bound admission instead of the example public token route. No literal room UI source copied."
+    },
+    {
+      "source": "Bring Vene internal domain/auth/context services, original Phase 5 media test setup, and existing pinned dependencies",
+      "use": "Phase 6 original administrative adapter, Postgres transactional outbox, independent loopback office, source/digest checks and receipt reconciliation. No upstream source copied and no new dependency. Internal speech test setup extracted into speech-helpers.ts. Standard-library urllib is part of the existing Python 3.12 PSF-licensed runtime."
+    },
+    {
+      "source": "https://github.com/py-pdf/pypdf/releases/tag/6.20.1",
+      "package": "pypdf",
+      "version": "6.20.1",
+      "license": "BSD-3-Clause",
+      "use": "Maintained pinned dependency, not copied application source. Original bounded secret-free subprocess parser; source bytes not retained; exact extracted quotes and pages stored. Scanned OCR excluded."
+    },
+    {
+      "source": "https://github.com/postcss/postcss/releases/tag/8.5.30",
+      "package": "postcss",
+      "version": "8.5.30",
+      "license": "MIT",
+      "use": "Compatible Next.js transitive override to address four advisories in 8.4.31; production build and browser regression required. No source adapted."
+    },
+    {
+      "source": "https://github.com/mozilla-firefox/firefox/blob/main/dom/media/MediaManager.cpp",
+      "use": "Firefox synthetic media preferences for controlled local browser smoke. No code copied or physical microphone quality claim."
+    },
+    {
+      "source": "Bundled ReportLab and Poppler tools",
+      "use": "Original single-page fictional PDF fixture generated by scripts/generate-document-fixtures.py and visually rendered. Authoring tools only, not runtime app dependencies or copied templates."
+    },
+    {
+      "source": "https://github.com/livekit/python-sdks/issues/784",
+      "use": "Original cancellation wrapper lets native connect handshake finish before routine task cleanup. No issue example source copied; regression verifies cancellation does not abandon the native join."
+    },
+    {
+      "source": "https://github.com/livekit/livekit/blob/master/config-sample.yaml",
+      "use": "Numeric loopback server candidates with mDNS gathering disabled; local authenticated TURN admits only 127.0.0.1/32 among restricted peers. Actual SDK connection checked, not a production network configuration."
+    },
+    {
+      "source": "https://raw.githubusercontent.com/mozilla-firefox/firefox/main/modules/libpref/init/all.js",
+      "use": "Firefox test-only synthetic microphone/loopback preferences. Address obfuscation disabled only in owned local test browsers."
+    },
+    {
+      "source": "https://chromium.googlesource.com/chromium/src/+/86ca048683d569e69ec6b682c45cb00f744fa6c7/third_party/blink/common/features.cc",
+      "use": "Test-only WebRtcHideLocalIpsWithMdns switch paired with loopback ICE allowance. No transport encryption bypass or application permission change."
+    },
+    {
+      "source": "https://api-docs.deepseek.com/guides/json_mode/",
+      "reviewed_at": "2026-10-15",
+      "local_path": "services/backend/src/bring_vene/understanding/gateway.py",
+      "use": "Protocol reference only; original bounded adapter using existing pinned OpenAI SDK; no upstream source copied. Explicit JSON mode, local schema validation, thinking disabled per official thinking_mode guide."
+    },
+    {
+      "source": "https://docs.cartesia.ai/api-reference/voices/list",
+      "reviewed_at": "2026-10-15",
+      "use": "Authenticated public voice discovery; Skylar selected, no voice cloning or source copying. Existing pinned LiveKit Cartesia SDK retained."
+    },
+    {
+      "source": "https://developers.deepgram.com/docs/understand-endpointing-interim-results",
+      "reviewed_at": "2026-10-15",
+      "local_path": "services/backend/src/bring_vene/voice/supervisor.py",
+      "use": "Protocol reference only; original per-track bounded final-segment assembly until SDK END_OF_SPEECH, 300 ms endpointing and cancellation discard. No upstream source copied."
+    }
+  ]
+}

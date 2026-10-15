@@ -1,0 +1,14 @@
+{
+  "completed_samples": 1,
+  "target_samples": 20,
+  "complete": false,
+  "trials": [
+    {
+      "trial": 1,
+      "approval_to_received_audio_ms": 10836,
+      "publisher_end_of_input_to_audio_ms": 9995,
+      "stop_detection_to_last_received_audio_ms": 896,
+      "recognition_delay_ms": null
+    }
+  ]
+}

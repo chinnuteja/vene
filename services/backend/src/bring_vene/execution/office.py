@@ -1,0 +1,168 @@
+"""Independent HTTP sandbox. No patient names, transcripts or clinical instructions."""
+import secrets
+import time
+from datetime import timedelta
+from uuid import UUID, uuid4
+from fastapi import FastAPI, Depends, Header, HTTPException
+from pydantic import Field
+from sqlalchemy.orm import Session
+from bring_vene.config import Settings
+from bring_vene.persistence.database import make_engine
+from bring_vene.persistence.models import OfficeStateRecord, OfficeRequestRecord,OfficeCallbackOutboxRecord,OfficeFamilyReceiptRecord
+from bring_vene.domain.service import utc_now
+from bring_vene.execution.contracts import Input, LookupRequest, ScenarioRequest
+
+class Booking(Input):
+    request_id: UUID
+    slot_id: str = Field(max_length=100)
+    availability_revision: int
+    order_id: UUID
+
+class Order(Input):
+    request_id: UUID
+
+class FamilyDelivery(Input):
+    request_id: UUID
+    recipient_id: UUID
+    text: str=Field(min_length=3,max_length=2000)
+    digest: str=Field(min_length=64,max_length=64)
+
+def ensure(session):
+    row = session.get(OfficeStateRecord,'office')
+    if not row:
+        # Creation is a one-time launcher migration step; request access does not seed.
+        raise HTTPException(503,'Sandbox office has not been initialized.')
+    return row
+
+def initialize(engine):
+    with Session(engine) as session, session.begin():
+        slots=[]
+        for location,day,label in [('Riverside Lab','2026-10-20','Tue, Oct 20'),('Harbor Lab','2026-10-21','Wed, Oct 21'),('Hilltop Lab','2026-10-23','Fri, Oct 23')]:
+            for window,hour,time_label in [('morning','09','9:00 AM'),('afternoon','15','3:00 PM')]:
+                sid='lab:'+day+':'+window # Stable resource identity across availability revisions.
+                slots.append({'id':sid,'label':label+' · '+time_label+' ET · Fictional '+location,'window':window,
+                    'location':location,'day':day,'starts_at':day+'T'+hour+':00:00-04:00'})
+        row=session.get(OfficeStateRecord,'office',with_for_update=True)
+        if not row:session.add(OfficeStateRecord(id='office',content={'mode':'normal','revision':1,'reserved':[],'slots':slots}))
+        elif 'slots' not in row.content:
+            row.content={**row.content,'slots':slots,'reserved':[s['id'] for s in slots if any(x.endswith(':'+s['window']) for x in row.content['reserved'])]}
+        else:
+            existing={s['id']:s for s in row.content['slots']}
+            row.content={**row.content,'slots':[{**s,**existing.get(s['id'],{}),'location':s['location'],'day':s['day']} for s in slots]}
+
+def office_app(settings=None,engine=None):
+    settings=settings or Settings();engine=engine if engine is not None else make_engine(settings.database_url)
+    app=FastAPI(title='Bring Vene — LOCAL SANDBOX OFFICE')
+    def authorized(authorization: str | None = Header(default=None)):
+        if not settings.bring_vene_development or not settings.office_token or not secrets.compare_digest(authorization or '', 'Bearer '+settings.office_token):
+            raise HTTPException(403,'Sandbox service access denied.')
+
+    @app.get('/health')
+    def health():return {'sandbox':True}
+
+    @app.post('/scenario',dependencies=[Depends(authorized)])
+    def scenario(body:ScenarioRequest):
+        with Session(engine) as session,session.begin():
+            row=session.get(OfficeStateRecord,'office',with_for_update=True);ensure(session)
+            row.content={**row.content,'mode':body.mode,'revision':row.content['revision']+1}
+            return {'sandbox':True,'mode':body.mode,'revision':row.content['revision']}
+
+    @app.post('/lookup',dependencies=[Depends(authorized)])
+    def lookup(body:LookupRequest):
+        with Session(engine) as session:
+            content=ensure(session).content
+            delay=content['mode']=='delayed'
+            stamp=utc_now();revision=content['revision']
+            slot=next((s for s in content['slots'] if s['window']==body.window and s['location']==body.location and s['day']==body.day and s['id'] not in content['reserved']),None)
+            result={'sandbox':True,'revision':revision,'checked_at':stamp.isoformat(),
+                'expires_at':(stamp+timedelta(seconds=-1 if content['mode']=='expired' else 120)).isoformat(),
+                'slot':None if content['mode']=='no_slot' else slot}
+        if delay:time.sleep(1.4)
+        return result
+
+    @app.post('/orders',dependencies=[Depends(authorized)])
+    def order(body:Order):
+        with Session(engine) as session,session.begin():
+            # Serialize idempotency keys across all office writes.
+            session.get(OfficeStateRecord,'office',with_for_update=True);ensure(session)
+            old=session.get(OfficeRequestRecord,body.request_id)
+            if old:
+                if old.kind!='order':raise HTTPException(409,'Request ID reused.')
+                return old.content
+            receipt={'sandbox':True,'order_id':str(body.request_id),'status':'available','issued_at':utc_now().isoformat()}
+            session.add(OfficeRequestRecord(request_id=body.request_id,kind='order',content=receipt));return receipt
+
+    @app.post('/bookings',dependencies=[Depends(authorized)])
+    def booking(body:Booking):
+        ambiguous=False
+        with Session(engine) as session,session.begin():
+            row=session.get(OfficeStateRecord,'office',with_for_update=True);ensure(session)
+            old=session.get(OfficeRequestRecord,body.request_id)
+            payload=body.model_dump(mode='json')
+            if old:
+                if old.kind!='booking' or old.content['payload']!=payload:raise HTTPException(409,'Request ID reused with different content.')
+                return old.content['result']
+            order=session.get(OfficeRequestRecord,body.order_id)
+            if not order or order.kind!='order':raise HTTPException(409,'Required sandbox order missing.')
+            content=row.content
+            valid_slots={s['id'] for s in content['slots']}
+            rejected=(content['mode'] in {'no_slot','expired','rejected'} or body.availability_revision!=content['revision'] or
+                      body.slot_id not in valid_slots or body.slot_id in content['reserved'])
+            result={'sandbox':True,'status':'rejected' if rejected else 'confirmed','request_id':str(body.request_id),
+                    'receipt_id':str(uuid4()),'slot_id':body.slot_id,'recorded_at':utc_now().isoformat(),
+                    'reason':'Availability changed or office rejected the request.' if rejected else 'Persisted sandbox reservation.'}
+            if content['mode']=='duplicate_callback':
+                # Two identical receipt events in one sandbox response exercise ingestion
+                # without pretending to send authenticated office callbacks (Phase 7).
+                result['duplicate_events']=[dict(result),dict(result)]
+            session.add(OfficeRequestRecord(request_id=body.request_id,kind='booking',content={'payload':payload,'result':result}))
+            session.flush() # Persist the office parent before its independent callback outbox.
+            for _ in range(2 if content['mode']=='duplicate_callback' else 1):
+                session.add(OfficeCallbackOutboxRecord(id=uuid4(),request_id=body.request_id,content=result,
+                    next_at=utc_now()+timedelta(seconds=2),attempts=0))
+            if not rejected:row.content={**content,'reserved':[*content['reserved'],body.slot_id]}
+            ambiguous=content['mode']=='timeout_after_write' and not rejected
+        if ambiguous:time.sleep(1.4) # Commit succeeded; client may time out before receiving it.
+        return result
+
+    @app.get('/requests/{request_id}',dependencies=[Depends(authorized)])
+    def reconcile(request_id:UUID):
+        with Session(engine) as session:
+            old=session.get(OfficeRequestRecord,request_id)
+            return {'sandbox':True,'found':bool(old),'result':old.content['result'] if old and old.kind=='booking' else None}
+
+    @app.post('/callbacks/{request_id}/repeat',dependencies=[Depends(authorized)])
+    def repeat_callback(request_id:UUID):
+        with Session(engine) as session,session.begin():
+            old=session.get(OfficeRequestRecord,request_id)
+            if not old or old.kind!='booking':raise HTTPException(404,'Office request not found.')
+            job=OfficeCallbackOutboxRecord(id=uuid4(),request_id=request_id,content=old.content['result'],next_at=utc_now(),attempts=0)
+            session.add(job);return {'sandbox':True,'delivery_id':str(job.id)}
+
+    @app.post('/family-updates',dependencies=[Depends(authorized)])
+    def family_delivery(body:FamilyDelivery):
+        from bring_vene.understanding.service import fingerprint
+        payload_hash=fingerprint(body.model_dump(mode='json'));delayed=False
+        with Session(engine) as session,session.begin():
+            office=session.get(OfficeStateRecord,'office',with_for_update=True);ensure(session)
+            prior=session.get(OfficeFamilyReceiptRecord,body.request_id)
+            if prior:
+                if prior.payload_hash!=payload_hash:raise HTTPException(409,'Delivery ID reused with different fields.')
+                return prior.content
+            receipt={'sandbox':True,'request_id':str(body.request_id),'recipient_id':str(body.recipient_id),
+                'receipt_id':str(uuid4()),'status':'delivered','payload_hash':payload_hash,'received_at':utc_now().isoformat()}
+            # Acknowledges receipt of the approved payload without retaining its
+            # sensitive text in the independent service or ordinary logs.
+            session.add(OfficeFamilyReceiptRecord(id=body.request_id,payload_hash=payload_hash,content=receipt))
+            delayed=office.content['mode']=='timeout_after_write'
+        if delayed:time.sleep(1.4)
+        return receipt
+
+    @app.get('/family-updates/{request_id}',dependencies=[Depends(authorized)])
+    def family_receipt(request_id:UUID):
+        with Session(engine) as session:
+            row=session.get(OfficeFamilyReceiptRecord,request_id)
+            return {'sandbox':True,'found':bool(row),'result':row.content if row else None}
+    return app
+
+app=office_app()

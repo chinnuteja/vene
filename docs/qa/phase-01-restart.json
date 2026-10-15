@@ -1,0 +1,7 @@
+{
+  "restart": "passed",
+  "version": 13,
+  "backend_port": 8001,
+  "frontend_proxy": "passed",
+  "selected_count": 3
+}

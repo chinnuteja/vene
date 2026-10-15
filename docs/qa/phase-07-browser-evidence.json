@@ -1,0 +1,16 @@
+{
+  "checked_at": "2026-10-15T08:24:16.831Z",
+  "actual_http_callbacks": true,
+  "duplicate_reply_created_no_action": true,
+  "document": "original machine-readable PDF",
+  "clinical_state_unchanged": true,
+  "family_payload_selected_fields": true,
+  "delivery_receipt": "deae09f1-de50-456d-be0a-b9f9fa68b79a",
+  "api_and_worker_restarted": true,
+  "saved_plan_and_receipt_preserved": true,
+  "new_visit_private": true,
+  "disposable_visit_deleted": true,
+  "original_visit_retained": true,
+  "mobile_overflow": false,
+  "errors": []
+}

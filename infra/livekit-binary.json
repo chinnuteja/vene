@@ -1,0 +1,7 @@
+{
+  "version": "1.13.9",
+  "platform": "windows_amd64",
+  "source": "https://github.com/livekit/livekit/releases/download/v1.13.9/livekit_1.13.9_windows_amd64.zip",
+  "sha256": "d5b5e44c197f613fdd6bdb2ae53e9d086d848156d43f614c688c6b595cd3f25e",
+  "license": "Apache-2.0"
+}

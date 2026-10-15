@@ -1,0 +1,6 @@
+packages:
+  - apps/*
+
+
+overrides:
+  next>postcss: 8.5.30

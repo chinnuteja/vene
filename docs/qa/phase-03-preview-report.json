@@ -1,0 +1,9 @@
+{
+  "checked_at": "2026-10-13T07:58:10.677Z",
+  "url": "http://127.0.0.1:3000/visit",
+  "fixture_launcher": "passed",
+  "prejoin_controls": "passed",
+  "runtime_errors": [],
+  "mode": "fixture",
+  "microphone_opened": false
+}

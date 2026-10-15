@@ -1,0 +1,134 @@
+{
+  "checked_on": "2026-10-12",
+  "method": "Read-only GitHub connector source inspection. These source snapshots were not installed or executed. They are research references, not application code.",
+  "files": [
+    {
+      "repository": "livekit/agents",
+      "commit": "b58e83f5c77d5b4bd4c8586793885151a91c4c83",
+      "upstream_path": "examples/other/transcription/multi-user-transcriber.py",
+      "path": "research/bring-vene-sources/livekit/multi-user-transcriber.py",
+      "source": "https://github.com/livekit/agents/blob/b58e83f5c77d5b4bd4c8586793885151a91c4c83/examples/other/transcription/multi-user-transcriber.py",
+      "local_sha256": "97afae8e24e67a724effdb09a35e2e8c719904c49fde50804399e06f4a3c4d6f"
+    },
+    {
+      "repository": "livekit/agents",
+      "commit": "b58e83f5c77d5b4bd4c8586793885151a91c4c83",
+      "upstream_path": "livekit-agents/livekit/agents/voice/room_io/types.py",
+      "path": "research/bring-vene-sources/livekit/room-io-types.py",
+      "source": "https://github.com/livekit/agents/blob/b58e83f5c77d5b4bd4c8586793885151a91c4c83/livekit-agents/livekit/agents/voice/room_io/types.py",
+      "local_sha256": "9579d01db894a0d32decb2f71178aa3ee4d8e0c74d516f85c599b549025b34e9"
+    },
+    {
+      "repository": "livekit/agents",
+      "commit": "b58e83f5c77d5b4bd4c8586793885151a91c4c83",
+      "upstream_path": "livekit-agents/livekit/agents/voice/room_io/_output.py",
+      "path": "research/bring-vene-sources/livekit/room-io-output.py",
+      "source": "https://github.com/livekit/agents/blob/b58e83f5c77d5b4bd4c8586793885151a91c4c83/livekit-agents/livekit/agents/voice/room_io/_output.py",
+      "local_sha256": "848e22481acbf32434d2b3d985ba4cd04c26a6b6186634188902ac175d3a2610"
+    },
+    {
+      "repository": "livekit/agents",
+      "commit": "b58e83f5c77d5b4bd4c8586793885151a91c4c83",
+      "upstream_path": "LICENSE",
+      "path": "research/bring-vene-sources/livekit/LICENSE",
+      "source": "https://github.com/livekit/agents/blob/b58e83f5c77d5b4bd4c8586793885151a91c4c83/LICENSE",
+      "local_sha256": "c95bae1d1ce0235ecccd3560b772ec1efb97f348a79f0fbe0a634f0c2ccefe2c"
+    },
+    {
+      "repository": "livekit-examples/meet",
+      "commit": "13e4fd88d6f3c238060746a8f476e32af5c97fbf",
+      "upstream_path": "app/rooms/[roomName]/PageClientImpl.tsx",
+      "path": "research/bring-vene-sources/meet/PageClientImpl.tsx",
+      "source": "https://github.com/livekit-examples/meet/blob/13e4fd88d6f3c238060746a8f476e32af5c97fbf/app/rooms/[roomName]/PageClientImpl.tsx",
+      "local_sha256": "90c3d5f0faeade4710539f0cc2c44531aadbe95676fa13385d25a3a9a164e2f0"
+    },
+    {
+      "repository": "livekit-examples/meet",
+      "commit": "13e4fd88d6f3c238060746a8f476e32af5c97fbf",
+      "upstream_path": "app/api/connection-details/route.ts",
+      "path": "research/bring-vene-sources/meet/connection-details-route.ts",
+      "source": "https://github.com/livekit-examples/meet/blob/13e4fd88d6f3c238060746a8f476e32af5c97fbf/app/api/connection-details/route.ts",
+      "local_sha256": "2b889710d2f163cf7e14aa1b431a69ab298a3e16372793a296eecc93d423a944"
+    },
+    {
+      "repository": "livekit-examples/meet",
+      "commit": "13e4fd88d6f3c238060746a8f476e32af5c97fbf",
+      "upstream_path": "LICENSE",
+      "path": "research/bring-vene-sources/meet/LICENSE",
+      "source": "https://github.com/livekit-examples/meet/blob/13e4fd88d6f3c238060746a8f476e32af5c97fbf/LICENSE",
+      "local_sha256": "8c6db340475136df3c1201d458fa5755698eace76e510471ecc9d857d6083dac"
+    },
+    {
+      "repository": "livekit-examples/agent-starter-react",
+      "commit": "c5d78a6c381a0ac80b081cf6aeb8ac454d00ca78",
+      "upstream_path": "app/api/token/route.ts",
+      "path": "research/bring-vene-sources/starter/token-route.ts",
+      "source": "https://github.com/livekit-examples/agent-starter-react/blob/c5d78a6c381a0ac80b081cf6aeb8ac454d00ca78/app/api/token/route.ts",
+      "local_sha256": "313f12b34867b7647815459fdc9b88e752a9bd4df172f5f184a5ceee4f900034"
+    },
+    {
+      "repository": "livekit-examples/agent-starter-react",
+      "commit": "c5d78a6c381a0ac80b081cf6aeb8ac454d00ca78",
+      "upstream_path": "components/agents-ui/agent-session-provider.tsx",
+      "path": "research/bring-vene-sources/starter/agent-session-provider.tsx",
+      "source": "https://github.com/livekit-examples/agent-starter-react/blob/c5d78a6c381a0ac80b081cf6aeb8ac454d00ca78/components/agents-ui/agent-session-provider.tsx",
+      "local_sha256": "0c4b1d769c8d7b628eaf20439514c050e0579458231905fa3cc306d775555320"
+    },
+    {
+      "repository": "livekit-examples/agent-starter-react",
+      "commit": "c5d78a6c381a0ac80b081cf6aeb8ac454d00ca78",
+      "upstream_path": "LICENSE",
+      "path": "research/bring-vene-sources/starter/LICENSE",
+      "source": "https://github.com/livekit-examples/agent-starter-react/blob/c5d78a6c381a0ac80b081cf6aeb8ac454d00ca78/LICENSE",
+      "local_sha256": "047f2a8a366773d6dba23891d47624fbe332118ba0e08fb58fc35ae449797a85"
+    },
+    {
+      "repository": "pipecat-ai/pipecat",
+      "commit": "19fca83d2e2336b7c82145fe66b7b1cc76e44ac9",
+      "upstream_path": "examples/turn-management/turn-management-custom-external-turn-strategy.py",
+      "path": "research/bring-vene-sources/pipecat/external-turn-strategy.py",
+      "source": "https://github.com/pipecat-ai/pipecat/blob/19fca83d2e2336b7c82145fe66b7b1cc76e44ac9/examples/turn-management/turn-management-custom-external-turn-strategy.py",
+      "local_sha256": "13961f26bec0e78289b5a8f22013846c5e071968f1ff742cc3278c4e67a91c33"
+    },
+    {
+      "repository": "pipecat-ai/pipecat",
+      "commit": "19fca83d2e2336b7c82145fe66b7b1cc76e44ac9",
+      "upstream_path": "src/pipecat/turns/user_start/wake_phrase_user_turn_start_strategy.py",
+      "path": "research/bring-vene-sources/pipecat/wake-phrase-strategy.py",
+      "source": "https://github.com/pipecat-ai/pipecat/blob/19fca83d2e2336b7c82145fe66b7b1cc76e44ac9/src/pipecat/turns/user_start/wake_phrase_user_turn_start_strategy.py",
+      "local_sha256": "9bd859d7fe32811a784dfe905d9a71c24316a65b760152e89f0c4d9c9d798fc2"
+    },
+    {
+      "repository": "pipecat-ai/pipecat",
+      "commit": "19fca83d2e2336b7c82145fe66b7b1cc76e44ac9",
+      "upstream_path": "LICENSE",
+      "path": "research/bring-vene-sources/pipecat/LICENSE",
+      "source": "https://github.com/pipecat-ai/pipecat/blob/19fca83d2e2336b7c82145fe66b7b1cc76e44ac9/LICENSE",
+      "local_sha256": "f1cb0a428341d80f130d8d5ae663cd4f3977abbe6b54bccb0ce9d8acf79375fa"
+    },
+    {
+      "repository": "Vexa-ai/vexa",
+      "commit": "f1a62fbbdfd2c98cb162582d82c31fe8102acc89",
+      "upstream_path": "core/meetings/services/bot/src/tts-playback.ts",
+      "path": "research/bring-vene-sources/vexa/tts-playback.ts",
+      "source": "https://github.com/Vexa-ai/vexa/blob/f1a62fbbdfd2c98cb162582d82c31fe8102acc89/core/meetings/services/bot/src/tts-playback.ts",
+      "local_sha256": "0a6aed5d2c7e718e22ec6db879e3945217de35b5012d9bc325fa6275b71e18fe"
+    },
+    {
+      "repository": "Vexa-ai/vexa",
+      "commit": "f1a62fbbdfd2c98cb162582d82c31fe8102acc89",
+      "upstream_path": "core/meetings/services/bot/src/index.ts",
+      "path": "research/bring-vene-sources/vexa/bot-index.ts",
+      "source": "https://github.com/Vexa-ai/vexa/blob/f1a62fbbdfd2c98cb162582d82c31fe8102acc89/core/meetings/services/bot/src/index.ts",
+      "local_sha256": "1daf794e663aaeff13734d56b465a5e30c1764ae7ce44aa60d82a8c4ef1818af"
+    },
+    {
+      "repository": "Vexa-ai/vexa",
+      "commit": "f1a62fbbdfd2c98cb162582d82c31fe8102acc89",
+      "upstream_path": "LICENSE",
+      "path": "research/bring-vene-sources/vexa/LICENSE",
+      "source": "https://github.com/Vexa-ai/vexa/blob/f1a62fbbdfd2c98cb162582d82c31fe8102acc89/LICENSE",
+      "local_sha256": "d0ec83212b0f5e0923ed41e23bbf56e0f69f1075d1e561c08e6af3e48f3d52e1"
+    }
+  ]
+}

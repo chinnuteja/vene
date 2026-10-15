@@ -1,0 +1,15 @@
+{
+  "checked_at": "2026-10-15T08:16:27.897Z",
+  "transport": "real local LiveKit/WebRTC",
+  "input": "two original tone WAVs",
+  "initial_source_count": 2,
+  "overlapping_frame_windows": true,
+  "before_consent_frames": 0,
+  "after_acknowledged_pause_frames": 0,
+  "late_arrival": "pauses processing",
+  "reconnect": "fresh connection and track epoch",
+  "active_tasks_after_pause": 0,
+  "runtime_errors": [],
+  "live_stt_accuracy": "not tested",
+  "physical_microphone": "not tested"
+}

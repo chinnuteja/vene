@@ -1,0 +1,22 @@
+name: bring-vene-local
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:?Run setup.ps1 to resolve the image digest}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vene_dev
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run setup.ps1}
+      POSTGRES_DB: bring_vene
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - vene_pg_data:/var/lib/postgresql/data
+      - ./init-test-db.sql:/docker-entrypoint-initdb.d/01-test.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vene_dev -d bring_vene"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+volumes:
+  vene_pg_data:
+

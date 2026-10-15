@@ -1,0 +1,96 @@
+{
+  "id": "10000000-0000-4000-8000-000000000001",
+  "version": 0,
+  "patient": {
+    "id": "10000000-0000-4000-8000-000000000002",
+    "name": "Maria Alvarez",
+    "preferred_name": "Maria",
+    "age": 72
+  },
+  "title": "Follow-up with Dr. Chen",
+  "clinician": "Dr. Chris Chen",
+  "visit_at": "2026-10-14T14:30:00Z",
+  "processing_state": "preparing",
+  "priorities": [
+    {
+      "id": "20000000-0000-4000-8000-000000000001",
+      "title": "What is holding up my referral?",
+      "detail": "I'd like to leave knowing who will send the missing document and what happens next.",
+      "selected": true,
+      "status": "open",
+      "evidence_refs": [
+        "30000000-0000-4000-8000-000000000001"
+      ]
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000002",
+      "title": "Where should I arrange my lab visit?",
+      "detail": "Ask which location to use, who places the order, and when it needs to happen.",
+      "selected": true,
+      "status": "open",
+      "evidence_refs": [
+        "30000000-0000-4000-8000-000000000002"
+      ]
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000003",
+      "title": "Mention my morning availability",
+      "detail": "Morning appointments are easier for me. I want to keep that in mind when we discuss next steps.",
+      "selected": false,
+      "status": "open",
+      "evidence_refs": [
+        "30000000-0000-4000-8000-000000000003"
+      ]
+    }
+  ],
+  "plan": [
+    {
+      "id": "40000000-0000-4000-8000-000000000001",
+      "title": "Referral document still needed",
+      "detail": "The office reported that it is waiting for a supporting document. Who will arrange it is still open.",
+      "owner": null,
+      "timeframe": null,
+      "status": "waiting",
+      "evidence_refs": [
+        "30000000-0000-4000-8000-000000000001"
+      ],
+      "clinician_confirmed": false,
+      "patient_authorized": false,
+      "order_available": false,
+      "external_completed": false
+    }
+  ],
+  "evidence": [
+    {
+      "id": "30000000-0000-4000-8000-000000000001",
+      "source_type": "office_message",
+      "title": "Message from the referral office",
+      "text": "We received your referral request. We are still waiting for the supporting document from the referring office before we can offer an appointment.",
+      "observed_at": "2026-10-12T15:00:00Z"
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000002",
+      "source_type": "patient_report",
+      "title": "Your question for this visit",
+      "text": "I want to ask where to get the lab work, whether I need an order first, and when it needs to be done.",
+      "observed_at": "2026-10-11T16:30:00Z"
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000003",
+      "source_type": "patient_report",
+      "title": "Your appointment preference",
+      "text": "Mornings are easier for me. I would like to keep appointments in the morning when possible.",
+      "observed_at": "2026-10-11T16:35:00Z"
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000004",
+      "source_type": "patient_report",
+      "title": "A note just for Vene",
+      "text": "PRIVATE_CANARY_MARIA_BLUE_ORCHID: I am planning a surprise birthday weekend for Elena. Keep this between me and Vene.",
+      "observed_at": "2026-10-12T15:01:00Z",
+      "audiences": []
+    }
+  ],
+  "updated_at": "2026-10-12T15:00:00Z",
+  "synthetic": true
+}

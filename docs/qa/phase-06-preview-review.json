@@ -1,0 +1,17 @@
+{
+  "checked_at": "2026-10-14T06:05:23.583Z",
+  "url": "http://127.0.0.1:3000",
+  "launcher": "used in actual browser",
+  "office_panel": true,
+  "sandbox_configured": true,
+  "saved_visit_preserved": true,
+  "mobile_overflow": false,
+  "skip_link": {
+    "focused": false,
+    "top": -100
+  },
+  "errors": [],
+  "actions_created": false,
+  "room_joined": false,
+  "provider_calls": false
+}

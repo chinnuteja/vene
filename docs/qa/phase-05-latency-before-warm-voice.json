@@ -1,0 +1,91 @@
+{
+  "completed_samples": 12,
+  "target_samples": 20,
+  "complete": false,
+  "trials": [
+    {
+      "trial": 1,
+      "approval_to_received_audio_ms": 7602,
+      "publisher_end_of_input_to_audio_ms": 7556,
+      "stop_detection_to_last_received_audio_ms": 140,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 2,
+      "approval_to_received_audio_ms": 4277,
+      "publisher_end_of_input_to_audio_ms": 4078,
+      "stop_detection_to_last_received_audio_ms": 408,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 3,
+      "approval_to_received_audio_ms": 4148,
+      "publisher_end_of_input_to_audio_ms": 4382,
+      "stop_detection_to_last_received_audio_ms": 402,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 4,
+      "approval_to_received_audio_ms": 4838,
+      "publisher_end_of_input_to_audio_ms": 4181,
+      "stop_detection_to_last_received_audio_ms": 573,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 5,
+      "approval_to_received_audio_ms": 4966,
+      "publisher_end_of_input_to_audio_ms": 4852,
+      "stop_detection_to_last_received_audio_ms": 0,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 6,
+      "approval_to_received_audio_ms": 4630,
+      "publisher_end_of_input_to_audio_ms": 4443,
+      "stop_detection_to_last_received_audio_ms": 0,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 7,
+      "approval_to_received_audio_ms": 4369,
+      "publisher_end_of_input_to_audio_ms": 4021,
+      "stop_detection_to_last_received_audio_ms": 0,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 8,
+      "approval_to_received_audio_ms": 4145,
+      "publisher_end_of_input_to_audio_ms": 3890,
+      "stop_detection_to_last_received_audio_ms": 0,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 9,
+      "approval_to_received_audio_ms": 4341,
+      "publisher_end_of_input_to_audio_ms": 4096,
+      "stop_detection_to_last_received_audio_ms": 0,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 10,
+      "approval_to_received_audio_ms": 3924,
+      "publisher_end_of_input_to_audio_ms": 4455,
+      "stop_detection_to_last_received_audio_ms": 210,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 11,
+      "approval_to_received_audio_ms": 5324,
+      "publisher_end_of_input_to_audio_ms": 6115,
+      "stop_detection_to_last_received_audio_ms": 0,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 12,
+      "approval_to_received_audio_ms": 4353,
+      "publisher_end_of_input_to_audio_ms": 4179,
+      "stop_detection_to_last_received_audio_ms": 560,
+      "recognition_delay_ms": null
+    }
+  ]
+}

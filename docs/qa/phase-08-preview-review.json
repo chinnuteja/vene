@@ -1,0 +1,15 @@
+{
+  "checked_at": "2026-10-15T02:04:26.556Z",
+  "url": "http://127.0.0.1:3000",
+  "desktop_routes": [
+    "prepare",
+    "visit",
+    "follow-up"
+  ],
+  "mobile_overflow": false,
+  "normal_debug_hidden": true,
+  "saved_plan_sources_priorities_and_version_preserved": true,
+  "provider_calls": false,
+  "room_joined": false,
+  "errors": []
+}

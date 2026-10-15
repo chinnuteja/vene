@@ -1,0 +1,156 @@
+{
+  "checked_at": "2026-10-15T07:55:26.567Z",
+  "synthetic": true,
+  "provider_calls": true,
+  "stt": "deepgram",
+  "model": "deepseek",
+  "tts": "cartesia",
+  "duration_ms": 66544,
+  "sources": [
+    {
+      "audiences": [],
+      "id": "1850030f-1c79-4642-8662-b6b79b9d4fc6",
+      "source_type": "conversation",
+      "title": "Conversation · Dr. Chris Chen",
+      "text": "This is a renal fictional conversation for testing.",
+      "observed_at": "2026-10-15T07:54:26.626920Z",
+      "version": 1,
+      "speaker": "Dr. Chris Chen",
+      "origin": "deepgram"
+    },
+    {
+      "audiences": [],
+      "id": "48266270-db82-4686-8a13-3f4927d5c5c1",
+      "source_type": "conversation",
+      "title": "Conversation · Dr. Chris Chen",
+      "text": "Lab visit at Riverside Lab on Tuesday after the office sends the order. This is an original fictional conversation for testing.",
+      "observed_at": "2026-10-15T07:54:35.837230Z",
+      "version": 1,
+      "speaker": "Dr. Chris Chen",
+      "origin": "deepgram"
+    },
+    {
+      "audiences": [],
+      "id": "569dc888-5bcb-4f0a-ac9a-53dacad6b667",
+      "source_type": "conversation",
+      "title": "Conversation · Dr. Chris Chen",
+      "text": "Maria will arrange the lab visit at Riverside Lab on Tuesday after the office sends the order.",
+      "observed_at": "2026-10-15T07:54:41.708890Z",
+      "version": 1,
+      "speaker": "Dr. Chris Chen",
+      "origin": "deepgram"
+    },
+    {
+      "audiences": [],
+      "id": "54f36b3a-9e5f-42c3-8c7c-a6e58f7e0f98",
+      "source_type": "conversation",
+      "title": "Conversation · Dr. Chris Chen",
+      "text": "This is an original",
+      "observed_at": "2026-10-15T07:54:43.840767Z",
+      "version": 1,
+      "speaker": "Dr. Chris Chen",
+      "origin": "deepgram"
+    }
+  ],
+  "proposed_step": {
+    "audiences": [],
+    "id": "8689b7ca-72a3-527e-a844-c2d088fb92de",
+    "title": "Arrange your lab visit at Riverside Lab",
+    "detail": "Plan to have your lab visit at Riverside Lab on Tuesday. This depends on the office sending the order first.",
+    "owner": "Maria",
+    "timeframe": "Tuesday",
+    "status": "draft",
+    "evidence_refs": [
+      "569dc888-5bcb-4f0a-ac9a-53dacad6b667"
+    ],
+    "clinician_confirmed": false,
+    "patient_authorized": false,
+    "order_available": false,
+    "external_completed": false,
+    "origin": "interpretation",
+    "location": "Riverside Lab",
+    "dependencies": [
+      "The office sends the order"
+    ],
+    "needs_clarification": false,
+    "explanation": "The source states Maria will arrange the lab visit at Riverside Lab on Tuesday after the office sends the order.",
+    "revision": 1
+  },
+  "unanswered_priorities": 2,
+  "speech_receipt": {
+    "id": "ddd218a8-30c1-4430-b571-141d10578db5",
+    "state": "completed",
+    "played_text": "Before we finish, these are proposed next steps, not completed actions. Arrange your lab visit at Riverside Lab. Owner: Maria. Timing: Tuesday. Please confirm the required orders and who will follow through.",
+    "played_ms": 10839,
+    "reason": null,
+    "approved_at": "2026-10-15T13:24:59.883719+05:30",
+    "first_audio_at": "2026-10-15T13:25:05.422259+05:30",
+    "stopped_at": "2026-10-15T13:25:16.338336+05:30",
+    "stop_detected_at": null,
+    "approval_to_audio_ms": 5538,
+    "end_of_input_to_audio_ms": 22167,
+    "recognition_delay_ms": null,
+    "hearing_confirmed": false
+  },
+  "sandbox_action_receipt": {
+    "reason": "Persisted sandbox reservation.",
+    "status": "confirmed",
+    "sandbox": true,
+    "slot_id": "lab:2026-10-20:morning",
+    "receipt_id": "a4bfbe29-aaa6-41cb-b020-427bb149e261",
+    "request_id": "52ed54fa-e2f1-45f5-8a65-0698899436f3",
+    "recorded_at": "2026-10-15T07:55:24.034230+00:00"
+  },
+  "audio_ingestion": {
+    "active_tasks": 1,
+    "stopped_epoch": 14,
+    "receipts": [
+      {
+        "connection_id": "ab00151d-f541-46d3-a47b-af54fc2fda23",
+        "track_sid": "TR_AMokkRK6fLoVaZ",
+        "track_epoch": 1,
+        "consent_epoch": 18,
+        "frames": 960,
+        "samples": 307200,
+        "non_silent_frames": 0,
+        "first_received_at": "2026-10-15T13:24:58.002158+05:30",
+        "last_received_at": "2026-10-15T13:25:26.636038+05:30"
+      },
+      {
+        "connection_id": "ab00151d-f541-46d3-a47b-af54fc2fda23",
+        "track_sid": "TR_AMokkRK6fLoVaZ",
+        "track_epoch": 1,
+        "consent_epoch": 17,
+        "frames": 55,
+        "samples": 17600,
+        "non_silent_frames": 0,
+        "first_received_at": "2026-10-15T13:24:53.575193+05:30",
+        "last_received_at": "2026-10-15T13:24:55.725716+05:30"
+      },
+      {
+        "connection_id": "ab00151d-f541-46d3-a47b-af54fc2fda23",
+        "track_sid": "TR_AMokkRK6fLoVaZ",
+        "track_epoch": 1,
+        "consent_epoch": 16,
+        "frames": 1355,
+        "samples": 433600,
+        "non_silent_frames": 794,
+        "first_received_at": "2026-10-15T13:24:21.874175+05:30",
+        "last_received_at": "2026-10-15T13:24:52.776100+05:30"
+      },
+      {
+        "connection_id": "ab00151d-f541-46d3-a47b-af54fc2fda23",
+        "track_sid": "TR_AMokkRK6fLoVaZ",
+        "track_epoch": 1,
+        "consent_epoch": 15,
+        "frames": 120,
+        "samples": 38400,
+        "non_silent_frames": 0,
+        "first_received_at": "2026-10-15T13:24:17.457527+05:30",
+        "last_received_at": "2026-10-15T13:24:21.234887+05:30"
+      }
+    ]
+  },
+  "physical_acoustics": false,
+  "human_acceptance": false
+}

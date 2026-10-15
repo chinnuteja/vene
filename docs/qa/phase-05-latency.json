@@ -1,0 +1,178 @@
+{
+  "checked_at": "2026-10-13T14:30:32.565Z",
+  "samples": 20,
+  "conditions": {
+    "transport": "local LiveKit; two isolated Chromium instances",
+    "tts": "Windows offline voice",
+    "human_input": "original tone WAV; three accepted frames for interruption",
+    "quiet_seconds": 0.7,
+    "cooldown_seconds": 0.2,
+    "physical_microphone": false,
+    "recognition": "not exercised",
+    "fixed_utterance": true,
+    "browser_loopback_interface_enabled": true,
+    "input_echo_cancellation": false,
+    "input_noise_suppression": false,
+    "input_auto_gain_control": false,
+    "audio_input_buffer_ms": 160,
+    "publisher_queue_ms": 80,
+    "includes_manual_cue_request_and_approval_gap": true,
+    "first_trial_includes_cold_output_initialization": true
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "approval_to_received_audio_ms": 5567,
+      "publisher_end_of_input_to_audio_ms": 5821,
+      "stop_detection_to_last_received_audio_ms": 255,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 2,
+      "approval_to_received_audio_ms": 2120,
+      "publisher_end_of_input_to_audio_ms": 2543,
+      "stop_detection_to_last_received_audio_ms": 370,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 3,
+      "approval_to_received_audio_ms": 2553,
+      "publisher_end_of_input_to_audio_ms": 2681,
+      "stop_detection_to_last_received_audio_ms": 353,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 4,
+      "approval_to_received_audio_ms": 2656,
+      "publisher_end_of_input_to_audio_ms": 2643,
+      "stop_detection_to_last_received_audio_ms": 360,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 5,
+      "approval_to_received_audio_ms": 2737,
+      "publisher_end_of_input_to_audio_ms": 2112,
+      "stop_detection_to_last_received_audio_ms": 0,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 6,
+      "approval_to_received_audio_ms": 2760,
+      "publisher_end_of_input_to_audio_ms": 3031,
+      "stop_detection_to_last_received_audio_ms": 0,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 7,
+      "approval_to_received_audio_ms": 2553,
+      "publisher_end_of_input_to_audio_ms": 3127,
+      "stop_detection_to_last_received_audio_ms": 169,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 8,
+      "approval_to_received_audio_ms": 2764,
+      "publisher_end_of_input_to_audio_ms": 2682,
+      "stop_detection_to_last_received_audio_ms": 455,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 9,
+      "approval_to_received_audio_ms": 2726,
+      "publisher_end_of_input_to_audio_ms": 3106,
+      "stop_detection_to_last_received_audio_ms": 421,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 10,
+      "approval_to_received_audio_ms": 2679,
+      "publisher_end_of_input_to_audio_ms": 2543,
+      "stop_detection_to_last_received_audio_ms": 358,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 11,
+      "approval_to_received_audio_ms": 2604,
+      "publisher_end_of_input_to_audio_ms": 2977,
+      "stop_detection_to_last_received_audio_ms": 394,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 12,
+      "approval_to_received_audio_ms": 2535,
+      "publisher_end_of_input_to_audio_ms": 2459,
+      "stop_detection_to_last_received_audio_ms": 353,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 13,
+      "approval_to_received_audio_ms": 2645,
+      "publisher_end_of_input_to_audio_ms": 2534,
+      "stop_detection_to_last_received_audio_ms": 473,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 14,
+      "approval_to_received_audio_ms": 2515,
+      "publisher_end_of_input_to_audio_ms": 2560,
+      "stop_detection_to_last_received_audio_ms": 457,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 15,
+      "approval_to_received_audio_ms": 2551,
+      "publisher_end_of_input_to_audio_ms": 2291,
+      "stop_detection_to_last_received_audio_ms": 230,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 16,
+      "approval_to_received_audio_ms": 3039,
+      "publisher_end_of_input_to_audio_ms": 2972,
+      "stop_detection_to_last_received_audio_ms": 0,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 17,
+      "approval_to_received_audio_ms": 2509,
+      "publisher_end_of_input_to_audio_ms": 2187,
+      "stop_detection_to_last_received_audio_ms": 453,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 18,
+      "approval_to_received_audio_ms": 2631,
+      "publisher_end_of_input_to_audio_ms": 2396,
+      "stop_detection_to_last_received_audio_ms": 395,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 19,
+      "approval_to_received_audio_ms": 2630,
+      "publisher_end_of_input_to_audio_ms": 2505,
+      "stop_detection_to_last_received_audio_ms": 482,
+      "recognition_delay_ms": null
+    },
+    {
+      "trial": 20,
+      "approval_to_received_audio_ms": 2868,
+      "publisher_end_of_input_to_audio_ms": 2538,
+      "stop_detection_to_last_received_audio_ms": 375,
+      "recognition_delay_ms": null
+    }
+  ],
+  "p95": {
+    "approval_to_received_audio_ms": 3039,
+    "publisher_end_of_input_to_audio_ms": 3127,
+    "stop_detection_to_last_received_audio_ms": 473
+  },
+  "clinical_standard": false,
+  "targets": {
+    "publisher_startup_ms": 2000,
+    "stop_to_silence_ms": 500
+  },
+  "target_results": {
+    "publisher_startup": "missed",
+    "stop_to_silence": "met"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-11",
+  "sources": [
+    {
+      "path": "research/v3-sources/multi-user-transcriber.py",
+      "url": "https://github.com/livekit/agents/blob/e7d4cf20804e1faf3867878976dcaf1750a07d1c/examples/other/transcription/multi-user-transcriber.py",
+      "commit": "e7d4cf20804e1faf3867878976dcaf1750a07d1c",
+      "inspection": "Read source; not executed."
+    },
+    {
+      "path": "research/v3-sources/warm_transfer.py",
+      "url": "https://github.com/livekit/agents/blob/e7d4cf20804e1faf3867878976dcaf1750a07d1c/examples/warm-transfer/warm_transfer.py",
+      "commit": "e7d4cf20804e1faf3867878976dcaf1750a07d1c",
+      "inspection": "Read source; not executed."
+    },
+    {
+      "path": "research/v3-sources/support_agent.py",
+      "url": "https://github.com/livekit/agents/blob/e7d4cf20804e1faf3867878976dcaf1750a07d1c/examples/warm-transfer/support_agent.py",
+      "commit": "e7d4cf20804e1faf3867878976dcaf1750a07d1c",
+      "inspection": "Read source; not executed."
+    },
+    {
+      "path": "research/v3-sources/LIVEKIT_LICENSE",
+      "url": "https://github.com/livekit/agents/blob/e7d4cf20804e1faf3867878976dcaf1750a07d1c/LICENSE",
+      "commit": "e7d4cf20804e1faf3867878976dcaf1750a07d1c",
+      "inspection": "Read source; not executed."
+    }
+  ],
+  "unavailable": [
+    {
+      "url": "https://github.com/dande10/patient-advocate",
+      "finding": "Linked by MedsBuddy's Devpost submission. Repository and tree requests returned 404; implementation and license not verified."
+    }
+  ]
+}

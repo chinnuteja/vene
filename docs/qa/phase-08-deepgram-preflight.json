@@ -1,0 +1,10 @@
+{
+  "checked_at": "2026-10-15T07:26:49.399626+00:00",
+  "provider": "deepgram",
+  "model": "nova-3",
+  "http_status": 200,
+  "synthetic_only": true,
+  "transport": "direct prerecorded diagnostic; not the WebRTC gate",
+  "transcript": "Maria will arrange the lab visit at Riverside Lab on Tuesday after the office sends the order. This is an original fictional conversation for testing.",
+  "confidence": 0.99902344
+}

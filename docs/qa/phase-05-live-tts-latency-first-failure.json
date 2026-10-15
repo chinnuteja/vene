@@ -1,0 +1,10 @@
+{
+  "checked_at": "2026-10-15T08:00:36Z",
+  "synthetic": true,
+  "complete": false,
+  "completed_samples": 0,
+  "reason": "First short-utterance timing trial reached completed rather than interrupted",
+  "publisher_played_ms": 3820,
+  "stop_detected_at": null,
+  "change_for_repeat": "Longer recorded question, position remote control before approval, require speaking receipt at input request; do not count completed output as interrupted"
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "source": "https://raw.githubusercontent.com/COMmmmONS-MLIT/shuttle-management-system/7dd7eb29f567f78afedfa0f105aba7421a8931f7/server/app/services/distance_route_optimizer.rb",
+    "file": "jp-distance-route.rb",
+    "sha256": "5C662067F05F959925AF87230419179BAAFF3F7CEAFF02B00AADB16C4177DB2E"
+  },
+  {
+    "source": "https://raw.githubusercontent.com/COMmmmONS-MLIT/shuttle-management-system/7dd7eb29f567f78afedfa0f105aba7421a8931f7/server/app/services/directions_optimizer.rb",
+    "file": "jp-directions.rb",
+    "sha256": "A7D10DA1BA9DE34144FD20A0FFD8F10826C1F5E62C170A912F8B20452277A95D"
+  },
+  {
+    "source": "https://raw.githubusercontent.com/COMmmmONS-MLIT/shuttle-management-system/7dd7eb29f567f78afedfa0f105aba7421a8931f7/server/app/services/visiting_time_calculator.rb",
+    "file": "jp-time.rb",
+    "sha256": "D4E96F919AC87A3B71C64C1B5581DF8E91F19EB7B922A86491DFA756C4D71541"
+  },
+  {
+    "source": "https://raw.githubusercontent.com/COMmmmONS-MLIT/shuttle-management-system/7dd7eb29f567f78afedfa0f105aba7421a8931f7/LICENSE",
+    "file": "jp-LICENSE",
+    "sha256": "6D4EC79AEB4F0D9B9F157EC46E9C093D57F1E75D1CF75FDB5E267FD40F2EFBF9"
+  },
+  {
+    "source": "https://raw.githubusercontent.com/rirko/shdc-appointment-mcp/232901bc062b84c1521ee57e8133e55aae4e9ad1/src/flows/appointmentFlow.ts",
+    "file": "cn-appointment.ts",
+    "sha256": "B7C231BE5A121F7C4A74588FEF8444F51247FA2B6D135C9CEBD4D9E2731FE60C"
+  },
+  {
+    "source": "https://raw.githubusercontent.com/yyb0702-spec/DoctorPet/934e403496e1bddea5b1a900fa3a24b1cd7c4127/src/main/java/com/doctorpet/domain/reservation/service/ReservationWaitlistPromotionService.java",
+    "file": "kr-waitlist.java",
+    "sha256": "E044FD96172595B588FBBFB52D08BA61DB62699648E9ABAD1B102F659534A2DF"
+  },
+  {
+    "source": "https://raw.githubusercontent.com/yyb0702-spec/DoctorPet/934e403496e1bddea5b1a900fa3a24b1cd7c4127/src/main/java/com/doctorpet/domain/reservation/service/ReservationSlotReleaseService.java",
+    "file": "kr-release.java",
+    "sha256": "4D2C37BE4CBE3C2C84668D92B6871BAD1DFCDD0C343B46E109CB64CA5C58C7FA"
+  },
+  {
+    "source": "https://raw.githubusercontent.com/DKarthikeya31/TripGuard-AI/172cdaee91f7cf3fb4474e93a728fab1b6e574cf/server/services/decisionEngine.js",
+    "file": "trip-decision.js",
+    "sha256": "AA44463BC13216B315943436CF94FBF7EEFFF94F9D11FBC59D795375823AFC09"
+  },
+  {
+    "source": "https://raw.githubusercontent.com/DKarthikeya31/TripGuard-AI/172cdaee91f7cf3fb4474e93a728fab1b6e574cf/server/index.js",
+    "file": "trip-server.js",
+    "sha256": "130716FD47E34B7FAAE207DA398A3733820E4D4586105939C25CA9529F073DD8"
+  }
+]

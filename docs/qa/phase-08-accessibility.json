@@ -1,0 +1,29 @@
+{
+  "checked_at": "2026-10-15T08:27:33.858Z",
+  "keyboard_skip_link": true,
+  "focus_outline": "solid",
+  "reduced_motion": true,
+  "ordinary_debug_hidden": true,
+  "checks": [
+    {
+      "route": "/prepare",
+      "zoom": 2,
+      "unnamed_controls": 0,
+      "overflow": false
+    },
+    {
+      "route": "/visit",
+      "zoom": 2,
+      "unnamed_controls": 0,
+      "overflow": false
+    },
+    {
+      "route": "/follow-up",
+      "zoom": 2,
+      "unnamed_controls": 0,
+      "overflow": false
+    }
+  ],
+  "errors": [],
+  "screen_reader_audit": "not exercised"
+}

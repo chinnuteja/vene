@@ -1,0 +1,12 @@
+{
+  "checked_at": "2026-10-15T07:01:42.015926+00:00",
+  "provider": "cartesia",
+  "model": "sonic-3-2026-01-12",
+  "voice_id": "db6b0ed5-d5d3-463d-ae85-518a07d3c2b4",
+  "synthetic_only": true,
+  "raw_audio_saved": false,
+  "status": "passed",
+  "frames": 25,
+  "audio_ms": 3911,
+  "duration_ms": 1656
+}

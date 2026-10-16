@@ -66,6 +66,8 @@ class PlanItem(Sharing):
     needs_clarification: bool = True
     explanation: str = ""
     revision: int = 1
+    # Administrative kind used for errand eligibility. None for steps saved before kinds existed.
+    kind: Literal["lab", "imaging", "referral", "prescription", "other"] | None = None
 
 
 class UnderstandingStatus(Contract):

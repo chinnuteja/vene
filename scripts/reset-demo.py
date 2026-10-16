@@ -32,8 +32,9 @@ try:
         update_ids=session.scalars(select(FamilyUpdateRecord.id).where(FamilyUpdateRecord.encounter_id.in_(ids))).all()
         requests=session.scalars(select(OfficeRequestRecord).where(OfficeRequestRecord.request_id.in_(action_ids))).all()
         slots={r.content['result']['slot_id'] for r in requests if r.kind=='booking' and r.content['result']['status']=='confirmed'}
-        office=session.get(OfficeStateRecord,'office',with_for_update=True)
-        if office:office.content={**office.content,'mode':'normal','revision':office.content['revision']+1,'reserved':[x for x in office.content['reserved'] if x not in slots]}
+        for office in session.scalars(select(OfficeStateRecord).with_for_update()).all():
+            # Every sandbox institution (lab, imaging, specialist, pharmacy) releases this demo's reservations.
+            office.content={**office.content,'mode':'normal','revision':office.content['revision']+1,'reserved':[x for x in office.content['reserved'] if x not in slots]}
         session.execute(delete(OfficeFamilyReceiptRecord).where(OfficeFamilyReceiptRecord.id.in_(update_ids)))
         session.execute(delete(OfficeRequestRecord).where(OfficeRequestRecord.request_id.in_(action_ids)))
         for vid in reversed(ids):session.execute(delete(EncounterRecord).where(EncounterRecord.id==vid))

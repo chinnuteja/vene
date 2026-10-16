@@ -13,6 +13,7 @@ from bring_vene.persistence.models import (EncounterRecord,EvidenceRecord,Member
     DocumentRecord,FamilyUpdateRecord,FamilyOutboxRecord,NextVisitRecord,OfficeCallbackRecord,CallRecord,OperationTraceRecord,
     CallbackNonceRecord,DeletionAuditRecord)
 from bring_vene.continuity import documents
+from bring_vene.execution import errands
 from bring_vene.continuity.contracts import (ContinuityView,DocumentView,FamilyUpdateView,NextVisitCreated)
 
 def trace(session,visit_id,event,**identifiers):
@@ -35,8 +36,9 @@ def family_input(session,view,recipient_id,plan_ids,fields):
                 row=session.scalar(select(ExecutionRecord).where(ExecutionRecord.encounter_id==view.id,ExecutionRecord.item_id==item_id)
                     .order_by(ExecutionRecord.created_at.desc()).limit(1))
                 if row and row.content['plan_fingerprint']==plan_fingerprint(view,item_id):
-                    values[field]=('Sandbox reservation confirmed' if row.state=='confirmed' else
-                        'Office rejected the request' if row.state=='rejected' else 'Office completion remains '+row.state)
+                    errand=errands.for_action(row.content)
+                    values[field]=('Sandbox: '+errand.confirmed if row.state=='confirmed' else
+                        'The '+errand.place+' rejected the request' if row.state=='rejected' else 'Completion remains '+row.state)
                     if row.state=='confirmed' and row.content.get('slot'):values[field]+=' · '+row.content['slot']['label']
                 else:values[field]='No current office completion has been verified'
             elif field=='title':values[field]=item.title

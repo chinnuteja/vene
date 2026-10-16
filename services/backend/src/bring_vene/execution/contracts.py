@@ -10,8 +10,12 @@ class ScopeRequest(Input):
 
 class LookupRequest(Input):
     window: Literal['morning','afternoon']
-    location: Literal['Riverside Lab','Harbor Lab','Hilltop Lab']='Riverside Lab'
+    # Validated against the step's errand kind; defaults keep the original lab request shape.
+    location: str=Field(default='Riverside Lab',min_length=3,max_length=60)
     day: str=Field(default='2026-10-20',pattern=r'^\d{4}-\d{2}-\d{2}$')
+
+class OfficeLookup(LookupRequest):
+    institution: Literal['lab','imaging','specialist','pharmacy']='lab'
 
 class ApprovalRequest(Input):
     digest: str = Field(min_length=64,max_length=64)
@@ -22,10 +26,30 @@ class PrerequisiteRequest(Input):
 
 class ScenarioRequest(Input):
     mode: Literal['normal','no_slot','expired','delayed','rejected','timeout_after_write','duplicate_callback']
+    kind: Literal['lab','imaging','referral','prescription']='lab'
+
+class OfficeScenario(Input):
+    mode: Literal['normal','no_slot','expired','delayed','rejected','timeout_after_write','duplicate_callback']
+    institution: Literal['lab','imaging','specialist','pharmacy']='lab'
+
+class BundleRequest(Input):
+    digests: list[str]=Field(min_length=1,max_length=8)
+
+class BundleOutcome(BaseModel):
+    action_id: UUID
+    outcome: Literal['queued','already_approved','waiting','refused']
+    message: str
+
+class BundleResult(BaseModel):
+    outcomes: list[BundleOutcome]
+    unmatched: int = 0  # digests that no longer match a current request
 
 class ActionView(BaseModel):
     id: UUID
     item_id: UUID
+    kind: Literal['lab','imaging','referral','prescription']='lab'
+    place: str='lab'
+    document: str='lab order'
     title: str
     window: Literal['morning','afternoon']
     state: str

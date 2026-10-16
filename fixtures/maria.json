@@ -47,6 +47,7 @@
     {
       "id": "40000000-0000-4000-8000-000000000001",
       "title": "Referral document still needed",
+      "kind": "referral",
       "detail": "The office reported that it is waiting for a supporting document. Who will arrange it is still open.",
       "owner": null,
       "timeframe": null,

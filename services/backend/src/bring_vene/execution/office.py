@@ -4,22 +4,29 @@ import time
 from datetime import timedelta
 from uuid import UUID, uuid4
 from fastapi import FastAPI, Depends, Header, HTTPException
+from typing import Literal
 from pydantic import Field
 from sqlalchemy.orm import Session
 from bring_vene.config import Settings
 from bring_vene.persistence.database import make_engine
 from bring_vene.persistence.models import OfficeStateRecord, OfficeRequestRecord,OfficeCallbackOutboxRecord,OfficeFamilyReceiptRecord
 from bring_vene.domain.service import utc_now
-from bring_vene.execution.contracts import Input, LookupRequest, ScenarioRequest
+from bring_vene.execution.contracts import Input, OfficeLookup, OfficeScenario
+from bring_vene.execution.errands import ERRANDS, BY_INSTITUTION
+
+Institution = Literal['lab','imaging','specialist','pharmacy']
 
 class Booking(Input):
+    # Deliberately minimal: no patient name, transcript, medicine, dose or instruction fields.
     request_id: UUID
     slot_id: str = Field(max_length=100)
     availability_revision: int
     order_id: UUID
+    institution: Institution = 'lab'
 
 class Order(Input):
     request_id: UUID
+    institution: Institution = 'lab'
 
 class FamilyDelivery(Input):
     request_id: UUID
@@ -27,28 +34,48 @@ class FamilyDelivery(Input):
     text: str=Field(min_length=3,max_length=2000)
     digest: str=Field(min_length=64,max_length=64)
 
-def ensure(session):
-    row = session.get(OfficeStateRecord,'office')
+def state_id(institution):
+    # The lab keeps the original Phase 6 row so saved sandbox data stays valid.
+    return 'office' if institution=='lab' else institution
+
+def ensure(session,institution='lab',lock=False):
+    row = session.get(OfficeStateRecord,state_id(institution),with_for_update=lock)
     if not row:
         # Creation is a one-time launcher migration step; request access does not seed.
         raise HTTPException(503,'Sandbox office has not been initialized.')
     return row
 
+def serialize_writes(session):
+    # One lock orders idempotency keys across every institution's writes.
+    return ensure(session,'lab',lock=True)
+
+def institution_slots(institution):
+    errand=BY_INSTITUTION[institution];slots=[]
+    times=[('morning','09','9:00 AM'),('afternoon','15','3:00 PM')]
+    if institution=='lab':
+        # Original fixed calendar: one location per day.
+        offered=[(location,day,label) for location,(day,label) in zip(errand.locations,errand.days)]
+    else:
+        offered=[(location,day,label) for location in errand.locations for day,label in errand.days]
+    for location,day,label in offered:
+        for window,hour,time_label in times:
+            # Stable resource identity across availability revisions.
+            sid='lab:'+day+':'+window if institution=='lab' else institution+':'+location.lower().replace(' ','-')+':'+day+':'+window
+            slots.append({'id':sid,'label':label+' · '+time_label+' ET · Fictional '+location,'window':window,
+                'location':location,'day':day,'starts_at':day+'T'+hour+':00:00-04:00','institution':institution})
+    return slots
+
 def initialize(engine):
     with Session(engine) as session, session.begin():
-        slots=[]
-        for location,day,label in [('Riverside Lab','2026-10-20','Tue, Oct 20'),('Harbor Lab','2026-10-21','Wed, Oct 21'),('Hilltop Lab','2026-10-23','Fri, Oct 23')]:
-            for window,hour,time_label in [('morning','09','9:00 AM'),('afternoon','15','3:00 PM')]:
-                sid='lab:'+day+':'+window # Stable resource identity across availability revisions.
-                slots.append({'id':sid,'label':label+' · '+time_label+' ET · Fictional '+location,'window':window,
-                    'location':location,'day':day,'starts_at':day+'T'+hour+':00:00-04:00'})
-        row=session.get(OfficeStateRecord,'office',with_for_update=True)
-        if not row:session.add(OfficeStateRecord(id='office',content={'mode':'normal','revision':1,'reserved':[],'slots':slots}))
-        elif 'slots' not in row.content:
-            row.content={**row.content,'slots':slots,'reserved':[s['id'] for s in slots if any(x.endswith(':'+s['window']) for x in row.content['reserved'])]}
-        else:
-            existing={s['id']:s for s in row.content['slots']}
-            row.content={**row.content,'slots':[{**s,**existing.get(s['id'],{}),'location':s['location'],'day':s['day']} for s in slots]}
+        for institution in BY_INSTITUTION:
+            slots=institution_slots(institution);key=state_id(institution)
+            row=session.get(OfficeStateRecord,key,with_for_update=True)
+            if not row:session.add(OfficeStateRecord(id=key,content={'mode':'normal','revision':1,'reserved':[],'slots':slots}))
+            elif 'slots' not in row.content:
+                row.content={**row.content,'slots':slots,'reserved':[s['id'] for s in slots if any(x.endswith(':'+s['window']) for x in row.content['reserved'])]}
+            else:
+                existing={s['id']:s for s in row.content['slots']}
+                row.content={**row.content,'slots':[{**s,**existing.get(s['id'],{}),'location':s['location'],'day':s['day']} for s in slots]}
 
 def office_app(settings=None,engine=None):
     settings=settings or Settings();engine=engine if engine is not None else make_engine(settings.database_url)
@@ -61,20 +88,20 @@ def office_app(settings=None,engine=None):
     def health():return {'sandbox':True}
 
     @app.post('/scenario',dependencies=[Depends(authorized)])
-    def scenario(body:ScenarioRequest):
+    def scenario(body:OfficeScenario):
         with Session(engine) as session,session.begin():
-            row=session.get(OfficeStateRecord,'office',with_for_update=True);ensure(session)
+            row=ensure(session,body.institution,lock=True)
             row.content={**row.content,'mode':body.mode,'revision':row.content['revision']+1}
-            return {'sandbox':True,'mode':body.mode,'revision':row.content['revision']}
+            return {'sandbox':True,'institution':body.institution,'mode':body.mode,'revision':row.content['revision']}
 
     @app.post('/lookup',dependencies=[Depends(authorized)])
-    def lookup(body:LookupRequest):
+    def lookup(body:OfficeLookup):
         with Session(engine) as session:
-            content=ensure(session).content
+            content=ensure(session,body.institution).content
             delay=content['mode']=='delayed'
             stamp=utc_now();revision=content['revision']
             slot=next((s for s in content['slots'] if s['window']==body.window and s['location']==body.location and s['day']==body.day and s['id'] not in content['reserved']),None)
-            result={'sandbox':True,'revision':revision,'checked_at':stamp.isoformat(),
+            result={'sandbox':True,'institution':body.institution,'revision':revision,'checked_at':stamp.isoformat(),
                 'expires_at':(stamp+timedelta(seconds=-1 if content['mode']=='expired' else 120)).isoformat(),
                 'slot':None if content['mode']=='no_slot' else slot}
         if delay:time.sleep(1.4)
@@ -83,27 +110,30 @@ def office_app(settings=None,engine=None):
     @app.post('/orders',dependencies=[Depends(authorized)])
     def order(body:Order):
         with Session(engine) as session,session.begin():
-            # Serialize idempotency keys across all office writes.
-            session.get(OfficeStateRecord,'office',with_for_update=True);ensure(session)
+            serialize_writes(session)
             old=session.get(OfficeRequestRecord,body.request_id)
             if old:
-                if old.kind!='order':raise HTTPException(409,'Request ID reused.')
+                if old.kind!='order' or old.content.get('institution','lab')!=body.institution:raise HTTPException(409,'Request ID reused.')
                 return old.content
-            receipt={'sandbox':True,'order_id':str(body.request_id),'status':'available','issued_at':utc_now().isoformat()}
+            # A synthetic clinician document (order, referral packet or prescription) for one institution.
+            receipt={'sandbox':True,'order_id':str(body.request_id),'status':'available','issued_at':utc_now().isoformat(),
+                'institution':body.institution,'document':BY_INSTITUTION[body.institution].document}
             session.add(OfficeRequestRecord(request_id=body.request_id,kind='order',content=receipt));return receipt
 
     @app.post('/bookings',dependencies=[Depends(authorized)])
     def booking(body:Booking):
         ambiguous=False
         with Session(engine) as session,session.begin():
-            row=session.get(OfficeStateRecord,'office',with_for_update=True);ensure(session)
+            serialize_writes(session);row=ensure(session,body.institution,lock=True)
             old=session.get(OfficeRequestRecord,body.request_id)
             payload=body.model_dump(mode='json')
+            if body.institution=='lab':payload.pop('institution') # Original Phase 6 request shape.
             if old:
                 if old.kind!='booking' or old.content['payload']!=payload:raise HTTPException(409,'Request ID reused with different content.')
                 return old.content['result']
             order=session.get(OfficeRequestRecord,body.order_id)
-            if not order or order.kind!='order':raise HTTPException(409,'Required sandbox order missing.')
+            if not order or order.kind!='order' or order.content.get('institution','lab')!=body.institution:
+                raise HTTPException(409,'Required sandbox '+BY_INSTITUTION[body.institution].document+' missing.')
             content=row.content
             valid_slots={s['id'] for s in content['slots']}
             rejected=(content['mode'] in {'no_slot','expired','rejected'} or body.availability_revision!=content['revision'] or
@@ -144,7 +174,7 @@ def office_app(settings=None,engine=None):
         from bring_vene.understanding.service import fingerprint
         payload_hash=fingerprint(body.model_dump(mode='json'));delayed=False
         with Session(engine) as session,session.begin():
-            office=session.get(OfficeStateRecord,'office',with_for_update=True);ensure(session)
+            office=serialize_writes(session)
             prior=session.get(OfficeFamilyReceiptRecord,body.request_id)
             if prior:
                 if prior.payload_hash!=payload_hash:raise HTTPException(409,'Delivery ID reused with different fields.')

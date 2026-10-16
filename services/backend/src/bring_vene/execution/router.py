@@ -4,7 +4,9 @@ from bring_vene.auth import COOKIE
 from bring_vene.domain.service import DomainError
 from bring_vene.execution import service
 from bring_vene.execution.gateway import OfficeGateway
-from bring_vene.execution.contracts import (ExecutionView,ScopeRequest,LookupRequest,ApprovalRequest,PrerequisiteRequest,ScenarioRequest)
+from bring_vene.execution.contracts import (ExecutionView,ScopeRequest,LookupRequest,ApprovalRequest,PrerequisiteRequest,ScenarioRequest,
+    BundleRequest,BundleResult)
+from bring_vene.execution.errands import ERRANDS
 from sqlalchemy.orm import Session
 
 def execution_router(engine,settings,mutation):
@@ -30,6 +32,10 @@ def execution_router(engine,settings,mutation):
     def approve(encounter_id:UUID,action_id:UUID,body:ApprovalRequest,request:Request):
         service.approve(engine,encounter_id,action_id,*credentials(request),body);return result(encounter_id,request)
 
+    @router.post('/approve-ready',response_model=BundleResult,dependencies=[Depends(mutation)])
+    def approve_ready(encounter_id:UUID,body:BundleRequest,request:Request):
+        return service.approve_bundle(engine,encounter_id,*credentials(request),body)
+
     @router.post('/actions/{action_id}/prerequisites',response_model=ExecutionView,dependencies=[Depends(mutation)])
     def prerequisites(encounter_id:UUID,action_id:UUID,body:PrerequisiteRequest,request:Request):
         service.prerequisites(engine,encounter_id,action_id,*credentials(request),body,settings);return result(encounter_id,request)
@@ -40,6 +46,6 @@ def execution_router(engine,settings,mutation):
             raise DomainError(404,'Not found.')
         with Session(engine) as session,session.begin():
             _,_,member,_=service.access(session,encounter_id,*credentials(request));service.patient(member)
-        try:return OfficeGateway(settings).call('/scenario',body.model_dump())
+        try:return OfficeGateway(settings).call('/scenario',{'mode':body.mode,'institution':ERRANDS[body.kind].institution})
         except Exception:raise DomainError(503,'The sandbox office is unavailable. No scenario change was confirmed.')
     return router

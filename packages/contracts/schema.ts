@@ -526,6 +526,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/encounters/{encounter_id}/execution/approve-ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Ready */
+        post: operations["approve_ready_encounters__encounter_id__execution_approve_ready_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/encounters/{encounter_id}/execution/items/{item_id}/lookup": {
         parameters: {
             query?: never;
@@ -915,6 +932,11 @@ export interface components {
             clinician_confirmed: boolean;
             /** Digest */
             digest?: string | null;
+            /**
+             * Document
+             * @default lab order
+             */
+            document: string;
             /** Fingerprint */
             fingerprint?: string | null;
             /**
@@ -927,6 +949,12 @@ export interface components {
              * Format: uuid
              */
             item_id: string;
+            /**
+             * Kind
+             * @default lab
+             * @enum {string}
+             */
+            kind: "lab" | "imaging" | "referral" | "prescription";
             /** Message */
             message: string;
             /**
@@ -939,6 +967,11 @@ export interface components {
              * @default false
              */
             patient_authorized: boolean;
+            /**
+             * Place
+             * @default lab
+             */
+            place: string;
             /** Receipt */
             receipt?: {
                 [key: string]: unknown;
@@ -1001,6 +1034,36 @@ export interface components {
             track_epoch: number;
             /** Track Sid */
             track_sid: string;
+        };
+        /** BundleOutcome */
+        BundleOutcome: {
+            /**
+             * Action Id
+             * Format: uuid
+             */
+            action_id: string;
+            /** Message */
+            message: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "queued" | "already_approved" | "waiting" | "refused";
+        };
+        /** BundleRequest */
+        BundleRequest: {
+            /** Digests */
+            digests: string[];
+        };
+        /** BundleResult */
+        BundleResult: {
+            /** Outcomes */
+            outcomes: components["schemas"]["BundleOutcome"][];
+            /**
+             * Unmatched
+             * @default 0
+             */
+            unmatched: number;
         };
         /** CallAdmission */
         CallAdmission: {
@@ -1612,9 +1675,8 @@ export interface components {
             /**
              * Location
              * @default Riverside Lab
-             * @enum {string}
              */
-            location: "Riverside Lab" | "Harbor Lab" | "Hilltop Lab";
+            location: string;
             /**
              * Window
              * @enum {string}
@@ -1740,6 +1802,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Kind */
+            kind?: ("lab" | "imaging" | "referral" | "prescription" | "other") | null;
             /** Location */
             location?: string | null;
             /**
@@ -1921,6 +1985,12 @@ export interface components {
         };
         /** ScenarioRequest */
         ScenarioRequest: {
+            /**
+             * Kind
+             * @default lab
+             * @enum {string}
+             */
+            kind: "lab" | "imaging" | "referral" | "prescription";
             /**
              * Mode
              * @enum {string}
@@ -3201,6 +3271,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExecutionView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_ready_encounters__encounter_id__execution_approve_ready_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BundleRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BundleResult"];
                 };
             };
             /** @description Validation Error */

@@ -18,7 +18,7 @@ class ProposedAnswer(Contract):
 
 
 class ProposedStep(Contract):
-    topic: Literal['lab','referral','other']
+    topic: Literal['lab','imaging','referral','prescription','other']
     title: str = Field(min_length=3,max_length=160)
     detail: str = Field(min_length=3,max_length=1200)
     owner: str | None

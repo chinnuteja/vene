@@ -30,6 +30,11 @@
             ],
             "title": "Digest"
           },
+          "document": {
+            "default": "lab order",
+            "title": "Document",
+            "type": "string"
+          },
           "fingerprint": {
             "anyOf": [
               {
@@ -51,6 +56,17 @@
             "title": "Item Id",
             "type": "string"
           },
+          "kind": {
+            "default": "lab",
+            "enum": [
+              "lab",
+              "imaging",
+              "referral",
+              "prescription"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
           "message": {
             "title": "Message",
             "type": "string"
@@ -64,6 +80,11 @@
             "default": false,
             "title": "Patient Authorized",
             "type": "boolean"
+          },
+          "place": {
+            "default": "lab",
+            "title": "Place",
+            "type": "string"
           },
           "receipt": {
             "anyOf": [
@@ -198,6 +219,76 @@
           "last_received_at"
         ],
         "title": "AudioReceipt",
+        "type": "object"
+      },
+      "BundleOutcome": {
+        "properties": {
+          "action_id": {
+            "format": "uuid",
+            "title": "Action Id",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "queued",
+              "already_approved",
+              "waiting",
+              "refused"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action_id",
+          "outcome",
+          "message"
+        ],
+        "title": "BundleOutcome",
+        "type": "object"
+      },
+      "BundleRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "digests": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Digests",
+            "type": "array"
+          }
+        },
+        "required": [
+          "digests"
+        ],
+        "title": "BundleRequest",
+        "type": "object"
+      },
+      "BundleResult": {
+        "properties": {
+          "outcomes": {
+            "items": {
+              "$ref": "#/components/schemas/BundleOutcome"
+            },
+            "title": "Outcomes",
+            "type": "array"
+          },
+          "unmatched": {
+            "default": 0,
+            "title": "Unmatched",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "outcomes"
+        ],
+        "title": "BundleResult",
         "type": "object"
       },
       "CallAdmission": {
@@ -1673,11 +1764,8 @@
           },
           "location": {
             "default": "Riverside Lab",
-            "enum": [
-              "Riverside Lab",
-              "Harbor Lab",
-              "Hilltop Lab"
-            ],
+            "maxLength": 60,
+            "minLength": 3,
             "title": "Location",
             "type": "string"
           },
@@ -1967,6 +2055,24 @@
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "lab",
+                  "imaging",
+                  "referral",
+                  "prescription",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
           },
           "location": {
             "anyOf": [
@@ -2377,6 +2483,17 @@
       "ScenarioRequest": {
         "additionalProperties": false,
         "properties": {
+          "kind": {
+            "default": "lab",
+            "enum": [
+              "lab",
+              "imaging",
+              "referral",
+              "prescription"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
           "mode": {
             "enum": [
               "normal",
@@ -4407,6 +4524,56 @@
           }
         },
         "summary": "Prerequisites"
+      }
+    },
+    "/encounters/{encounter_id}/execution/approve-ready": {
+      "post": {
+        "operationId": "approve_ready_encounters__encounter_id__execution_approve_ready_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BundleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BundleResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve Ready"
       }
     },
     "/encounters/{encounter_id}/execution/items/{item_id}/lookup": {

@@ -145,15 +145,16 @@ def refresh(session,encounter,call,row,view,settings):
             text='Could we come back to this question? '+p.title,score=100-rank*5+(15 if p.status=='partly_answered' else 0),
             refs={'priority_id':str(p.id)})
     from bring_vene.execution.service import scope_valid,snapshot,fresh
+    from bring_vene.execution import errands
     from bring_vene.persistence.models import ExecutionRecord
     for action in session.scalars(select(ExecutionRecord).where(ExecutionRecord.encounter_id==view.id).order_by(ExecutionRecord.created_at.desc()).limit(8)):
         if action.state not in {'no_slot','suggested','confirmed','unknown'} or not scope_valid(session,view,action):continue
         if action.state in {'no_slot','suggested'} and not fresh(action):continue
-        data=action.content
-        text=('The sandbox office found no '+data['window']+' slot. Could we clarify another appointment window?' if action.state=='no_slot' else
-            'The sandbox office reports: '+data['message'])
+        data=action.content;errand=errands.for_action(data)
+        text=('The sandbox '+errand.place+' found no '+data['window']+' '+errand.offered+'. Could we clarify another window?' if action.state=='no_slot' else
+            'The sandbox '+errand.place+' reports: '+data['message'])
         make_cue(session,encounter,call,row,view,settings,key='office:'+str(action.id)+':'+action.state+':'+snapshot(action)[:12],
-            title='Office check · '+data['title'],suggestion=data['message']+' Source: local sandbox office, checked '+data.get('checked_at','unknown')+'.',
+            title='Office check · '+data['title'],suggestion=data['message']+' Source: local sandbox '+errand.place+', checked '+data.get('checked_at','unknown')+'.',
             text=text,score=180,refs={'plan_ids':[str(action.item_id)],'execution_snapshots':{str(action.id):snapshot(action)}})
     session.flush()
     # Bound the actionable queue; an old history is not a live generation queue.

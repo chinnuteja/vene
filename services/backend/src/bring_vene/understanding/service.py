@@ -267,7 +267,7 @@ def apply_result(engine,run_id,result,settings):
                 timeframe=proposal.timeframe,location=proposal.location,dependencies=proposal.dependencies,
                 status='draft',evidence_refs=list(dict.fromkeys(c.source_id for c in proposal.citations)),origin='interpretation',
                 needs_clarification=proposal.needs_clarification,explanation=proposal.explanation,
-                revision=(old.revision+1 if old else 1),audiences=[])
+                revision=(old.revision+1 if old else 1),audiences=[],kind=proposal.topic)
             view.plan=[i for i in view.plan if i.id!=item_id];view.plan.append(item)
         # Untrusted citation failures never publish invented details or change approvals.
         if invalid:

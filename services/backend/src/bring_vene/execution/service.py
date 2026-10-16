@@ -1,7 +1,6 @@
 """Patient-scoped administrative work. External receipts survive local corrections."""
 from datetime import datetime, timedelta
 from uuid import UUID,uuid4
-import re
 import logging
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -12,7 +11,8 @@ from bring_vene.domain.service import DomainError,utc_now
 from bring_vene.persistence.models import (EncounterRecord,ExecutionRecord,ExecutionScopeRecord,ExecutionOutboxRecord,
     SessionRecord,MembershipRecord)
 from bring_vene.understanding.service import fingerprint
-from bring_vene.execution.contracts import ExecutionView,ActionView
+from bring_vene.execution.contracts import ExecutionView,ActionView,BundleOutcome,BundleResult
+from bring_vene.execution import errands
 from bring_vene.execution.gateway import OfficeGateway
 
 TERMINAL={'confirmed','rejected','invalidated','cancelled'}
@@ -72,7 +72,9 @@ def fresh(action):
     return bool(value and datetime.fromisoformat(value)>utc_now())
 
 def action_digest(action):
-    return fingerprint({'action_id':str(action.id),'plan':action.content['plan_fingerprint'],
+    # Non-lab errands also bind their kind; lab keeps the Phase 6 digest shape.
+    kind={} if action.content.get('kind','lab')=='lab' else {'kind':action.content['kind']}
+    return fingerprint({**kind,'action_id':str(action.id),'plan':action.content['plan_fingerprint'],
         'scope_revision':action.content['scope_revision'],'window':action.content['window'],
         'location':action.content.get('location','Riverside Lab'),'day':action.content.get('day','2026-10-20'),
         'slot':action.content.get('slot'),'availability_revision':action.content.get('availability_revision'),
@@ -97,7 +99,9 @@ def state(engine,visit_id,token,settings):
                 shown='invalidated';message='The step, source or permission changed. Check again.'
             elif row.state=='suggested' and not fresh(row):
                 shown='expired';message='The availability check expired. Check again before approval.'
-            actions.append(ActionView(id=row.id,item_id=row.item_id,title=data['title'],window=data['window'],state=shown,
+            errand=errands.for_action(data)
+            actions.append(ActionView(id=row.id,item_id=row.item_id,kind=errand.kind,place=errand.place,document=errand.document,
+                title=data['title'],window=data['window'],state=shown,
                 message=message,slot=data.get('slot'),checked_at=data.get('checked_at'),receipt=data.get('receipt'),
                 digest=action_digest(row) if member.role=='patient' and shown=='suggested' else None,
                 fingerprint=data['plan_fingerprint'] if member.role in {'patient','clinician'} and current else None,
@@ -120,8 +124,11 @@ def scope(engine,visit_id,item_id,token,csrf,request):
 def lookup(engine,visit_id,item_id,token,csrf,request,settings,gateway=None):
     with Session(engine) as session,session.begin():
         _,view,member,credential=access(session,visit_id,token,csrf);patient(member);item=target(view,item_id)
-        if not re.search(r'\b(lab|laboratory|blood)\b',item.title+' '+item.detail,re.I):
-            raise DomainError(422,'This sandbox adapter only schedules a sourced laboratory next step.')
+        errand=errands.for_item(item)
+        if not errand:
+            raise DomainError(422,'The sandbox handles sourced lab, imaging, referral and prescription steps only.')
+        if request.location not in errand.locations:
+            raise DomainError(422,'Choose one of the fictional '+errand.place+' locations.')
         grant=session.get(ExecutionScopeRecord,(visit_id,item_id))
         if not grant or not grant.allowed or grant.session_hash!=credential.token_hash:
             raise DomainError(403,'Allow this sandbox availability lookup first.')
@@ -131,12 +138,14 @@ def lookup(engine,visit_id,item_id,token,csrf,request,settings,gateway=None):
         for old in existing:
             if old.state not in TERMINAL:old.state='invalidated'
         action=ExecutionRecord(id=uuid4(),encounter_id=visit_id,item_id=item_id,state='checking',created_at=utc_now(),content={
-            'title':item.title,'window':request.window,'plan_fingerprint':plan_fingerprint(view,item_id),
+            'kind':errand.kind,'title':item.title,'window':request.window,'plan_fingerprint':plan_fingerprint(view,item_id),
             'location':request.location,'day':request.day,
-            'scope_revision':grant.revision,'session_hash':credential.token_hash,'message':'Checking the local sandbox office.'})
+            'scope_revision':grant.revision,'session_hash':credential.token_hash,'message':'Checking the local sandbox '+errand.place+'.'})
         session.add(action);action_id=action.id
     # No transcript, name, visit ID or plan detail goes to the office. Recheck scope on return.
-    try:response=(gateway or OfficeGateway(settings)).call('/lookup',request.model_dump(mode='json'))
+    payload=request.model_dump(mode='json')
+    if errand.institution!='lab':payload['institution']=errand.institution
+    try:response=(gateway or OfficeGateway(settings)).call('/lookup',payload)
     except Exception as error:
         # Type only: never log request fields, credentials or provider bodies.
         logging.getLogger(__name__).warning('Sandbox lookup failed (%s)',type(error).__name__)
@@ -146,19 +155,19 @@ def lookup(engine,visit_id,item_id,token,csrf,request,settings,gateway=None):
         if not scope_valid(session,view,action):
             action.state='invalidated';action.content={**action.content,'message':'The lookup returned after a correction or permission change; its result was discarded.'}
         elif response is None:
-            action.state='unavailable';action.content={**action.content,'message':'The sandbox office did not return a verified result. No booking was sent.'}
+            action.state='unavailable';action.content={**action.content,'message':'The sandbox '+errand.place+' did not return a verified result. Nothing was sent.'}
         else:
             action.content={**action.content,'slot':response['slot'],'availability_revision':response['revision'],
                 'checked_at':response['checked_at'],'expires_at':response['expires_at']}
             action.state='suggested' if response['slot'] and fresh(action) else 'expired' if response['slot'] else 'no_slot'
-            action.content={**action.content,'message':{'suggested':'A slot was found. It is not reserved. Clinician confirmation, a sandbox order and your separate approval are needed.',
-                'expired':'The office returned expired availability. Check again.','no_slot':'No slot fits this window. Clarify another window before checking again.'}[action.state]}
+            action.content={**action.content,'message':{'suggested':'The '+errand.place+' offered a '+errand.offered+'. It is not reserved. Clinician confirmation, a sandbox '+errand.document+' and your separate approval are needed.',
+                'expired':'The '+errand.place+' returned expired availability. Check again.','no_slot':'No '+errand.offered+' fits this window. Clarify another window before checking again.'}[action.state]}
     return action_id
 
 def prerequisites(engine,visit_id,action_id,token,csrf,request,settings,gateway=None):
     def validate(session):
         _,view,member,_=access(session,visit_id,token,csrf)
-        if member.role!='clinician':raise DomainError(403,'The clinician must confirm the intended step and required sandbox order.')
+        if member.role!='clinician':raise DomainError(403,'The clinician must confirm the intended step and its required sandbox document.')
         action=session.get(ExecutionRecord,action_id)
         if not action or action.encounter_id!=visit_id or action.item_id not in {p.id for p in context_adapter.view(view,member.role,member.id).plan}:
             raise DomainError(404,'Request not found.')
@@ -169,15 +178,19 @@ def prerequisites(engine,visit_id,action_id,token,csrf,request,settings,gateway=
     with Session(engine) as session,session.begin():
         action,_,_=validate(session)
         needs_order=request.order and not action.content.get('order_id')
+        errand=errands.for_action(action.content)
     receipt=None;order_id=None
     if needs_order:
         # The external order is explicitly synthetic. Its original request ID is
         # stable across retry, and a stale response never grants booking authority.
         from uuid import uuid5,NAMESPACE_URL
         order_id=uuid5(NAMESPACE_URL,'bring-vene:sandbox-order:'+str(action_id))
-        try:receipt=(gateway or OfficeGateway(settings)).call('/orders',{'request_id':str(order_id)})
-        except Exception:raise DomainError(503,'The sandbox order could not be verified. No booking was approved.')
-        if receipt.get('status')!='available' or receipt.get('order_id')!=str(order_id):raise DomainError(503,'Unverified sandbox order response.')
+        body={'request_id':str(order_id)}
+        if errand.institution!='lab':body['institution']=errand.institution
+        try:receipt=(gateway or OfficeGateway(settings)).call('/orders',body)
+        except Exception:raise DomainError(503,'The sandbox '+errand.document+' could not be verified. Nothing was approved.')
+        if (receipt.get('status')!='available' or receipt.get('order_id')!=str(order_id) or
+            receipt.get('institution','lab')!=errand.institution):raise DomainError(503,'Unverified sandbox document response.')
     with Session(engine) as session,session.begin():
         action,member,view=validate(session)
         data={**action.content,'clinician_id':str(member.id),'clinician_at':utc_now().isoformat(),
@@ -186,24 +199,52 @@ def prerequisites(engine,visit_id,action_id,token,csrf,request,settings,gateway=
         action.content=data
 
 
+def approve_action(session,view,action,digest):
+    """One approval decision. Returns (outcome, message); the caller holds the visit lock."""
+    if digest!=action_digest(action):raise DomainError(409,'The proposed action changed. Review it again.')
+    if action.state in {'queued','in_flight','unknown','confirmed'}:return 'already_approved',action.content.get('message','') # never another write
+    if action.state!='suggested' or not scope_valid(session,view,action) or not fresh(action):
+        raise DomainError(409,'This suggestion expired or its source or permission changed.')
+    errand=errands.for_action(action.content)
+    dependencies=[]
+    if not action.content.get('clinician_id'):dependencies.append('clinician confirmation')
+    if not action.content.get('order_id'):dependencies.append('required sandbox '+('order' if errand.kind=='lab' else errand.document))
+    if dependencies:
+        message='Waiting on '+', '.join(dependencies)+'. Nothing was sent.'
+        action.content={**action.content,'message':message}
+        return 'waiting',message
+    message='You approved this exact sandbox request. Queued for the '+errand.place+'.'
+    action.state='queued';action.content={**action.content,'approved_at':utc_now().isoformat(),'approval_digest':digest,'message':message}
+    session.add(ExecutionOutboxRecord(action_id=action.id,next_at=utc_now(),attempts=0))
+    return 'queued',message
+
 def approve(engine,visit_id,action_id,token,csrf,request):
     with Session(engine) as session,session.begin():
         _,view,member,_=access(session,visit_id,token,csrf);patient(member)
         action=session.get(ExecutionRecord,action_id)
         if not action or action.encounter_id!=visit_id:raise DomainError(404,'Request not found.')
-        if request.digest!=action_digest(action):raise DomainError(409,'The proposed action changed. Review it again.')
-        if action.state in {'queued','in_flight','unknown','confirmed'}:return # same approval, never another write
-        if action.state!='suggested' or not scope_valid(session,view,action) or not fresh(action):
-            raise DomainError(409,'This suggestion expired or its source or permission changed.')
-        dependencies=[]
-        if not action.content.get('clinician_id'):dependencies.append('clinician confirmation')
-        if not action.content.get('order_id'):dependencies.append('required sandbox order')
-        if dependencies:
-            action.content={**action.content,'message':'Waiting on '+', '.join(dependencies)+'. No booking dispatched.'}
-            return
-        action.state='queued';action.content={**action.content,'approved_at':utc_now().isoformat(),
-            'approval_digest':request.digest,'message':'You approved this exact sandbox reservation. Queued for dispatch.'}
-        session.add(ExecutionOutboxRecord(action_id=action.id,next_at=utc_now(),attempts=0))
+        approve_action(session,view,action,request.digest)
+
+def approve_bundle(engine,visit_id,token,csrf,request):
+    """One patient action over several exact digests. Not a transaction across institutions:
+    each errand is queued, held for a named prerequisite or refused on its own, then
+    dispatched and reconciled independently."""
+    with Session(engine) as session,session.begin():
+        _,view,member,_=access(session,visit_id,token,csrf);patient(member)
+        rows=session.scalars(select(ExecutionRecord).where(ExecutionRecord.encounter_id==visit_id)).all()
+        by_digest={action_digest(row):row for row in rows}
+        outcomes=[]
+        for digest in dict.fromkeys(request.digests):
+            action=by_digest.get(digest)
+            if not action:
+                # A changed step changes its digest; nothing matching it is approved.
+                continue
+            try:outcome,message=approve_action(session,view,action,digest)
+            except DomainError as error:outcome,message='refused',error.message
+            outcomes.append(BundleOutcome(action_id=action.id,outcome=outcome,message=message))
+        unmatched=len(dict.fromkeys(request.digests))-len(outcomes)
+        if unmatched and not outcomes:raise DomainError(409,'These steps changed. Review them again.')
+        return BundleResult(outcomes=outcomes,unmatched=unmatched)
 
 def claim(engine):
     with Session(engine) as session,session.begin():
@@ -221,8 +262,9 @@ def finish_result(action,result):
     for duplicate in result.get('duplicate_events',[]):
         if duplicate!={k:v for k,v in result.items() if k!='duplicate_events'}:raise ValueError('Conflicting duplicate receipt.')
     result={k:v for k,v in result.items() if k!='duplicate_events'}
+    errand=errands.for_action(action.content)
     action.state=result['status'];action.content={**action.content,'receipt':result,
-        'message':'Confirmed by the sandbox office with a persisted receipt.' if action.state=='confirmed' else 'Rejected by the sandbox office. No reservation exists.'}
+        'message':'Confirmed by the sandbox '+errand.place+' with a persisted receipt.' if action.state=='confirmed' else 'Rejected by the sandbox '+errand.place+'. Nothing is reserved.'}
 
 def dispatch(engine,settings,claimed=None,gateway=None):
     claimed=claimed or claim(engine)
@@ -249,6 +291,8 @@ def dispatch(engine,settings,claimed=None,gateway=None):
             action.state='in_flight';action.content={**action.content,'send_started':True,'message':'Sandbox request dispatched; completion is not yet known.'}
         payload={'request_id':str(action.id),'slot_id':action.content['slot']['id'],
             'availability_revision':action.content['availability_revision'],'order_id':action.content['order_id']}
+        institution=errands.for_action(action.content).institution
+        if institution!='lab':payload['institution']=institution
     result=None
     try:
         adapter=gateway or OfficeGateway(settings)

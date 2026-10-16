@@ -578,6 +578,23 @@
         "title": "CallView",
         "type": "object"
       },
+      "CircleView": {
+        "additionalProperties": false,
+        "properties": {
+          "rides": {
+            "items": {
+              "$ref": "#/components/schemas/RideView"
+            },
+            "title": "Rides",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rides"
+        ],
+        "title": "CircleView",
+        "type": "object"
+      },
       "CommandEnvelope": {
         "additionalProperties": false,
         "properties": {
@@ -2480,6 +2497,116 @@
         "title": "ReviewRequest",
         "type": "object"
       },
+      "RideAnswer": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "enum": [
+              "yes",
+              "no"
+            ],
+            "title": "Answer",
+            "type": "string"
+          }
+        },
+        "required": [
+          "answer"
+        ],
+        "title": "RideAnswer",
+        "type": "object"
+      },
+      "RideAsk": {
+        "additionalProperties": false,
+        "properties": {
+          "action_id": {
+            "format": "uuid",
+            "title": "Action Id",
+            "type": "string"
+          },
+          "recipient_id": {
+            "format": "uuid",
+            "title": "Recipient Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action_id",
+          "recipient_id"
+        ],
+        "title": "RideAsk",
+        "type": "object"
+      },
+      "RideView": {
+        "additionalProperties": false,
+        "properties": {
+          "action_id": {
+            "format": "uuid",
+            "title": "Action Id",
+            "type": "string"
+          },
+          "answered_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answered At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "purpose": {
+            "title": "Purpose",
+            "type": "string"
+          },
+          "recipient_id": {
+            "format": "uuid",
+            "title": "Recipient Id",
+            "type": "string"
+          },
+          "recipient_name": {
+            "title": "Recipient Name",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "asked",
+              "accepted",
+              "declined",
+              "withdrawn",
+              "unavailable"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "when": {
+            "title": "When",
+            "type": "string"
+          },
+          "where": {
+            "title": "Where",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "action_id",
+          "recipient_id",
+          "recipient_name",
+          "purpose",
+          "when",
+          "where",
+          "state"
+        ],
+        "title": "RideView",
+        "type": "object"
+      },
       "ScenarioRequest": {
         "additionalProperties": false,
         "properties": {
@@ -3765,6 +3892,206 @@
           }
         },
         "summary": "Utterances"
+      }
+    },
+    "/encounters/{encounter_id}/care-circle": {
+      "get": {
+        "operationId": "state_encounters__encounter_id__care_circle_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CircleView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "State"
+      }
+    },
+    "/encounters/{encounter_id}/care-circle/rides": {
+      "post": {
+        "operationId": "ask_encounters__encounter_id__care_circle_rides_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RideAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CircleView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask"
+      }
+    },
+    "/encounters/{encounter_id}/care-circle/rides/{request_id}/answer": {
+      "post": {
+        "operationId": "answer_encounters__encounter_id__care_circle_rides__request_id__answer_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RideAnswer"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CircleView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Answer"
+      }
+    },
+    "/encounters/{encounter_id}/care-circle/rides/{request_id}/withdraw": {
+      "post": {
+        "operationId": "withdraw_encounters__encounter_id__care_circle_rides__request_id__withdraw_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CircleView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Withdraw"
       }
     },
     "/encounters/{encounter_id}/commands": {

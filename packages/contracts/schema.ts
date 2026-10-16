@@ -271,6 +271,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/encounters/{encounter_id}/care-circle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** State */
+        get: operations["state_encounters__encounter_id__care_circle_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{encounter_id}/care-circle/rides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ask */
+        post: operations["ask_encounters__encounter_id__care_circle_rides_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{encounter_id}/care-circle/rides/{request_id}/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer */
+        post: operations["answer_encounters__encounter_id__care_circle_rides__request_id__answer_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{encounter_id}/care-circle/rides/{request_id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw */
+        post: operations["withdraw_encounters__encounter_id__care_circle_rides__request_id__withdraw_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/encounters/{encounter_id}/commands": {
         parameters: {
             query?: never;
@@ -1200,6 +1268,11 @@ export interface components {
             /** Worker Ready */
             worker_ready: boolean;
         };
+        /** CircleView */
+        CircleView: {
+            /** Rides */
+            rides: components["schemas"]["RideView"][];
+        };
         /** CommandEnvelope */
         CommandEnvelope: {
             /** Command */
@@ -1983,6 +2056,60 @@ export interface components {
             /** Note */
             note: string;
         };
+        /** RideAnswer */
+        RideAnswer: {
+            /**
+             * Answer
+             * @enum {string}
+             */
+            answer: "yes" | "no";
+        };
+        /** RideAsk */
+        RideAsk: {
+            /**
+             * Action Id
+             * Format: uuid
+             */
+            action_id: string;
+            /**
+             * Recipient Id
+             * Format: uuid
+             */
+            recipient_id: string;
+        };
+        /** RideView */
+        RideView: {
+            /**
+             * Action Id
+             * Format: uuid
+             */
+            action_id: string;
+            /** Answered At */
+            answered_at?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Purpose */
+            purpose: string;
+            /**
+             * Recipient Id
+             * Format: uuid
+             */
+            recipient_id: string;
+            /** Recipient Name */
+            recipient_name: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "asked" | "accepted" | "declined" | "withdrawn" | "unavailable";
+            /** When */
+            when: string;
+            /** Where */
+            where: string;
+        };
         /** ScenarioRequest */
         ScenarioRequest: {
             /**
@@ -2762,6 +2889,140 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Utterance"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    state_encounters__encounter_id__care_circle_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CircleView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ask_encounters__encounter_id__care_circle_rides_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RideAsk"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CircleView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    answer_encounters__encounter_id__care_circle_rides__request_id__answer_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RideAnswer"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CircleView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdraw_encounters__encounter_id__care_circle_rides__request_id__withdraw_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CircleView"];
                 };
             };
             /** @description Validation Error */

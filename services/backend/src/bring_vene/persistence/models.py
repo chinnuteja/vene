@@ -378,3 +378,16 @@ class SpeechMutationRecord(Base):
     content: Mapped[dict] = mapped_column(JSONB)
     accepted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
+
+
+class CareCircleRequestRecord(Base):
+    __tablename__ = 'care_circle_requests'
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True)
+    encounter_id: Mapped[UUID] = mapped_column(ForeignKey('encounters.id', ondelete='CASCADE'), index=True)
+    action_id: Mapped[UUID] = mapped_column(ForeignKey('executions.id', ondelete='CASCADE'))
+    recipient_id: Mapped[UUID] = mapped_column(ForeignKey('memberships.id', ondelete='CASCADE'))
+    session_hash: Mapped[str] = mapped_column(String(64))
+    state: Mapped[str] = mapped_column(String(16))
+    content: Mapped[dict] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    answered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

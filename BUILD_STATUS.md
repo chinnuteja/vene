@@ -53,6 +53,8 @@ Do not mark an entire phase passed when only its fixture configuration has passe
 
 ## Next concrete work
 
+Phases 9–12 are planned in IMPLEMENTATION_PLAN_PHASES_9-12.md (16 October): portable runtime groundwork, walk-out follow-through across several errand types, in-room obstacle catch, preparation drafted from open loops, and phone-on-the-table/dial-in participation. None of that work has started.
+
 No planned feature phase remains unimplemented. User-authorized test keys are configured: MODEL_PROVIDER=deepseek with DEEPSEEK_API_KEY, DEEPGRAM_API_KEY, CARTESIA_API_KEY and a verified public CARTESIA_VOICE_ID in ignored .env. Continue scripts/check-live.ps1 sequentially against the isolated test database; the combined live flow and speech safety passed, repeated timing remains open. It validates configuration before reset/calls, exercises actual recognition/model/speech and separately approved sandbox booking, and repeats speech timing. Review observed outputs, attribution, citations, unsupported claims and actual receipts; never treat a fixture pass as provider quality.
 
 Keep the earlier startup target miss open: offline p95 3,127 ms versus roughly 2,000 ms. Prior stop-to-silence was 473 ms versus 500 ms; repeat both under the current runtime and real providers. Physical acoustics, available-device qualification and patient/clinician acceptance remain separate. Integration, demo and output-review guides are under docs. Preserve the existing saved development visits and use the explicit guarded reset only for an intentional fictional demonstration.

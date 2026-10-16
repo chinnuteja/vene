@@ -39,7 +39,10 @@ A filtered re-run also showed that the continuity test depends on the sandbox-ex
 | Contract drift, TypeScript, production build | Passed |
 | First full browser run | 16 passed, 7 failed, 4 skipped; failures traced to the three defects above |
 | Targeted re-runs after fixes | All previously failing scenarios passed |
-| Final full `scripts/check.sh --all` | See below |
+| Final full `scripts/check.sh --all` | **Passed**: 144 backend, 23 browser passed, 4 skipped (live-provider gate, 20-trial timing gate, Firefox and WebKit smoke without project-installed browsers) |
+| `scripts/dev.sh --mode fixture --production` | Started Postgres-backed API, LiveKit, voice, understanding, office, execution and callback workers; printed `http://127.0.0.1:3000` |
+| Browser review of the launcher | Maria via /dev; prepare, visit and follow-up desktop and 390 px mobile. No page errors; only navigation aborts (`net::ERR_ABORTED`); no mobile horizontal overflow; call panel ready with real LiveKit |
+| `scripts/stop.sh` | Stopped all 15 owned processes; project Postgres left running as intended |
 
 Skipped browser scenarios are the explicit live-provider and timing gates plus the Firefox/WebKit smoke, which needs project-installed browsers.
 

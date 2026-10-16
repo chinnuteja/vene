@@ -84,7 +84,7 @@ async function stopOwned(child){
   if(process.platform==='win32'){
     const killed=spawn('taskkill.exe',['/PID',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});
     await new Promise((resolve,reject)=>{killed.once('error',reject);killed.once('exit',resolve);});
-  }else child.kill();
+  }else child.kill('SIGKILL'); // Same abrupt stop as taskkill /F; SIGTERM waits on open SSE streams.
   await exited;
 }
 const controlToken=randomBytes(32).toString('hex');

@@ -40,12 +40,17 @@ test('real WebRTC tracks, consent, pause, late arrival and reconnect preserve at
     await d.getByRole('button',{name:'Agree to Vene processing',exact:true}).click();
     await expect(p.getByRole('button',{name:'Resume Vene processing',exact:true})).toBeEnabled();
     await p.getByRole('button',{name:'Resume Vene processing',exact:true}).click();
-    await expect.poll(async()=>{const evidence=await diagnostic(patient);return evidence.receipts.filter(x=>x.non_silent_frames>3).length;}).toBe(2);
+    // Receipts advance once per 100 ms audio batch. Overlap is only observable after each
+    // track has a batch later than the other's first, so wait for that, then assert it.
+    function overlapping(receipts:{first_received_at:string,last_received_at:string}[]){
+      const times=receipts.map(x=>[new Date(x.first_received_at).getTime(),new Date(x.last_received_at).getTime()]);
+      return Math.max(...times.map(x=>x[0]))<Math.min(...times.map(x=>x[1]));
+    }
+    await expect.poll(async()=>{const evidence=await diagnostic(patient);const active=evidence.receipts.filter(x=>x.non_silent_frames>3);return active.length===2&&overlapping(active);}).toBe(true);
     const received=await diagnostic(patient),members=await state(patient);
     expect(new Set(received.receipts.map(x=>x.connection_id)).size).toBe(2);
     expect(new Set(received.receipts.map(x=>x.track_sid)).size).toBe(2);
-    const times=received.receipts.map(x=>[new Date(x.first_received_at).getTime(),new Date(x.last_received_at).getTime()]);
-    expect(Math.max(...times.map(x=>x[0]))).toBeLessThan(Math.min(...times.map(x=>x[1])));
+    expect(overlapping(received.receipts)).toBe(true);
     expect((await doctor.request.get(callBase+'/utterances')).status()).toBe(403);
     expect(await (await patient.request.get(callBase+'/utterances')).json()).toEqual([]);
     await p.getByRole('button',{name:'Silence Vene output',exact:true}).click();

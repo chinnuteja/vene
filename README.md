@@ -9,6 +9,15 @@ A locally developed patient-controlled visit companion. Phases 1–2 provide per
 .\scripts\dev.ps1 -Mode fixture
 ```
 
+On Linux or macOS (Node 22+, pnpm, uv, curl and a PostgreSQL 16/17 server package; espeak-ng on Linux for the offline voice; on macOS also `brew install livekit`):
+
+```bash
+./scripts/setup.sh
+./scripts/dev.sh --mode fixture
+./scripts/check.sh --all
+./scripts/stop.sh            # add --infrastructure to stop the project database
+```
+
 Open the Local URL printed by the launcher. Start the fictional preview at http://127.0.0.1:3000/dev. Choose Maria, Dr. Chen or Elena. Use separate browser profiles to see all three together. Opening /prepare without a session shows an invitation gate.
 
 Setup uses Docker Postgres if reachable, otherwise the pinned official Postgres 17.11 Windows binaries under ignored .local. It creates separate development and test databases, applies migrations and seeds Maria's fictional visit. Re-running setup preserves edits.

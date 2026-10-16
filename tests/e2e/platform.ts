@@ -37,5 +37,5 @@ export function stopOwnedMedia(pid:number){
   const line=args.join(' ');
   if(Number(parent)!==record.parent_pid||!line.includes(livekitServer())||!line.includes(path.resolve('.local/browser-livekit.yaml')))
     throw new Error('Refusing to stop a process outside the owned browser test server.');
-  process.kill(pid,'SIGTERM');
+  process.kill(pid,'SIGKILL'); // Abrupt loss, like Stop-Process on Windows; SIGTERM is a graceful LiveKit shutdown.
 }

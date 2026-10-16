@@ -1,4 +1,5 @@
 import {pipeOwnedOutput} from './child-logs.mjs';
+import {venvPython,livekitBinary} from './platform.mjs';
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import net from 'node:net';
@@ -17,8 +18,10 @@ const mediaPort=await freePort(),mediaTcp=await freePort(),mediaUdp=await freePo
 const mediaTurn=await freePort();
 const officePort=await freePort();
 const env = { ...process.env, NEXT_DIST_DIR: process.env.NEXT_DIST_DIR ?? '.next', NEXT_TELEMETRY_DISABLED: '1', DATABASE_URL: runtime.test_database_url, BRING_VENE_MODE:'fixture', VOICE_PROVIDER:'fixture', LIVEKIT_URL:'ws://127.0.0.1:'+mediaPort,LIVEKIT_API_KEY:runtime.livekit_key,LIVEKIT_API_SECRET:runtime.livekit_secret, BRING_VENE_DEVELOPMENT:'true', COOKIE_SECURE:'false', BACKEND_URL: 'http://127.0.0.1:' + apiPort, BRING_VENE_BASE_URL: 'http://127.0.0.1:' + port, BRING_VENE_BROWSER_TEST:'true' };
+if(fs.existsSync('.local/chromium.json'))env.BRING_VENE_CHROMIUM_PATH=JSON.parse(fs.readFileSync('.local/chromium.json','utf8')).executable;
+env.BRING_VENE_EVIDENCE_DIR??=path.join(root,'.local/evidence');
 if(!runtime.livekit_key||!runtime.livekit_secret)throw new Error('Run setup-media.ps1 before media browser checks.');
-const python=path.join(root,'.venv/Scripts/python.exe');
+const python=venvPython(root);
 const allLive=process.env.BRING_VENE_LIVE_PROVIDER_GATE==='true';
 if(allLive){const configured=spawnSync(python,['scripts/live-config-check.py'],{cwd:root,env,windowsHide:true,stdio:'inherit'});if(configured.status!==0)throw new Error('Live-provider gate not configured. No reset or scripted fallback was started.');}
 env.VOICE_PROVIDER=allLive?'deepgram':'fixture';
@@ -47,7 +50,7 @@ pipeOwnedOutput(callbacks,callbacksLog);
 const mediaConfig=path.join(root,'.local/browser-livekit.yaml');
 fs.writeFileSync(mediaConfig,`port: ${mediaPort}\nbind_addresses: [127.0.0.1]\nrtc:\n  tcp_port: ${mediaTcp}\n  udp_port: ${mediaUdp}\n  use_external_ip: false\n  node_ip: 127.0.0.1\n  enable_loopback_candidate: true\n  use_mdns: false\nturn:\n  enabled: true\n  udp_port: ${mediaTurn}\n  bind_addresses: [127.0.0.1]\n  domain: 127.0.0.1\n  allow_restricted_peer_cidrs: [127.0.0.1/32]\nkeys:\n  ${runtime.livekit_key}: ${runtime.livekit_secret}\nlogging:\n  level: error\n`);
 const mediaLog=fs.createWriteStream('.local/logs/browser-check-media.log',{flags:'a'});
-const media=spawn(path.join(root,'.local/tools/livekit/livekit-server.exe'),['--config',mediaConfig],{cwd:root,env,windowsHide:true,stdio:['ignore','pipe','pipe']});
+const media=spawn(livekitBinary(root),['--config',mediaConfig],{cwd:root,env,windowsHide:true,stdio:['ignore','pipe','pipe']});
 env.BRING_VENE_MEDIA_PID=String(media.pid);
 fs.writeFileSync('.local/browser-media-process.json',JSON.stringify({root,pid:media.pid,parent_pid:process.pid,started_at:new Date().toISOString(),config:mediaConfig})+'\n');
 pipeOwnedOutput(media,mediaLog);

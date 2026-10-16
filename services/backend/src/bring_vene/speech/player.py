@@ -3,6 +3,7 @@ import asyncio
 import base64
 import json
 import subprocess
+import sys
 import time
 from pathlib import Path
 from livekit import rtc
@@ -13,6 +14,15 @@ from bring_vene.speech.fence import SpeechFence
 
 
 class PlaybackClosed(Exception):pass
+
+
+def offline_helper():
+    # Same in-memory line protocol on every platform; Windows keeps its audited SAPI helper.
+    scripts=Path(__file__).resolve().parents[5]/'scripts'
+    if sys.platform=='win32':
+        return (['powershell.exe','-NoProfile','-ExecutionPolicy','Bypass','-File',str(scripts/'synthesize-fixture.ps1')],
+            {'creationflags':subprocess.CREATE_NO_WINDOW})
+    return [sys.executable,str(scripts/'synthesize-fixture.py')],{}
 
 
 class SpeechSynthesizer:
@@ -26,11 +36,11 @@ class SpeechSynthesizer:
     async def frames(self,text):
         name,_=service.provider(self.settings)
         if name=='fixture':
-            helper=Path(__file__).resolve().parents[5]/'scripts/synthesize-fixture.ps1'
             if not self.offline or self.offline.returncode is not None:
-                starting=asyncio.create_task(asyncio.create_subprocess_exec('powershell.exe','-NoProfile','-ExecutionPolicy','Bypass','-File',str(helper),
+                command,options=offline_helper()
+                starting=asyncio.create_task(asyncio.create_subprocess_exec(*command,
                     stdin=asyncio.subprocess.PIPE,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE,
-                    limit=8*1024*1024,creationflags=subprocess.CREATE_NO_WINDOW))
+                    limit=8*1024*1024,**options))
                 try:self.offline=await asyncio.shield(starting)
                 except asyncio.CancelledError:
                     self.offline=await starting;await self.close();raise

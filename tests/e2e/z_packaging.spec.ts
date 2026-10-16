@@ -1,3 +1,4 @@
+import {evidence} from './platform';
 import {test,expect} from '@playwright/test';
 import fs from 'node:fs';
 import {ownedProcess} from './process-control';
@@ -53,11 +54,11 @@ test('packaging variations exercise distinct dates locations dependencies and pr
       await expect(p.getByText('Reservation confirmed',{exact:true})).toBeVisible();
       await expect(p.getByLabel('Requested date for '+step.title,{exact:true})).toHaveValue(date);
       await p.evaluate(()=>{if(document.activeElement instanceof HTMLElement)document.activeElement.blur();window.scrollTo(0,0);});
-      await p.screenshot({path:'docs/qa/phase-08-'+caseName+'-desktop.png',fullPage:true});
+      await p.screenshot({path:evidence('phase-08-')+caseName+'-desktop.png',fullPage:true});
       outcomes.push({case:caseName,encounter_id:identity.encounter_id,date,place,window,missing_order_blocked:true,office_rejection_exercised:caseName==='james',receipt_id:result.receipt.receipt_id,private_payload_absent:true});
     }finally{await Promise.all([patient.close(),doctor.close(),family.close()]);}
   }
-  fs.writeFileSync('docs/qa/phase-08-variations.json',JSON.stringify({checked_at:new Date().toISOString(),baseline_maria:'complete workflow in workflow.spec.ts and x_continuity.spec.ts',variations:outcomes,scripted:true,free_form_model_quality:false},null,2)+'\n');
+  fs.writeFileSync(evidence('phase-08-variations.json'),JSON.stringify({checked_at:new Date().toISOString(),baseline_maria:'complete workflow in workflow.spec.ts and x_continuity.spec.ts',variations:outcomes,scripted:true,free_form_model_quality:false},null,2)+'\n');
 });
 
 test('packaging recovery marks actual processing gaps and preserves the human room',async({baseURL})=>{
@@ -68,8 +69,8 @@ test('packaging recovery marks actual processing gaps and preserves the human ro
     await expect(p.getByText('Vene processing was interrupted. Some words may be missing from these notes. Ask the speaker to repeat anything important.',{exact:true})).toBeVisible();
     const recovered=await (await patient.request.get(base+'/call',{maxRetries:2})).json();expect(recovered.manual_pause).toBe(true);expect(recovered.participants.filter(c=>c.present).length).toBe(2);
     await p.getByRole('button',{name:'Resume Vene processing',exact:true}).click();await expect.poll(async()=>(await (await patient.request.get(base+'/call',{maxRetries:2})).json()).state).toBe('active');
-    fs.writeFileSync('docs/qa/phase-08-voice-recovery.json',JSON.stringify({checked_at:new Date().toISOString(),owned_voice_process_restarted:true,gap_visible:true,manual_resume_required:true,human_room_preserved:true},null,2)+'\n');
-  }finally{fs.writeFileSync('docs/qa/phase-08-voice-recovery-observations.json',JSON.stringify({checked_at:new Date().toISOString(),observations},null,2)+'\n');await finish(env);}
+    fs.writeFileSync(evidence('phase-08-voice-recovery.json'),JSON.stringify({checked_at:new Date().toISOString(),owned_voice_process_restarted:true,gap_visible:true,manual_resume_required:true,human_room_preserved:true},null,2)+'\n');
+  }finally{fs.writeFileSync(evidence('phase-08-voice-recovery-observations.json'),JSON.stringify({checked_at:new Date().toISOString(),observations},null,2)+'\n');await finish(env);}
 });
 
 test('packaging accessibility supports ordinary views keyboard focus reduced motion and 200 percent reflow',async({browser})=>{
@@ -98,10 +99,10 @@ test('packaging accessibility supports ordinary views keyboard focus reduced mot
       const reflow=await p.evaluate(()=>({route:location.pathname,width:innerWidth,scroll:document.documentElement.scrollWidth,offenders:Array.from(document.querySelectorAll('main *')).filter(el=>el.getBoundingClientRect().right>innerWidth+1).map(el=>({tag:el.tagName,class:el.className,right:el.getBoundingClientRect().right,text:el.textContent?.slice(0,60)})).slice(0,12)}));
       expect(reflow.scroll,JSON.stringify(reflow)).toBeLessThanOrEqual(reflow.width);
       expect(await p.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(true);
-      await p.screenshot({path:'docs/qa/phase-08-'+route.slice(1)+'-zoom.png'});checks.push({route,zoom:2,unnamed_controls:0,overflow:false});
+      await p.screenshot({path:evidence('phase-08-')+route.slice(1)+'-zoom.png'});checks.push({route,zoom:2,unnamed_controls:0,overflow:false});
       await p.evaluate(()=>document.documentElement.style.zoom='1');
     }
     expect(errors).toEqual([]);
-    fs.writeFileSync('docs/qa/phase-08-accessibility.json',JSON.stringify({checked_at:new Date().toISOString(),keyboard_skip_link:true,focus_outline:focus.outline,reduced_motion:true,ordinary_debug_hidden:true,checks,errors,screen_reader_audit:'not exercised'},null,2)+'\n');
+    fs.writeFileSync(evidence('phase-08-accessibility.json'),JSON.stringify({checked_at:new Date().toISOString(),keyboard_skip_link:true,focus_outline:focus.outline,reduced_motion:true,ordinary_debug_hidden:true,checks,errors,screen_reader_audit:'not exercised'},null,2)+'\n');
   }finally{await context.close();}
 });

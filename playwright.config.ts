@@ -7,6 +7,6 @@ export default defineConfig({
   expect: { timeout: 10000 },
   reporter: [['list'], ['html', { open: 'never' }], ['json', {outputFile:'.local/browser-results.json'}]],
   use: { baseURL: process.env.BRING_VENE_BASE_URL ?? 'http://127.0.0.1:' + runtime.web_port, trace: 'retain-on-failure' },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], channel: 'chromium' } }],
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], ...(process.env.BRING_VENE_CHROMIUM_PATH ? { launchOptions: { executablePath: process.env.BRING_VENE_CHROMIUM_PATH } } : { channel: 'chromium' }) } }],
 });
 

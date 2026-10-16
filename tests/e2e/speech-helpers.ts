@@ -1,10 +1,11 @@
+import {evidence,chromiumLaunch} from './platform';
 import {expect,chromium,type BrowserContext,type Page} from '@playwright/test';
 import path from 'node:path';
 import fs from 'node:fs';
 import {base,launch,command,endCall} from './helpers';
 const speechBase=base+'/speech';
 const liveTts=process.env.BRING_VENE_TTS_LIVE_GATE==='true';
-const artifact=(name:string)=>'docs/qa/phase-05-'+(liveTts?'live-tts-':'')+name;
+const artifact=(name:string)=>evidence('phase-05-')+(liveTts?'live-tts-':'')+name;
 export async function speech(context:BrowserContext){return (await context.request.get(speechBase)).json();}
 export async function prepareQuestions(patient:BrowserContext,title?:string){
   const id='20000000-0000-4000-8000-000000000001';
@@ -24,8 +25,8 @@ export async function setMode(p:Page,d:Page){
   await d.getByRole('button',{name:'Allow Vene to speak',exact:true}).click();
 }
 export async function setup(baseURL:string|undefined){
-  const patientBrowser=await chromium.launch({channel:'chromium',args:['--allow-loopback-in-peer-connection','--disable-features=WebRtcHideLocalIpsWithMdns','--autoplay-policy=no-user-gesture-required']});
-  const doctorBrowser=await chromium.launch({channel:'chromium',args:['--allow-loopback-in-peer-connection','--disable-features=WebRtcHideLocalIpsWithMdns','--autoplay-policy=no-user-gesture-required','--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+path.resolve(process.env.BRING_VENE_LIVE_PROVIDER_GATE==='true'?'fixtures/audio/live-clinician.wav':'fixtures/audio/clinician.wav')]});
+  const patientBrowser=await chromium.launch({...chromiumLaunch(),args:['--allow-loopback-in-peer-connection','--disable-features=WebRtcHideLocalIpsWithMdns','--autoplay-policy=no-user-gesture-required']});
+  const doctorBrowser=await chromium.launch({...chromiumLaunch(),args:['--allow-loopback-in-peer-connection','--disable-features=WebRtcHideLocalIpsWithMdns','--autoplay-policy=no-user-gesture-required','--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+path.resolve(process.env.BRING_VENE_LIVE_PROVIDER_GATE==='true'?'fixtures/audio/live-clinician.wav':'fixtures/audio/clinician.wav')]});
   const patient=await patientBrowser.newContext({baseURL}),doctor=await doctorBrowser.newContext({baseURL,permissions:['microphone']});
   for(const context of [patient,doctor])await context.addInitScript(()=>{
     const Native=window.RTCPeerConnection,peers:RTCPeerConnection[]=[],events:unknown[]=[];
@@ -90,7 +91,7 @@ export async function setup(baseURL:string|undefined){
     try{
       const collect=async(context:BrowserContext)=>Promise.all(context.pages().map(page=>page.evaluate(async()=>
         (window as unknown as {veneRtcDiagnostics?:()=>Promise<unknown>}).veneRtcDiagnostics?.()).catch(()=>null)));
-      fs.writeFileSync('docs/qa/phase-08-media-join-failure.json',JSON.stringify({checked_at:new Date().toISOString(),synthetic:true,
+      fs.writeFileSync(evidence('phase-08-media-join-failure.json'),JSON.stringify({checked_at:new Date().toISOString(),synthetic:true,
         patient:await collect(patient),doctor:await collect(doctor),
         call:await (await patient.request.get(base+'/call')).json(),sdp_or_credentials_saved:false},null,2)+'\n');
     }catch{console.warn('Synthetic media diagnostics could not be saved.');}

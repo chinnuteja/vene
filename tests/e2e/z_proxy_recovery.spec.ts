@@ -1,3 +1,4 @@
+import {evidence} from './platform';
 import {test,expect} from '@playwright/test';
 import fs from 'node:fs';
 import {base,launch} from './helpers';
@@ -23,6 +24,6 @@ test('packaging API restart releases streams and subsequent patient edits comple
     }
     const guests=await Promise.all([doctor.request.get(base,{timeout:20000}),family.request.get(base,{timeout:20000})]);
     for(const result of guests){expect(result.status()).toBe(200);expect(await result.text()).not.toContain('PRIVATE_CANARY');}
-    fs.writeFileSync('docs/qa/phase-08-proxy-recovery.json',JSON.stringify({checked_at:new Date().toISOString(),three_role_streams_open_before_restart:true,owned_api_restarted:true,subsequent_patient_edits_persisted:true,guest_scope_preserved:true,mutation_retries:0},null,2)+'\n');
+    fs.writeFileSync(evidence('phase-08-proxy-recovery.json'),JSON.stringify({checked_at:new Date().toISOString(),three_role_streams_open_before_restart:true,owned_api_restarted:true,subsequent_patient_edits_persisted:true,guest_scope_preserved:true,mutation_retries:0},null,2)+'\n');
   }finally{await Promise.all([patient.close(),doctor.close(),family.close()]);}
 });

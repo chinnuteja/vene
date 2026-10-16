@@ -1,3 +1,4 @@
+import {evidence} from './platform';
 import {test,expect} from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -54,12 +55,12 @@ test('continuity recovery keeps signed replies, document differences and scoped 
     expect((await (await patient.request.get(base)).json()).plan).toEqual(savedVisit.plan);
     expect((await state(family)).family_updates[0].receipt.receipt_id).toBe(delivered.receipt.receipt_id);
     await p.evaluate(()=>{if(document.activeElement instanceof HTMLElement)document.activeElement.blur();window.scrollTo(0,0);});
-    await p.screenshot({path:'docs/qa/phase-07-continuity-desktop.png',fullPage:true});
+    await p.screenshot({path:evidence('phase-07-continuity-desktop.png'),fullPage:true});
     await p.setViewportSize({width:390,height:844});await p.evaluate(()=>window.scrollTo(0,0));
     expect(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-    await p.screenshot({path:'docs/qa/phase-07-continuity-mobile.png',fullPage:true});
-    await p.getByRole('article',{name:'Document: After-visit instructions',exact:true}).screenshot({path:'docs/qa/phase-07-document-mobile.png'});
-    await p.getByRole('article',{name:'Family update',exact:true}).first().screenshot({path:'docs/qa/phase-07-family-mobile.png'});
+    await p.screenshot({path:evidence('phase-07-continuity-mobile.png'),fullPage:true});
+    await p.getByRole('article',{name:'Document: After-visit instructions',exact:true}).screenshot({path:evidence('phase-07-document-mobile.png')});
+    await p.getByRole('article',{name:'Family update',exact:true}).first().screenshot({path:evidence('phase-07-family-mobile.png')});
     const nextResponse=p.waitForResponse(r=>r.url().endsWith('/continuity/next-visit')&&r.request().method()==='POST');
     await p.getByRole('button',{name:'Create private next-visit preparation',exact:true}).click();
     const created=await (await nextResponse).json();expect(created.encounter_id).toBeTruthy();
@@ -76,6 +77,6 @@ test('continuity recovery keeps signed replies, document differences and scoped 
     expect((await nextContext.request.get(nextBase)).status()).toBe(401);
     expect((await patient.request.get(base)).status()).toBe(200);
     expect(errors).toEqual([]);
-    fs.writeFileSync('docs/qa/phase-07-browser-evidence.json',JSON.stringify({checked_at:new Date().toISOString(),actual_http_callbacks:true,duplicate_reply_created_no_action:true,document:'original machine-readable PDF',clinical_state_unchanged:true,family_payload_selected_fields:true,delivery_receipt:delivered.receipt.receipt_id,api_and_worker_restarted:true,saved_plan_and_receipt_preserved:true,new_visit_private:true,disposable_visit_deleted:true,original_visit_retained:true,mobile_overflow:false,errors},null,2)+'\n');
+    fs.writeFileSync(evidence('phase-07-browser-evidence.json'),JSON.stringify({checked_at:new Date().toISOString(),actual_http_callbacks:true,duplicate_reply_created_no_action:true,document:'original machine-readable PDF',clinical_state_unchanged:true,family_payload_selected_fields:true,delivery_receipt:delivered.receipt.receipt_id,api_and_worker_restarted:true,saved_plan_and_receipt_preserved:true,new_visit_private:true,disposable_visit_deleted:true,original_visit_retained:true,mobile_overflow:false,errors},null,2)+'\n');
   }finally{await nextContext?.close();await Promise.all([patient.close(),doctor.close(),family.close()]);}
 });

@@ -1,3 +1,4 @@
+import {evidence} from './platform';
 import {test,expect,chromium,type BrowserContext,type Page} from '@playwright/test';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -5,7 +6,7 @@ import {base,launch,command} from './helpers';
 import {speech,prepareQuestions,setup,finish} from './speech-helpers';
 const speechBase=base+'/speech';
 const liveTts=process.env.BRING_VENE_TTS_LIVE_GATE==='true';
-const artifact=(name:string)=>'docs/qa/phase-05-'+(liveTts?'live-tts-':'')+name;
+const artifact=(name:string)=>evidence('phase-05-')+(liveTts?'live-tts-':'')+name;
 test('coordinated speech is private until approved, plays real audio and yields to a human',async({baseURL})=>{
   test.setTimeout(240000);const env=await setup(baseURL);const {p,d,patient,doctor}=env;
   try{

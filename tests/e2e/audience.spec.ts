@@ -1,3 +1,4 @@
+import {evidence,venvPython} from './platform';
 import { test, expect } from '@playwright/test';
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -65,22 +66,22 @@ test('patient, clinician and family remain isolated through approval and live re
     }
     expect(payloads.join('\n')).not.toContain(canary);
     expect(payloads.join('\n')).not.toContain(privateId);
-    fs.mkdirSync('docs/qa',{recursive:true});
+    
     for(const page of [p,d,f]) await page.evaluate(()=>window.scrollTo(0,0));
-    await p.screenshot({path:'docs/qa/phase-02-patient-desktop.png',fullPage:true});
-    await d.screenshot({path:'docs/qa/phase-02-clinician-desktop.png',fullPage:true});
-    await f.screenshot({path:'docs/qa/phase-02-family-desktop.png',fullPage:true});
+    await p.screenshot({path:evidence('phase-02-patient-desktop.png'),fullPage:true});
+    await d.screenshot({path:evidence('phase-02-clinician-desktop.png'),fullPage:true});
+    await f.screenshot({path:evidence('phase-02-family-desktop.png'),fullPage:true});
     await p.setViewportSize({width:390,height:844});
     await p.evaluate(()=>window.scrollTo(0,0));
     expect(await p.evaluate(() => document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
-    await p.screenshot({path:'docs/qa/phase-02-patient-mobile.png',fullPage:true});
+    await p.screenshot({path:evidence('phase-02-patient-mobile.png'),fullPage:true});
     const familyRow = p.locator('.member-row').filter({hasText:'Elena Alvarez'});
     await familyRow.getByRole('button',{name:'Withdraw access',exact:true}).click();
     await familyRow.getByRole('button',{name:'Yes, withdraw access'}).click();
     await expect(f.getByRole('heading',{name:'This visit is no longer open.'})).toBeVisible();
     await expect(f.getByText('Could I help with transport?')).toHaveCount(0);
     expect((await family.request.get(base)).status()).toBe(401);
-    await f.screenshot({path:'docs/qa/phase-02-revoked.png',fullPage:true});
+    await f.screenshot({path:evidence('phase-02-revoked.png'),fullPage:true});
     // Restore by issuing a new invitation; earlier sessions must remain invalid.
     expect((await patient.request.post(base+'/invitations',{headers:{'x-vene-intent':'mutation','x-vene-csrf':owner.csrf_token},data:{membership_id:familyId}})).status()).toBe(200);
     expect((await family.request.get(base)).status()).toBe(401);
@@ -90,7 +91,7 @@ test('patient, clinician and family remain isolated through approval and live re
     }
     for(const item of original.priorities) await command(patient,{type:'priority.selection_changed',priority_id:item.id,selected:item.selected});
     await command(patient,{type:'preparation.approved',approved:original.preparation_approved});
-    fs.writeFileSync('docs/qa/phase-02-network-review.json',JSON.stringify({checked_at:new Date().toISOString(),synthetic_only:true,shared_payloads_checked:payloads.length,canary_leaks:0,scope_revocation:'open source dialog cleared',membership_revocation:'stream closed and REST denied',old_session_after_new_invitation:'denied'},null,2)+'\n');
+    fs.writeFileSync(evidence('phase-02-network-review.json'),JSON.stringify({checked_at:new Date().toISOString(),synthetic_only:true,shared_payloads_checked:payloads.length,canary_leaks:0,scope_revocation:'open source dialog cleared',membership_revocation:'stream closed and REST denied',old_session_after_new_invitation:'denied'},null,2)+'\n');
   } finally { await Promise.all([patient.close(),doctor.close(),family.close()]); }
 });
 
@@ -120,7 +121,7 @@ test('unauthenticated routes show the invitation gate and spoofing has no effect
 });
 
 test('an actually expired fixture invitation cannot open the visit',async({page})=>{
-  const invite=JSON.parse(execFileSync(path.resolve('.venv/Scripts/python.exe'),[path.resolve('scripts/expired-fixture-invite.py')],{encoding:'utf8',windowsHide:true}));
+  const invite=JSON.parse(execFileSync(venvPython,[path.resolve('scripts/expired-fixture-invite.py')],{encoding:'utf8',windowsHide:true}));
   await page.goto('/join#invite='+invite.token);
   await expect(page.getByRole('heading',{name:'A new invitation is needed.'})).toBeVisible();
   expect(page.url()).not.toContain(invite.token);

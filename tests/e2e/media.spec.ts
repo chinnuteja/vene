@@ -1,3 +1,4 @@
+import {evidence,chromiumLaunch} from './platform';
 import {test,expect,chromium,type BrowserContext} from '@playwright/test';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -8,7 +9,7 @@ async function state(context:BrowserContext){return (await context.request.get(c
 async function diagnostic(context:BrowserContext){return (await context.request.get(callBase+'/diagnostics')).json();}
 test('real WebRTC tracks, consent, pause, late arrival and reconnect preserve attribution',async({baseURL})=>{
   test.setTimeout(240000);
-  const browsers=await Promise.all(['patient','clinician'].map(person=>chromium.launch({channel:'chromium',args:['--allow-loopback-in-peer-connection','--disable-features=WebRtcHideLocalIpsWithMdns','--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+path.resolve('fixtures/audio/'+person+'.wav')]})));
+  const browsers=await Promise.all(['patient','clinician'].map(person=>chromium.launch({...chromiumLaunch(),args:['--allow-loopback-in-peer-connection','--disable-features=WebRtcHideLocalIpsWithMdns','--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+path.resolve('fixtures/audio/'+person+'.wav')]})));
   const patient=await browsers[0].newContext({baseURL,permissions:['microphone']}),doctor=await browsers[1].newContext({baseURL,permissions:['microphone']}),family=await browsers[1].newContext({baseURL,permissions:['microphone']});
   // Original transport tones are not speech. Disable browser speech DSP only
   // for this controlled fixture so sustained tones remain observable.
@@ -75,23 +76,23 @@ test('real WebRTC tracks, consent, pause, late arrival and reconnect preserve at
     await expect(p.getByRole('button',{name:'Resume Vene processing',exact:true})).toBeEnabled();
     await p.getByRole('button',{name:'Resume Vene processing',exact:true}).click();
     await expect.poll(async()=>(await diagnostic(patient)).receipts.filter(x=>x.connection_id===rejoined.own_connection_id&&x.non_silent_frames>2).length).toBe(1);
-    fs.mkdirSync('docs/qa',{recursive:true});
-    await p.evaluate(()=>window.scrollTo(0,0));await p.screenshot({path:'docs/qa/phase-03-call-desktop.png',fullPage:true});
-    await p.setViewportSize({width:390,height:844});expect(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await p.screenshot({path:'docs/qa/phase-03-call-mobile.png',fullPage:true});
+    
+    await p.evaluate(()=>window.scrollTo(0,0));await p.screenshot({path:evidence('phase-03-call-desktop.png'),fullPage:true});
+    await p.setViewportSize({width:390,height:844});expect(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await p.screenshot({path:evidence('phase-03-call-mobile.png'),fullPage:true});
     await p.getByRole('button',{name:'Pause Vene processing',exact:true}).click();
     await expect.poll(async()=>({state:(await state(patient)).state,tasks:(await diagnostic(patient)).active_tasks})).toEqual({state:'paused',tasks:0});
     await expect(p.locator('.call-heading')).toContainText('Vene processing is paused');
     await p.evaluate(()=>window.scrollTo(0,0));
-    await p.screenshot({path:'docs/qa/phase-03-paused.png',fullPage:true});
+    await p.screenshot({path:evidence('phase-03-paused.png'),fullPage:true});
     const final=await diagnostic(patient);
     expect(runtimeErrors).toEqual([]);
-    fs.writeFileSync('docs/qa/phase-03-media-report.json',JSON.stringify({checked_at:new Date().toISOString(),transport:'real local LiveKit/WebRTC',input:'two original tone WAVs',initial_source_count:2,overlapping_frame_windows:true,before_consent_frames:0,after_acknowledged_pause_frames:0,late_arrival:'pauses processing',reconnect:'fresh connection and track epoch',active_tasks_after_pause:final.active_tasks,runtime_errors:runtimeErrors,live_stt_accuracy:'not tested',physical_microphone:'not tested'},null,2)+'\n');
+    fs.writeFileSync(evidence('phase-03-media-report.json'),JSON.stringify({checked_at:new Date().toISOString(),transport:'real local LiveKit/WebRTC',input:'two original tone WAVs',initial_source_count:2,overlapping_frame_windows:true,before_consent_frames:0,after_acknowledged_pause_frames:0,late_arrival:'pauses processing',reconnect:'fresh connection and track epoch',active_tasks_after_pause:final.active_tasks,runtime_errors:runtimeErrors,live_stt_accuracy:'not tested',physical_microphone:'not tested'},null,2)+'\n');
     await p.getByRole('button',{name:'End this conversation for everyone',exact:true}).click();
   }finally{try{await endCall(patient);}finally{await Promise.all(browsers.map(b=>b.close()));}}
 });
 
 test('microphone denial allows a human call without publishing audio',async({baseURL})=>{
-  const browser=await chromium.launch({channel:'chromium',args:['--allow-loopback-in-peer-connection','--disable-features=WebRtcHideLocalIpsWithMdns','--deny-permission-prompts','--use-fake-device-for-media-stream']});
+  const browser=await chromium.launch({...chromiumLaunch(),args:['--allow-loopback-in-peer-connection','--disable-features=WebRtcHideLocalIpsWithMdns','--deny-permission-prompts','--use-fake-device-for-media-stream']});
   try{
     const context=await browser.newContext({baseURL});await launch(context);const page=await context.newPage();await page.goto('/visit');
     await page.getByRole('button',{name:'Check microphone',exact:true}).click();
@@ -101,14 +102,14 @@ test('microphone denial allows a human call without publishing audio',async({bas
     await expect(page.getByRole('heading',{name:'May Vene process your audio?'})).toBeVisible();
     const own=(await state(context)).own_connection_id;
     expect((await diagnostic(context)).receipts.filter(r=>r.connection_id===own)).toHaveLength(0);
-    await page.screenshot({path:'docs/qa/phase-03-microphone-denied.png',fullPage:true});
+    await page.screenshot({path:evidence('phase-03-microphone-denied.png'),fullPage:true});
     await page.getByRole('button',{name:'End this conversation for everyone',exact:true}).click();
   }finally{await browser.close();}
 });
 
 test('device loss pauses processing and a replacement track requires consent again',async({baseURL})=>{
   test.setTimeout(120000);
-  const browser=await chromium.launch({channel:'chromium',args:['--allow-loopback-in-peer-connection','--disable-features=WebRtcHideLocalIpsWithMdns','--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+path.resolve('fixtures/audio/patient.wav')]});
+  const browser=await chromium.launch({...chromiumLaunch(),args:['--allow-loopback-in-peer-connection','--disable-features=WebRtcHideLocalIpsWithMdns','--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+path.resolve('fixtures/audio/patient.wav')]});
   const context=await browser.newContext({baseURL,permissions:['microphone']});
   try{
     await launch(context);const page=await context.newPage();

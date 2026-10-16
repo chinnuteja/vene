@@ -1,3 +1,4 @@
+import {evidence} from './platform';
 import {test,expect} from '@playwright/test';
 import fs from 'node:fs';
 import {base,launch,command} from './helpers';
@@ -24,7 +25,7 @@ test('evolving understanding stays grounded through corrections and scoped shari
     await expect(d.getByRole('article',{name:'Arrange the lab visit',exact:true})).toHaveCount(0);
     await p.getByRole('button',{name:'Why this answer?',exact:true}).first().click();
     await expect(p.getByRole('dialog')).toContainText('Maria will arrange the lab visit');
-    await p.screenshot({path:'docs/qa/phase-04-source.png'});
+    await p.screenshot({path:evidence('phase-04-source.png')});
     await p.getByRole('button',{name:'Close source',exact:true}).click();
     await p.getByRole('button',{name:'A corrected date',exact:true}).click();
     await p.getByRole('button',{name:'Add fictional turn',exact:true}).click();
@@ -33,7 +34,7 @@ test('evolving understanding stays grounded through corrections and scoped shari
     await p.getByRole('button',{name:'An unclear owner',exact:true}).click();
     await p.getByRole('button',{name:'Add fictional turn',exact:true}).click();
     await expect(step.getByText('Who will do this is unclear',{exact:true})).toBeVisible();
-    await p.evaluate(()=>window.scrollTo(0,0));await p.screenshot({path:'docs/qa/phase-04-evolving-desktop.png',fullPage:true});
+    await p.evaluate(()=>window.scrollTo(0,0));await p.screenshot({path:evidence('phase-04-evolving-desktop.png'),fullPage:true});
     // The newest cited source is the ambiguous turn. Correct its exact version.
     await p.getByRole('button',{name:'Why this answer?',exact:true}).first().click();
     await p.getByRole('dialog').getByText('Correct these words',{exact:true}).click();
@@ -56,7 +57,7 @@ test('evolving understanding stays grounded through corrections and scoped shari
     await expect(d.getByRole('region',{name:'Visit understanding'})).toHaveCount(0);
     await p.setViewportSize({width:390,height:844});await p.evaluate(()=>window.scrollTo(0,0));
     expect(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-    await p.screenshot({path:'docs/qa/phase-04-evolving-mobile.png',fullPage:true});
+    await p.screenshot({path:evidence('phase-04-evolving-mobile.png'),fullPage:true});
     await step.getByText('Correct this next step',{exact:true}).click();
     await step.getByLabel('When',{exact:true}).fill('Friday');
     await step.getByLabel('What you mean',{exact:true}).fill('I will check the Friday plan with the office before arranging anything.');
@@ -68,7 +69,7 @@ test('evolving understanding stays grounded through corrections and scoped shari
     const final=(await (await patient.request.get(base)).json());const plan=final.plan.find((x:{title:string})=>x.title==='Arrange the lab visit');
     expect(plan.patient_authorized).toBe(false);expect(plan.order_available).toBe(false);expect(plan.external_completed).toBe(false);
     expect(errors).toEqual([]);
-    fs.writeFileSync('docs/qa/phase-04-browser-report.json',JSON.stringify({checked_at:new Date().toISOString(),provider:'fixture',model:'original-scenarios-v1',correction:'Thursday → Tuesday',ambiguous_owner:'left unresolved',source_correction:'version 2 and reinterpreted',manual_correction:'Friday persisted; private again',guest_source_dependency:'required; survived refresh',runtime_errors:errors,mobile_overflow:false,real_model:'not tested'},null,2)+'\n');
+    fs.writeFileSync(evidence('phase-04-browser-report.json'),JSON.stringify({checked_at:new Date().toISOString(),provider:'fixture',model:'original-scenarios-v1',correction:'Thursday → Tuesday',ambiguous_owner:'left unresolved',source_correction:'version 2 and reinterpreted',manual_correction:'Friday persisted; private again',guest_source_dependency:'required; survived refresh',runtime_errors:errors,mobile_overflow:false,real_model:'not tested'},null,2)+'\n');
     await p.getByRole('button',{name:'Pause visit understanding',exact:true}).click();
   }finally{await Promise.all([patient.close(),doctor.close()]);}
 });

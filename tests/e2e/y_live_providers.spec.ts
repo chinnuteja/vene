@@ -1,3 +1,4 @@
+import {evidence} from './platform';
 import {test,expect} from '@playwright/test';
 import fs from 'node:fs';
 import {base,command} from './helpers';
@@ -45,9 +46,9 @@ test('live providers complete an observed synthetic conversation and approved sa
     const action=(await (await patient.request.get(base+'/execution')).json()).actions[0];
     const finalView=await (await patient.request.get(base)).json();
     await p.evaluate(()=>{if(document.activeElement instanceof HTMLElement)document.activeElement.blur();window.scrollTo(0,0);});
-    await p.screenshot({path:'docs/qa/phase-08-live-providers.png',fullPage:true});
+    await p.screenshot({path:evidence('phase-08-live-providers.png'),fullPage:true});
     // Outputs are intentionally retained only as synthetic QA material, never ordinary logs.
-    fs.writeFileSync('docs/qa/phase-08-live-providers.json',JSON.stringify({checked_at:new Date().toISOString(),synthetic:true,provider_calls:true,
+    fs.writeFileSync(evidence('phase-08-live-providers.json'),JSON.stringify({checked_at:new Date().toISOString(),synthetic:true,provider_calls:true,
       capture_note:'sources/proposed_step precede sharing and approvals; final_step/final_sources follow the confirmed reservation',
       final_step:finalView.plan.find(x=>x.id===item.id),final_sources:finalView.evidence.filter(e=>item.evidence_refs.includes(e.id)),
       stt:'deepgram',model:understanding.provider,tts:'cartesia',duration_ms:Date.now()-started,sources:view.evidence.filter(e=>e.origin==='deepgram'),
@@ -56,7 +57,7 @@ test('live providers complete an observed synthetic conversation and approved sa
       audio_ingestion:await (await patient.request.get(base+'/call/diagnostics')).json(),
       physical_acoustics:false,human_acceptance:false},null,2)+'\n');
   }catch(error){
-    fs.writeFileSync('docs/qa/phase-08-live-providers-failure.json',JSON.stringify({checked_at:new Date().toISOString(),synthetic:true,
+    fs.writeFileSync(evidence('phase-08-live-providers-failure.json'),JSON.stringify({checked_at:new Date().toISOString(),synthetic:true,
       status:'failed',view:await (await patient.request.get(base)).json(),speech:await speech(patient),
       understanding:await (await patient.request.get(base+'/understanding')).json()},null,2)+'\n');
     throw error;

@@ -1,3 +1,4 @@
+import {evidence} from './platform';
 import {test,expect,type BrowserContext} from '@playwright/test';
 import fs from 'node:fs';
 import {base,command,launch} from './helpers';
@@ -44,7 +45,7 @@ test('sandbox execution completes the conversation loop with a reconciled office
     await expect(p.locator('[data-vene-output-active="true"]')).toBeVisible({timeout:25000});
     await expect.poll(async()=>(await speech(patient)).receipts[0]?.state,{timeout:20000}).toBe('completed');
     expect((await speech(patient)).receipts[0].played_text).toContain('sandbox office found no morning slot');
-    await p.screenshot({path:'docs/qa/phase-06-no-slot-cue.png',fullPage:true});
+    await p.screenshot({path:evidence('phase-06-no-slot-cue.png'),fullPage:true});
     // Correct the sourced step through the normal product service, then share its new source.
     await post(patient,'/understanding/plan/'+itemId+'/correct',{command_id:crypto.randomUUID(),expected_item_revision:item.revision,owner:'Maria',timeframe:'Tuesday afternoon',location:'Riverside Lab',detail:'I will arrange the lab visit on Tuesday afternoon after Dr. Chen confirms the order.'});
     await share();await region.getByRole('button',{name:'Slots available',exact:true}).click();
@@ -56,7 +57,7 @@ test('sandbox execution completes the conversation loop with a reconciled office
     await step.getByRole('button',{name:'Approve this sandbox reservation',exact:true}).click();
     await expect(step.getByText('Waiting on required sandbox order. No booking dispatched.',{exact:true})).toBeVisible();
     expect((await state(patient)).actions[0].receipt).toBeNull();
-    await p.screenshot({path:'docs/qa/phase-06-missing-order.png',fullPage:true});
+    await p.screenshot({path:evidence('phase-06-missing-order.png'),fullPage:true});
     // Expired and delayed availability do not become suggested or booked slots.
     await region.getByRole('button',{name:'Expired availability',exact:true}).click();await step.getByRole('button',{name:'Check this window',exact:true}).click();
     await expect(step.getByText('Availability expired',{exact:true})).toBeVisible();
@@ -74,16 +75,16 @@ test('sandbox execution completes the conversation loop with a reconciled office
     const confirmed=(await state(patient)).actions[0];expect(confirmed.receipt.request_id).toBe(confirmed.id);
     await expect(f.getByText('Reservation confirmed',{exact:true})).toBeVisible();
     await expect(step.getByText(confirmed.receipt.receipt_id,{exact:true})).toBeVisible();
-    await p.screenshot({path:'docs/qa/phase-06-confirmed-desktop.png',fullPage:true});
-    await region.screenshot({path:'docs/qa/phase-06-office-desktop.png'});
+    await p.screenshot({path:evidence('phase-06-confirmed-desktop.png'),fullPage:true});
+    await region.screenshot({path:evidence('phase-06-office-desktop.png')});
     await p.setViewportSize({width:390,height:844});await p.evaluate(()=>{if(document.activeElement instanceof HTMLElement)document.activeElement.blur();window.scrollTo(0,0);});
     expect(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-    await p.screenshot({path:'docs/qa/phase-06-confirmed-mobile.png',fullPage:true});
-    await region.screenshot({path:'docs/qa/phase-06-office-mobile.png'});
+    await p.screenshot({path:evidence('phase-06-confirmed-mobile.png'),fullPage:true});
+    await region.screenshot({path:evidence('phase-06-office-mobile.png')});
     await post(patient,'/execution/items/'+itemId+'/scope',{allowed:false});
     expect((await state(patient)).actions[0].receipt.receipt_id).toBe(confirmed.receipt.receipt_id);
     expect(await (await family.request.get(office)).text()).not.toContain('session_hash');
     expect(errors).toEqual([]);
-    fs.writeFileSync('docs/qa/phase-06-browser-evidence.json',JSON.stringify({checked_at:new Date().toISOString(),actual_media:true,office:'independent local HTTP service',conversation_input:'original fictional text; fixture interpreter',tts:'Windows offline voice',observed_states:observed,receipt_id:confirmed.receipt.receipt_id,request_id:confirmed.id,missing_order_prevented_dispatch:true,expired_and_delayed_results_honest:true,family_confirmed:true,receipt_survived_withdrawal:true,mobile_overflow:false,errors},null,2)+'\n');
+    fs.writeFileSync(evidence('phase-06-browser-evidence.json'),JSON.stringify({checked_at:new Date().toISOString(),actual_media:true,office:'independent local HTTP service',conversation_input:'original fictional text; fixture interpreter',tts:'Windows offline voice',observed_states:observed,receipt_id:confirmed.receipt.receipt_id,request_id:confirmed.id,missing_order_prevented_dispatch:true,expired_and_delayed_results_honest:true,family_confirmed:true,receipt_survived_withdrawal:true,mobile_overflow:false,errors},null,2)+'\n');
   }finally{await family.close();await finish(env);}
 });

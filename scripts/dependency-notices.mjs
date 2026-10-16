@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { venvPython } from './platform.mjs';
 const root = process.cwd();
 const node = [];
 for (const [scope, file] of [['workspace','package.json'],['web','apps/web/package.json']]) {
@@ -11,7 +12,7 @@ for (const [scope, file] of [['workspace','package.json'],['web','apps/web/packa
     node.push({ name, version: metadata.version, license: metadata.license ?? 'See package license', scope });
   }
 }
-const python = spawnSync(path.join(root,'.venv/Scripts/python.exe'),['-c','import importlib.metadata as m,json; print(json.dumps([{"name":d.metadata["Name"],"version":d.version,"license":d.metadata.get("License-Expression") or d.metadata.get("License") or "See distribution license files"} for d in m.distributions()]))'],{encoding:'utf8',windowsHide:true});
+const python = spawnSync(venvPython(root),['-c','import importlib.metadata as m,json; print(json.dumps([{"name":d.metadata["Name"],"version":d.version,"license":d.metadata.get("License-Expression") or d.metadata.get("License") or "See distribution license files"} for d in m.distributions()]))'],{encoding:'utf8',windowsHide:true});
 if (python.status !== 0) throw new Error('Python dependency inspection failed.');
 fs.mkdirSync('docs/qa',{recursive:true});
 fs.writeFileSync('docs/qa/dependency-licenses.json',JSON.stringify({ node, python: JSON.parse(python.stdout), native_postgres: JSON.parse(fs.readFileSync('infra/postgres-binary.json','utf8')) },null,2)+'\n');

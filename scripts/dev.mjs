@@ -1,4 +1,5 @@
 import {pipeOwnedOutput} from './child-logs.mjs';
+import {venvPython,livekitBinary} from './platform.mjs';
 import { spawn, spawnSync } from 'node:child_process';
 import { createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -12,18 +13,18 @@ const liveProviders=process.argv.includes('--live-providers');
 const voiceProvider=liveProviders||mode==='live'?'deepgram':'fixture';
 let modelProvider='fixture';
 if(process.argv.includes('--model-live')||liveProviders){
-  const selected=spawnSync(path.join(root,'.venv/Scripts/python.exe'),['scripts/model-provider.py'],{cwd:root,env:process.env,windowsHide:true,encoding:'utf8'});
+  const selected=spawnSync(venvPython(root),['scripts/model-provider.py'],{cwd:root,env:process.env,windowsHide:true,encoding:'utf8'});
   if(selected.status!==0)throw new Error('Configure MODEL_PROVIDER=openai or deepseek and its API key. No fixture fallback was started.');
   modelProvider=selected.stdout.trim();
 }
 const ttsProvider=process.argv.includes('--tts-live')||liveProviders?'cartesia':'fixture';
 if(ttsProvider==='cartesia'){
-  const gate=spawnSync(path.join(root,'.venv/Scripts/python.exe'),['-c','from bring_vene.config import Settings; import sys; s=Settings(); sys.exit(0 if s.cartesia_api_key and s.cartesia_voice_id else 1)'],{cwd:root,env:process.env,windowsHide:true,stdio:'ignore'});
+  const gate=spawnSync(venvPython(root),['-c','from bring_vene.config import Settings; import sys; s=Settings(); sys.exit(0 if s.cartesia_api_key and s.cartesia_voice_id else 1)'],{cwd:root,env:process.env,windowsHide:true,stdio:'ignore'});
   if(gate.status!==0)throw new Error('Live TTS needs CARTESIA_API_KEY and CARTESIA_VOICE_ID. No offline fallback was started.');
 }
 if (!['fixture','live'].includes(mode)) throw new Error('Select fixture or live voice mode.');
 if(voiceProvider==='deepgram'){
-  const gate=spawnSync(path.join(root,'.venv/Scripts/python.exe'),['-c','from bring_vene.config import Settings; import sys; sys.exit(0 if Settings().deepgram_api_key else 1)'],{cwd:root,env:process.env,windowsHide:true,stdio:'ignore'});
+  const gate=spawnSync(venvPython(root),['-c','from bring_vene.config import Settings; import sys; sys.exit(0 if Settings().deepgram_api_key else 1)'],{cwd:root,env:process.env,windowsHide:true,stdio:'ignore'});
   if(gate.status!==0)throw new Error('Live STT needs DEEPGRAM_API_KEY in the project .env or environment. No fixture fallback was started.');
 }
 const production = process.argv.includes('--production');
@@ -57,7 +58,7 @@ env.OFFICE_URL='http://127.0.0.1:'+runtime.office_port;
 env.OFFICE_TOKEN=randomBytes(32).toString('hex');
 env.OFFICE_CALLBACK_SECRET=runtime.office_callback_secret;
 env.OFFICE_CALLBACK_URL=env.BACKEND_URL+'/integrations/office/results';
-const officeInit=spawnSync(path.join(root,'.venv/Scripts/python.exe'),['-c','from bring_vene.execution.office import initialize; from bring_vene.config import Settings; from bring_vene.persistence.database import make_engine; initialize(make_engine(Settings().database_url))'],{cwd:root,env,windowsHide:true,stdio:'inherit'});
+const officeInit=spawnSync(venvPython(root),['-c','from bring_vene.execution.office import initialize; from bring_vene.config import Settings; from bring_vene.persistence.database import make_engine; initialize(make_engine(Settings().database_url))'],{cwd:root,env,windowsHide:true,stdio:'inherit'});
 if(officeInit.status!==0)throw new Error('Migrate the project database before starting the sandbox office.');
 const mediaConfig=path.join(root,'.local/livekit.yaml');
 writeFileSync(mediaConfig,`port: ${runtime.livekit_port}\nbind_addresses: [127.0.0.1]\nrtc:\n  tcp_port: ${runtime.livekit_tcp_port}\n  udp_port: ${runtime.livekit_udp_port}\n  use_external_ip: false\n  node_ip: 127.0.0.1\n  enable_loopback_candidate: true\n  use_mdns: false\nturn:\n  enabled: true\n  udp_port: ${runtime.livekit_turn_port}\n  bind_addresses: [127.0.0.1]\n  domain: 127.0.0.1\n  allow_restricted_peer_cidrs: [127.0.0.1/32]\nkeys:\n  ${runtime.livekit_key}: ${runtime.livekit_secret}\nlogging:\n  level: error\n`);
@@ -80,8 +81,8 @@ function shutdown(code = 0) {
 }
 process.on('SIGINT', () => shutdown());
 process.on('SIGTERM', () => shutdown());
-const python = path.join(root, '.venv/Scripts/python.exe');
-const media = start('livekit',path.join(root,'.local/tools/livekit/livekit-server.exe'),['--config',mediaConfig],root);
+const python = venvPython(root);
+const media = start('livekit',livekitBinary(root),['--config',mediaConfig],root);
 const api = start('backend', python, ['-m', 'uvicorn', 'bring_vene.main:app', '--host', '127.0.0.1', '--port', String(runtime.api_port)], root);
 const voice=start('voice',python,['-m','bring_vene.voice.worker'],root);
 const understanding=start('understanding',python,['-m','bring_vene.understanding.worker'],root);

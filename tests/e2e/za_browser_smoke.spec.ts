@@ -1,3 +1,4 @@
+import {evidence} from './platform';
 import {test,expect,firefox,webkit} from '@playwright/test';
 import fs from 'node:fs';import path from 'node:path';
 import {base,launch} from './helpers';
@@ -19,7 +20,7 @@ for(const name of ['firefox','webkit'] as const){
       if(!capabilities.rtc||!capabilities.microphone){
         await expect(p.getByText('Voice conversations are unavailable in this browser. You can still prepare questions and review your follow-up here.',{exact:true})).toBeVisible();
         await p.goto('/follow-up');await expect(p.getByRole('region',{name:'After-visit continuity',exact:true})).toBeVisible();
-        fs.writeFileSync('docs/qa/phase-08-'+name+'-smoke.json',JSON.stringify({checked_at:new Date().toISOString(),browser:name,platform:'Windows',forms:'passed',capabilities,room:'unavailable in this browser build; accessible error verified',microphone:'not exercised',full_media_gate:false},null,2)+'\n');return;
+        fs.writeFileSync(evidence('phase-08-')+name+'-smoke.json',JSON.stringify({checked_at:new Date().toISOString(),browser:name,platform:'Windows',forms:'passed',capabilities,room:'unavailable in this browser build; accessible error verified',microphone:'not exercised',full_media_gate:false},null,2)+'\n');return;
       }
       await d.getByRole('button',{name:'Check microphone',exact:true}).click();await expect(d.getByText('Microphone opened successfully. Audio stayed on this device.',{exact:true})).toBeVisible();
       await p.getByRole('button',{name:'Join without a microphone',exact:true}).click();await expect(p.getByRole('button',{name:'Agree to Vene processing',exact:true})).toBeVisible({timeout:30000});
@@ -27,7 +28,7 @@ for(const name of ['firefox','webkit'] as const){
       await expect.poll(async()=>{const c=await (await patient.request.get(base+'/call')).json();return c.participants.filter(x=>x.present).length===2&&c.participants.some(x=>x.role==='clinician'&&x.track_epoch>0);},{timeout:25000}).toBe(true);
       await d.getByRole('button',{name:'Mute my microphone',exact:true}).click();await expect(d.getByRole('button',{name:'Unmute my microphone',exact:true})).toBeVisible();
       await p.getByRole('button',{name:'End this conversation for everyone',exact:true}).click();
-      fs.writeFileSync('docs/qa/phase-08-'+name+'-smoke.json',JSON.stringify({checked_at:new Date().toISOString(),browser:name,platform:'Windows',forms:'passed',room:'actual two-peer LiveKit connection',microphone:'browser synthetic device opened published and muted',physical_device:false,full_media_gate:true},null,2)+'\n');
+      fs.writeFileSync(evidence('phase-08-')+name+'-smoke.json',JSON.stringify({checked_at:new Date().toISOString(),browser:name,platform:'Windows',forms:'passed',room:'actual two-peer LiveKit connection',microphone:'browser synthetic device opened published and muted',physical_device:false,full_media_gate:true},null,2)+'\n');
     }finally{await browser.close();}
   });
 }

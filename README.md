@@ -43,7 +43,7 @@ For the hosted-style guided experience, use `scripts\dev.ps1 -Guided`. It uses s
 
 **Fictional:** people, health information, dates, institutions, availability, orders and reservations. Hosted mode uses the labelled sample-text fixture and browser synthetic voice; actual voice providers run locally. Hosted data is disposable and resets on service restart. No real institution or telephone bridge is connected. A playback receipt does not prove human hearing.
 
-Passing prototype tests does not establish clinical, regulatory or production readiness. Physical acoustics and human acceptance remain unverified. See [BUILD_STATUS.md](BUILD_STATUS.md) for actual results and open live-performance checks.
+Passing prototype tests does not establish clinical, regulatory or production readiness. Physical acoustics and human acceptance remain unverified. See [BUILD_STATUS.md](BUILD_STATUS.md) for actual results, measured speech speed and the remaining live obstacle-latency limit.
 
 ## For the Vene team
 

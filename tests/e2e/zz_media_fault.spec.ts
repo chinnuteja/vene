@@ -29,6 +29,9 @@ test('server loss clears the call and offers a recoverable rejoin state',async({
     await expect.poll(async()=>{const s=await state(context);observations.push({elapsed_ms:Date.now()-recoveryStarted,state:s.state,ready:s.worker_ready,error:s.worker_error});return s.worker_ready&&s.state==='paused';},{timeout:45000}).toBe(true);
     fs.writeFileSync(evidence('phase-08-server-recovery.json'),JSON.stringify({checked_at:new Date().toISOString(),actual_owned_server_restarted:true,observations,recovery_ms:Date.now()-recoveryStarted,processing_resumed_automatically:false},null,2)+'\n');
     await page.getByRole('button',{name:'End this conversation for everyone',exact:true}).click();
+    // Click dispatches an async control. Keep the browser and restarted media server
+    // alive until its actual end acknowledgement, before another scenario starts.
+    await expect.poll(async()=>(await state(context)).state).toBe('ended');
   }finally{await browser.close();restarted?.kill();}
 });
 

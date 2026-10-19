@@ -395,8 +395,12 @@ def state(engine, visit_id, token):
         standing = session.get(StandingCheckRecord, visit_id)
         checking = len(session.scalars(select(FeasibilityCheckRecord.id).where(
             FeasibilityCheckRecord.encounter_id == visit_id, FeasibilityCheckRecord.state.in_(['queued', 'running']))).all())
+        current=set((item.id,kind,fp) for item,kind,fp in wanted(view,standing)) if standing else set()
+        failed=sum(1 for check in session.scalars(select(FeasibilityCheckRecord).where(
+            FeasibilityCheckRecord.encounter_id==visit_id,FeasibilityCheckRecord.state=='failed'))
+            if standing and check.standing_revision==standing.revision and (check.item_id,check.kind,check.plan_fingerprint) in current)
         return FeasibilityView(standing=StandingView(kinds=standing.kinds if standing else [],
-            active=bool(standing and standing.kinds and authority(session, standing))), checking=checking, obstacles=obstacles)
+            active=bool(standing and standing.kinds and authority(session, standing))), checking=checking, failed=failed,obstacles=obstacles)
 
 
 def authorization_item_id(view, item_id):

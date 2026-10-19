@@ -9,6 +9,7 @@ export function DemoHost(){
   const [demo,setDemo]=useState<Setup|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const [family,setFamily]=useState(false),[providers,setProviders]=useState<Record<string,string>|null>(null);
   const panes=useRef<Partial<Record<Role,HTMLIFrameElement|null>>>({});
+  const checksAllowed=useRef(false);
   const [milestones,setMilestones]=useState<string[]>([]);
   useEffect(()=>{request<Record<string,string>>('/dev/demo-info').then(setProviders).catch(()=>{});},[]);
   useEffect(()=>{
@@ -19,6 +20,11 @@ export function DemoHost(){
       if(!['patient','clinician','family'].includes(role)||event.source!==panes.current[role]?.contentWindow)return;
       if(event.data.type==='vene-pane-ready')panes.current[role]?.contentWindow?.postMessage({type:'vene-demo-invitation',
         run:demo.run,role,token:demo.invitations[role]},location.origin);
+      if(event.data.type==='vene-demo-checks'&&role==='patient'){
+        checksAllowed.current=event.data.enabled===true;
+        panes.current.clinician?.contentWindow?.postMessage({type:'vene-demo-checks-state',run:demo.run,enabled:checksAllowed.current},location.origin);
+      }
+      if(event.data.type==='vene-demo-checks-request'&&role==='clinician')panes.current.clinician?.contentWindow?.postMessage({type:'vene-demo-checks-state',run:demo.run,enabled:checksAllowed.current},location.origin);
       if(event.data.type==='vene-demo-milestone')setMilestones(current=>current.includes(event.data.milestone)?current:[...current,event.data.milestone]);
     };
     window.addEventListener('message',receive);return()=>window.removeEventListener('message',receive);
@@ -36,10 +42,12 @@ export function DemoHost(){
         });
       }
       const created=await request<Setup>('/dev/demo',{method:'POST'});
+      checksAllowed.current=false;
       setMilestones([]);setFamily(false);setDemo(created);
     }catch(e){setError((e as Error).message);}finally{setBusy(false);}
   }
-  const mode=providers?.stt==='deepgram'?'Live voice selected':'Guided fixture selected';
+  const guided=providers?.transport==='guided';
+  const mode=guided?'Guided fixture · device voice':providers?.stt==='deepgram'?'Live voice selected':'Offline voice · real WebRTC';
   return <div className={'demo-host'+(demo?' running':'')}>
     <header className="demo-nav"><a href="/demo" className="demo-brand"><span className="brand-mark">v<span/></span>bring vene</a>
       <div className="demo-nav-right"><span className="demo-sandbox"><ShieldCheck size={14}/>Fictional visit · sandbox offices</span>
@@ -48,7 +56,7 @@ export function DemoHost(){
       <h1>Don’t take the<br/>whole visit home.</h1><p>Your questions come in. The practical obstacles come out.<br className="desktop-only"/>The next step starts before you leave.</p>
       <button className="primary-button demo-start" disabled={busy} onClick={()=>void start()}>{busy?'Preparing Maria’s visit…':'Start demo'}<ArrowRight size={19}/></button>
       <p className="demo-start-note">One fictional visit. Separate patient and clinician sessions.<br/>Every booking still needs Maria’s approval.</p>
-      <div className="demo-provider-chips"><span><i/>{mode}</span><span>LiveKit</span><span>{providers?.model??'Fixture interpreter'}</span><span>{providers?.tts??'Offline voice'}</span></div>
+      <div className="demo-provider-chips"><span><i/>{mode}</span><span>{guided?'Separate server sessions':'LiveKit'}</span><span>{providers?.model==='fixture'?'Fixture interpreter':providers?.model??'Checking interpreter'}</span><span>{guided?'Device voice preview':providers?.tts==='fixture'?'Offline voice':providers?.tts??'Checking voice'}</span></div>
     </div><div className="demo-preview-art" aria-label="A preview of the private appointment cue"><div className="demo-art-phone"><div className="phone-island"/><span className="demo-art-time">9:41</span>
       <div className="demo-art-avatar">M</div><h2>Here with you,<br/>Maria.</h2><p>YOUR VISIT WITH DR. CHEN</p>
       <div className="demo-art-wave">{Array.from({length:19},(_,i)=><i key={i} style={{height:[8,14,22,32,18,40,27,17,34,46,26,15,34,21,12,29,19,13,7][i]}}/>)}</div>
@@ -65,7 +73,7 @@ export function DemoHost(){
           <iframe ref={el=>{panes.current.patient=el;}} src={'/demo/pane/'+demo.run+'/patient'} title="Maria’s private phone" allow="microphone; autoplay"/></div></section>
         <section className="demo-clinician-column"><div className="demo-pane-caption"><span>DR. CHEN</span>Only what Maria shares.</div><div className="demo-clinician-window"><div className="demo-window-bar"><i/><i/><i/><span>Visit with Maria</span></div>
           <iframe ref={el=>{panes.current.clinician=el;}} src={'/demo/pane/'+demo.run+'/clinician'} title="Dr. Chen’s clinician view" allow="microphone; autoplay"/></div>
-          <details className="demo-prompt"><summary>The 60-second path</summary><p>Join and agree in both panes, then resume Vene as Maria. Enable visit understanding and scheduling checks.</p><blockquote>“Please get labs done within three days. Maria usually goes to Riverside Lab. We can send the lab order today.”</blockquote><p>Maria reviews the private cue and chooses whether to raise it. Dr. Chen sends the lab order. Maria approves the offered booking.</p></details></section>
+          <details className="demo-prompt"><summary>The 60-second path</summary><p>{guided?'Allow private checks as Maria, then try the labelled sample instruction as Dr. Chen.':'Join and agree in both panes, then choose Start listening as Maria.'}</p><blockquote>“Please get labs done within three days. We can send the lab order today.”</blockquote><p>Maria reviews the private cue and chooses whether to raise it. Dr. Chen sends the lab order. Maria approves the offered booking.</p></details></section>
         {family&&<section className="demo-family-column"><div className="demo-pane-caption"><span>ELENA</span>Only what Maria chooses.</div><iframe ref={el=>{panes.current.family=el;}} src={'/demo/pane/'+demo.run+'/family'} title="Elena’s family view"/></section>}
       </div>
     </main>}

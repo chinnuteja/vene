@@ -2085,6 +2085,11 @@ export interface components {
              * @default 0
              */
             checking: number;
+            /**
+             * Failed
+             * @default 0
+             */
+            failed: number;
             /** Obstacles */
             obstacles: components["schemas"]["ObstacleView"][];
             standing?: components["schemas"]["StandingView"] | null;

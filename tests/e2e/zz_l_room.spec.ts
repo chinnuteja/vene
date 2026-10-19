@@ -85,6 +85,7 @@ test('in-room mode keeps Vene off until everyone agrees, attributes voices witho
 
     // Dial-in PINs are issued in preparation, one live PIN per person.
     await p.goto('/prepare');
+    await p.getByText('Invite someone by phone',{exact:true}).click();
     const dial=p.getByRole('region',{name:'Join by phone',exact:true});
     await dial.getByRole('listitem').filter({hasText:'Dr. Chris Chen'}).getByRole('button',{name:'Create PIN',exact:true}).click();
     const pin=dial.getByLabel('Dial-in PIN for Dr. Chris Chen',{exact:true});

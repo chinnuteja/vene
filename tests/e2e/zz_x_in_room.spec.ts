@@ -28,6 +28,7 @@ test('in-room obstacle reaches the patient privately and the clinician resolves 
   try{
     // Preparation: the patient chooses which read-only checks Vene may run.
     await p.goto('/prepare');
+    await p.getByText('Practical checks during the visit',{exact:true}).click();
     const permission=p.getByRole('region',{name:'Visit checks permission',exact:true});
     await permission.getByRole('checkbox',{name:/Coverage/}).check();await permission.getByRole('checkbox',{name:/Pharmacy/}).check();
     await permission.getByRole('button',{name:'Save what Vene may check',exact:true}).click();

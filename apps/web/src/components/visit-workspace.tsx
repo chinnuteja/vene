@@ -147,8 +147,8 @@ export function VisitWorkspace({ stage }: { stage: Stage }) {
             <aside className="right-column"><section className="card compact"><h3>Nothing for you to relay yet.</h3><p className="muted">An update for family can be prepared once the next steps are clear and you choose what to share.</p><Link className="text-link" href="/visit">Back to your visit <ArrowRight size={15} /></Link></section><div className="gentle-note"><Leaf size={18} /><p>Care moves forward<br />one clear step at a time.</p></div></aside>
           </div>}
           {stage === 'prepare' && patient && <PreparationControls visit={visit} mutate={mutate} disabled={saving !== null} onSource={openSource} onReplace={setVisit} />}
-          {stage === 'prepare' && patient && viewer && <InRoomChecks visit={visit} viewer={viewer} mode="permission"/>}
-          {stage === 'prepare' && patient && <DialIn visit={visit}/>}
+          {stage === 'prepare' && patient && viewer && <details className="preparation-option"><summary>Practical checks during the visit</summary><InRoomChecks visit={visit} viewer={viewer} mode="permission"/></details>}
+          {stage === 'prepare' && patient && <details className="preparation-option"><summary>Invite someone by phone</summary><DialIn visit={visit}/></details>}
           {stage !== 'prepare' && viewer && <InRoomChecks visit={visit} viewer={viewer} mode="checks"/>}
           {stage !== 'prepare' && viewer && <ExecutionPanel visit={visit} viewer={viewer}/>}
           {stage === 'follow-up' && viewer && <ContinuityPanel visit={visit} viewer={viewer} onReplace={setVisit} sharing={mutate}/>}

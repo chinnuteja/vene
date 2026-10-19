@@ -56,19 +56,23 @@ async def view_stream(engine, token, encounter_id, disconnected, interval=0.35, 
     be recalled. Every subsequent publication rechecks membership and current scope.
     """
     import json
+    import time
     last = None
     last_services = None
+    services_at = 0
     while not await disconnected():
         try:
             view = await asyncio.to_thread(authorized_view, engine, token, encounter_id)
             payload = view.model_dump_json()
-            if payload != last:
+            changed=payload!=last
+            if changed:
                 yield f"event: {'snapshot' if last is None else 'update'}\ndata: {payload}\n\n"
                 last = payload
             else:
                 yield ": keepalive\n\n"
-            if settings is not None:
+            if settings is not None and (changed or time.monotonic()-services_at>=.75):
                 services = await asyncio.to_thread(service_views, engine, token, encounter_id, settings)
+                services_at=time.monotonic()
                 serialized = json.dumps(services, separators=(',', ':'))
                 if serialized != last_services:
                     yield f'event: services\ndata: {serialized}\n\n'

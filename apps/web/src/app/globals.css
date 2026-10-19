@@ -44,3 +44,4 @@
 .room-setup>summary{cursor:pointer;color:#2f5d46;margin:8px 0;font-weight:600}
 .concept-banner{font:10px/1.5 Arial,sans-serif;text-align:center;color:#6b795f;background:#eef1e8;border-bottom:1px solid #e0e5d7;padding:5px 12px;position:relative;z-index:10}.sidebar{min-height:100vh;align-self:stretch;position:sticky;top:0;height:100vh}.app-shell{align-items:stretch}
 @media(min-width:621px){.sidebar{inset:auto;flex-shrink:0;position:sticky;top:0;min-height:100vh;height:100vh}.workspace{margin-left:0;min-width:0;flex:1}}
+.preparation-option{border:1px solid #dce4d5;border-radius:12px;margin:14px 0;background:#fafcf5}.preparation-option>summary{cursor:pointer;padding:17px 22px;font-size:13px;color:#607b55}.preparation-option>.card{border:0;margin:0;border-radius:0 0 12px 12px}

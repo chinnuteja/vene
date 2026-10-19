@@ -6,7 +6,7 @@ Start-ProjectDatabase $runtime
 if ($All) { $Phase = 12; Write-Output 'All implemented checks: Phases 1-12. Live STT/model/TTS and physical acoustics remain separate gates.' }
 Set-DatabaseEnvironment $runtime
 $startedAt = Get-Date
-Invoke-Checked $NodeExe @('--test','scripts/child-logs.test.mjs')
+Invoke-Checked $NodeExe @('--test','scripts/child-logs.test.mjs','scripts/proxy.test.mjs')
 Invoke-Checked $UvExe @('run','--frozen','pytest')
 Invoke-Checked $NodeExe @('scripts/contracts.mjs','--check')
 Invoke-Checked $PnpmExe @('typecheck')

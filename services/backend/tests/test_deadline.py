@@ -102,3 +102,20 @@ def test_outside_deadline_is_refused_before_an_office_lookup(visit_engine):
     p.post(root+'/execution/items/'+item['id']+'/scope',json={'allowed':True})
     result=p.post(root+'/execution/items/'+item['id']+'/lookup',json={'window':'morning','location':'Riverside Lab','day':'2026-10-23'})
     assert result.status_code==422 and calendar.calls==[]
+
+
+def test_calendar_timeout_is_visible_to_patient_and_a_retry_uses_a_fresh_check(visit_engine):
+    run,clients,calendar=scenario(visit_engine);p=clients['patient'];root='/encounters/'+run
+    plan(visit_engine,run,p)
+    p.post(root+'/feasibility/standing',json={'kinds':['scheduling']})
+    class TimeoutCalendar:
+        def call(self,*args,**kwargs):raise TimeoutError()
+    assert feasibility.tick(visit_engine,SETTINGS,TimeoutCalendar())
+    view=p.get(root+'/feasibility').json()
+    assert view['failed']==1 and view['obstacles']==[]
+    assert clients['clinician'].get(root+'/feasibility').json()['failed']==0
+    assert clients['family'].get(root+'/feasibility').json()['failed']==0
+    p.post(root+'/feasibility/standing',json={'kinds':['scheduling']})
+    assert feasibility.tick(visit_engine,SETTINGS,calendar)
+    view=p.get(root+'/feasibility').json()
+    assert view['failed']==0 and len(view['obstacles'])==1

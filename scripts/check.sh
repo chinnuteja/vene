@@ -11,7 +11,7 @@ if [ "$PHASE" = all ]; then PHASE=$IMPLEMENTED; echo "All implemented checks: Ph
 require_runtime
 database_env
 started=$(date +%s)
-node --test scripts/child-logs.test.mjs
+node --test scripts/child-logs.test.mjs scripts/proxy.test.mjs
 uv run --frozen pytest
 node scripts/contracts.mjs --check
 pnpm typecheck

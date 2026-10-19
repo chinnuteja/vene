@@ -1868,6 +1868,11 @@
             "title": "Checking",
             "type": "integer"
           },
+          "failed": {
+            "default": 0,
+            "title": "Failed",
+            "type": "integer"
+          },
           "obstacles": {
             "items": {
               "$ref": "#/components/schemas/ObstacleView"

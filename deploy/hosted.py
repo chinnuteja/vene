@@ -32,7 +32,7 @@ def main():
         BRING_VENE_MODE='fixture',BRING_VENE_DEVELOPMENT='true',DEMO_GUIDED='true',
         VOICE_PROVIDER='fixture',MODEL_PROVIDER='fixture',TTS_PROVIDER='fixture',COOKIE_SECURE='true',
         FRONTEND_ORIGIN=env.get('RENDER_EXTERNAL_URL','https://bring-vene.invalid'),BACKEND_URL='http://127.0.0.1:8000',
-        OFFICE_URL='http://127.0.0.1:8002',OFFICE_TOKEN=secrets.token_hex(32),
+        OFFICE_URL='http://127.0.0.1:8002',OFFICE_TOKEN=secrets.token_hex(32),OFFICE_TIMEOUT_SECONDS='5',
         OFFICE_CALLBACK_URL='http://127.0.0.1:8000',OFFICE_CALLBACK_SECRET=secrets.token_hex(32),
         LIVEKIT_URL='',LIVEKIT_API_KEY='',LIVEKIT_API_SECRET='',PHONE_BRIDGE_TOKEN='',PHONE_DIAL_NUMBER='')
     subprocess.run(['alembic','-c','services/backend/alembic.ini','upgrade','head'],env=env,check=True)

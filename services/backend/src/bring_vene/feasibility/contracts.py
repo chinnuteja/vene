@@ -59,4 +59,5 @@ class StandingView(Contract):
 class FeasibilityView(Contract):
     standing: StandingView | None = None
     checking: int = 0
+    failed: int = 0
     obstacles: list[ObstacleView]

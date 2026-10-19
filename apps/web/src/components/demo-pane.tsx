@@ -13,7 +13,9 @@ export function DemoPane({run,role}:{run:string;role:Role}){
       if(event.data.type==='vene-demo-invitation'&&event.data.role===role&&typeof event.data.token==='string'&&!used.current){
         used.current=true;
         try{
-          const viewer=await redeemInvite(event.data.token);identity.current=viewer;
+          let existing:Identity|null=null;
+          try{existing=await request<Identity>('/auth/me');}catch{}
+          const viewer=existing?.encounter_id===run&&existing.role===role?existing:await redeemInvite(event.data.token);identity.current=viewer;
           if(viewer.encounter_id!==run||viewer.role!==role)throw new Error('This invitation belongs to a different pane.');
           setReady(true);
         }catch(e){setError((e as Error).message);}

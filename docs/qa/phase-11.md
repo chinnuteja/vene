@@ -70,7 +70,21 @@ Not implemented: the plan's optional model phrasing of drafted questions. All wo
 
 ## Final verification
 
-See the BUILD_STATUS entry for the full `scripts/check.sh --all` result.
+`scripts/check.sh --all` (Phases 1–11, Linux, 19 October), third full run after the fixes below:
+
+| Check | Result |
+|---|---|
+| Backend (pytest, real Postgres) | 185 passed (173 earlier + 12 new) |
+| Child-log regression, contract drift, TypeScript, production build | Passed |
+| Browser (Chromium, real local WebRTC and HTTP sandboxes) | 28 passed, 4 skipped |
+| Phase 10 latency inside the suite | p95 940 ms turn → obstacle; 855 ms finalized turn → private cue |
+
+The skipped scenarios are the same explicit gates as in earlier phases.
+
+The first two full runs did not pass. Their failures and what was done:
+
+1. **Workflow (Phase 6 test), with continuity and memory failing as a consequence.** This was a latent race in the test, not a product defect. The readiness check only waited for a lab step to exist. Earlier scenarios leave a lab step on Maria's visit, sometimes human-corrected, so an interpretation still in flight could change answers mid-edit. The test now waits until understanding has processed the latest revision. The memory test also read the first source quote on the card instead of the blood-pressure item's own source; it now reads that item's.
+2. **Packaging recovery (Phase 8 test), first run only.** After a hard voice-worker restart, the call reported unavailable for more than the 10-second wait after resume. The recorded timeline shows the new worker reporting ready early, then failing to come back to active, which is consistent with the WebRTC reconnection limitation recorded in Phase 8. It passed in 2 of 2 isolated runs and in both later full runs. **The root cause is not established**; this is recorded as an intermittent voice-recovery failure, not as passing evidence.
 
 ## Not done or not verified
 

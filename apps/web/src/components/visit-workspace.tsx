@@ -11,6 +11,8 @@ import {ExecutionPanel} from './execution-panel';
 import {ContinuityPanel} from './continuity-panel';
 import {InRoomChecks} from './in-room-checks';
 import {DraftedAgenda} from './drafted-agenda';
+import {InRoomMode} from './in-room-mode';
+import {DialIn} from './dial-in';
 const CallPanel=dynamic(()=>import('./call-panel').then(m=>m.CallPanel),{ssr:false});
 
 type Stage = 'prepare' | 'visit' | 'follow-up';
@@ -122,6 +124,7 @@ export function VisitWorkspace({ stage }: { stage: Stage }) {
         {error && <div className="error-banner" role="alert" aria-label="Visit error"><CircleHelp size={20} /><div><strong>We couldn't update your visit.</strong><p>{error}</p></div><button onClick={() => setRefresh(r => r + 1)}><RefreshCw size={16} />Try again</button></div>}
         {loading && !visit ? <div className="loading" role="status"><LoaderCircle size={24} className="spin" /><p>Getting your visit ready…</p></div> : visit ? <>
           <div className="visit-strip"><div className="calendar-icon"><CalendarDays size={22} /></div><div><strong>{visit.title}</strong><span>{date(visit.visit_at, { weekday: 'long', month: 'short', day: 'numeric' })} · {date(visit.visit_at, { hour: 'numeric', minute: '2-digit' })} ET</span></div><span className="pill">Upcoming visit</span></div>
+          {stage==='visit'&&viewer&&<InRoomMode visit={visit} viewer={viewer}/>}
           {stage==='visit'&&viewer&&<CallPanel visit={visit} viewer={viewer}/>}
           {stage==='visit'&&patient&&<UnderstandingPanel visit={visit} onReplace={setVisit}/>}
           {stage === 'prepare' && patient && <DraftedAgenda visit={visit}/>}
@@ -141,6 +144,7 @@ export function VisitWorkspace({ stage }: { stage: Stage }) {
           </div>}
           {stage === 'prepare' && patient && <PreparationControls visit={visit} mutate={mutate} disabled={saving !== null} onSource={openSource} onReplace={setVisit} />}
           {stage === 'prepare' && patient && viewer && <InRoomChecks visit={visit} viewer={viewer} mode="permission"/>}
+          {stage === 'prepare' && patient && <DialIn visit={visit}/>}
           {stage !== 'prepare' && viewer && <InRoomChecks visit={visit} viewer={viewer} mode="checks"/>}
           {stage !== 'prepare' && viewer && <ExecutionPanel visit={visit} viewer={viewer}/>}
           {stage === 'follow-up' && viewer && <ContinuityPanel visit={visit} viewer={viewer} onReplace={setVisit} sharing={mutate}/>}

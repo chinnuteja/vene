@@ -47,3 +47,14 @@ The browser proxy only accepts an HTTP loopback backend and forwards the origina
 Supervisor stdout/stderr share an owned log whose lifetime spans child restarts. Children must pipe with end:false; closing that destination can eventually block the restarted process. A two-child large-output regression checks real drainage. Native room joins that never make a connected heartbeat are stopped by the 15-second owned-process startup watchdog and replaced; each runtime has a unique assistant identity under the same generation. Processing stays unavailable/paused until actual recovery and patient resume.
 
 Latest final local observations: media-server recovery safely paused at 6,731 ms; the voice-process recovery sequence safely paused/ready at 18,028 ms. These individual functional observations do not replace dedicated timing or physical/live-provider review.
+
+## Phone bridge contract (Phase 12b)
+
+Real telephony is not part of the local build. A phone bridge (for example LiveKit SIP with a Twilio inbound trunk) would:
+
+1. Answer the call in a lobby, play a short greeting and collect a 6-digit PIN with DTMF.
+2. `POST /integrations/phone/admit` with `Authorization: Bearer $PHONE_BRIDGE_TOKEN` and `{pin, participant_identity, caller_number?}`. `caller_number` is accepted and ignored; the PIN alone binds the call to one invited membership. The response names the visit room, the person, the disclosure to speak and the keypad prompt.
+3. Move the SIP participant (same `participant_identity`) into that room and speak the disclosure and prompt.
+4. Keypad digits reach the visit through the voice worker's `sip_dtmf_received` handler: 1 agree, 2 decline, 9 pause (anyone), 0 resume (patient line only, when everyone agreed).
+
+PINs are single-use, expire after 15 minutes, are stored hashed, and one live PIN per person replaces older ones. Revoking the PIN or the person's access invalidates the phone connection, and the worker removes it from the room. Bridge-side brute-force limits (attempts per call) and the lobby/move steps are unimplemented and unverified.

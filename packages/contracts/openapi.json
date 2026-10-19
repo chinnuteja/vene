@@ -1329,6 +1329,18 @@
               }
             ]
           },
+          "demo_run": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Demo Run"
+          },
           "evidence": {
             "items": {
               "$ref": "#/components/schemas/Evidence"
@@ -1340,6 +1352,16 @@
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "lab_preference": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LabPreference"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "patient": {
             "$ref": "#/components/schemas/Patient"
@@ -2060,6 +2082,27 @@
         "title": "InviteRequest",
         "type": "object"
       },
+      "LabPreference": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "maxLength": 60,
+            "title": "Location",
+            "type": "string"
+          },
+          "source_id": {
+            "format": "uuid",
+            "title": "Source Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "location",
+          "source_id"
+        ],
+        "title": "LabPreference",
+        "type": "object"
+      },
       "LabelMap": {
         "additionalProperties": false,
         "properties": {
@@ -2350,6 +2393,18 @@
       "ObstacleView": {
         "additionalProperties": false,
         "properties": {
+          "alternative": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alternative"
+          },
           "checked_at": {
             "format": "date-time",
             "title": "Checked At",
@@ -2361,6 +2416,18 @@
             },
             "title": "Choices",
             "type": "array"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
           },
           "fact": {
             "title": "Fact",
@@ -2427,6 +2494,14 @@
             ],
             "title": "State",
             "type": "string"
+          },
+          "supporting_sources": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Supporting Sources",
+            "type": "array"
           }
         },
         "required": [
@@ -4373,6 +4448,38 @@
         "summary": "Fixture Cases"
       }
     },
+    "/dev/demo": {
+      "post": {
+        "operationId": "start_demo_dev_demo_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Start Demo"
+      }
+    },
+    "/dev/demo-info": {
+      "get": {
+        "operationId": "demo_info_dev_demo_info_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Demo Info"
+      }
+    },
     "/dev/fixture": {
       "get": {
         "operationId": "fixture_info_dev_fixture_get",
@@ -5600,6 +5707,54 @@
           }
         },
         "summary": "Repeat Callback"
+      }
+    },
+    "/encounters/{encounter_id}/demo/turn": {
+      "post": {
+        "operationId": "demo_turn_encounters__encounter_id__demo_turn_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Demo Turn"
       }
     },
     "/encounters/{encounter_id}/dial-pins": {

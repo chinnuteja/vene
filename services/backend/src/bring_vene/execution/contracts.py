@@ -17,6 +17,13 @@ class LookupRequest(Input):
 class OfficeLookup(LookupRequest):
     institution: Literal['lab','imaging','specialist','pharmacy','plan']='lab'
 
+
+class CalendarSearch(Input):
+    institution: Literal['lab']='lab'
+    earliest: str=Field(pattern=r'^\d{4}-\d{2}-\d{2}$')
+    latest: str=Field(pattern=r'^\d{4}-\d{2}-\d{2}$')
+    preferred: str=Field(min_length=3,max_length=60)
+
 class ApprovalRequest(Input):
     digest: str = Field(min_length=64,max_length=64)
 

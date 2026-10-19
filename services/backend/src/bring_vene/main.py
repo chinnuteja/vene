@@ -172,6 +172,27 @@ def create_app(settings: Settings | None = None, engine=None):
         from bring_vene.fixtures import CASES
         return [{'id':key,**value} for key,value in CASES.items()]
 
+    @application.get('/dev/demo-info')
+    def demo_info(request:Request):
+        if not fixture_enabled(request):raise DomainError(404,'Not found.')
+        from bring_vene.understanding.gateway import configuration
+        from bring_vene.speech.service import provider as speech_provider
+        from bring_vene.voice.service import provider as voice_provider
+        return {'stt':voice_provider(settings),'model':configuration(settings)[0],'tts':speech_provider(settings)[0],
+                'transport':'guided' if settings.demo_guided else 'webrtc'}
+
+    @application.post('/dev/demo',dependencies=[Depends(mutation)])
+    def start_demo(request:Request):
+        if not fixture_enabled(request):raise DomainError(404,'Not found.')
+        from bring_vene.demo import create
+        return create(db)
+
+    @application.post('/encounters/{encounter_id}/demo/turn',dependencies=[Depends(mutation)])
+    def demo_turn(encounter_id:UUID,body:RedeemRequest,request:Request):
+        if not fixture_enabled(request):raise DomainError(404,'Not found.')
+        from bring_vene.demo import fixture_turn
+        return fixture_turn(db,encounter_id,*credentials(request),body.token,settings)
+
     @application.post("/auth/redeem", response_model=Identity, dependencies=[Depends(mutation)])
     def redeem_invitation(body: RedeemRequest, response: Response, request: Request):
         token, viewer = redeem(db, body.token, hours=settings.session_hours)

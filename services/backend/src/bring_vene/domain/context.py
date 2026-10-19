@@ -13,6 +13,7 @@ class ContextAdapter:
             return view
         view.understanding = None
         view.coverage = None
+        view.lab_preference = None
         view.title = f"Visit with {view.clinician}"
         view.priorities = [p for p in view.priorities if
                            view.preparation_approved and p.approved and p.selected and role in p.audiences]

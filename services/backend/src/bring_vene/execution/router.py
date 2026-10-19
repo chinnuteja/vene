@@ -45,7 +45,8 @@ def execution_router(engine,settings,mutation):
         if not settings.bring_vene_development or not request.client or request.client.host not in {'127.0.0.1','::1','testclient'}:
             raise DomainError(404,'Not found.')
         with Session(engine) as session,session.begin():
-            _,_,member,_=service.access(session,encounter_id,*credentials(request));service.patient(member)
-        try:return OfficeGateway(settings).call('/scenario',{'mode':body.mode,'institution':ERRANDS[body.kind].institution})
+            _,view,member,_=service.access(session,encounter_id,*credentials(request));service.patient(member)
+            sandbox_run=view.demo_run
+        try:return service.for_run(settings,sandbox_run).call('/scenario',{'mode':body.mode,'institution':ERRANDS[body.kind].institution})
         except Exception:raise DomainError(503,'The sandbox office is unavailable. No scenario change was confirmed.')
     return router

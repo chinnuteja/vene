@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://invalid@127.0.0.1:1/unconfigured"
     bring_vene_mode: str = "fixture"
     bring_vene_development: bool = False
+    demo_guided: bool = False
     cookie_secure: bool = True
     session_hours: int = 8
     frontend_origin: str = "https://bring-vene.invalid"

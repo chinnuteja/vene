@@ -262,9 +262,12 @@ def apply_result(engine,run_id,result,settings):
             old=next((i for i in view.plan if i.id==item_id),None)
             if old and (old.origin=='human' or old.external_completed):continue
             quote=' '.join(c.quote for c in proposal.citations).casefold()
-            values=[proposal.owner,proposal.timeframe,proposal.location]
-            if any(v and (v.casefold() not in quote or v.casefold() in {'they','them','someone','it','we'}) for v in values):
-                invalid=True;proposal.owner=None;proposal.timeframe=None;proposal.location=None;proposal.needs_clarification=True
+            unsupported=[field for field in ['owner','timeframe','location'] if (v:=getattr(proposal,field)) and
+                         (v.casefold() not in quote or v.casefold() in {'they','them','someone','it','we'})]
+            if unsupported:
+                invalid=True
+                for field in unsupported:setattr(proposal,field,None)
+                proposal.needs_clarification=True
                 proposal.explanation='Some proposed details were not directly supported. Clarify who, when and where.'
             item=PlanItem(id=item_id,title=proposal.title,detail=proposal.detail,owner=proposal.owner,
                 timeframe=proposal.timeframe,location=proposal.location,dependencies=proposal.dependencies,

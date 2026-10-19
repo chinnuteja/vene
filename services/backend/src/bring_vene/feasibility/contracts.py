@@ -46,6 +46,9 @@ class ObstacleView(Contract):
     plan_alternatives: list[str] = Field(default_factory=list)
     choices: list[ChoiceView] = Field(default_factory=list)
     resolution: Resolution | None = None
+    alternative: dict | None = None
+    supporting_sources: list[UUID] = Field(default_factory=list)
+    expires_at: AwareDatetime | None = None
 
 
 class StandingView(Contract):

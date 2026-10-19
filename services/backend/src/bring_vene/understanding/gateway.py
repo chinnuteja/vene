@@ -21,6 +21,8 @@ answers and steps arrays. Never attach an unrelated quote to a proposed task.
 Use null for unknown owner, time or location; ambiguous pronouns remain unresolved.
 Resolve each field independently. An unknown owner must not clear a supported
 timeframe or location. Preserve other explicitly stated fields when one changes.
+Copy a relative timeframe exactly as spoken, including number words (for example
+"within three days"). Do not normalize it into digits or an invented calendar date.
 Later explicit corrections supersede earlier statements. Cite the exact source UUID,
 version and a verbatim supporting quote for every interpretation. Use only supplied
 sources and priorities. If fields conflict, leave them unresolved and explain why.
@@ -81,10 +83,11 @@ def fixture_extract(snapshot):
         if not topic and "they'll do it" in lower and topics:topic=list(topics)[-1]
         if not topic:continue
         deferred=bool(re.search(r'defer|next visit|not decide',lower))
-        if not deferred and not re.search(r'arrange|schedule|will send|will pick up|actually|waiting|they.ll do it',lower):continue
+        if not deferred and not re.search(r'arrange|schedule|will send|will pick up|actually|waiting|they.ll do it|get\s+(?:the\s+)?labs?',lower):continue
         previous=topics.get(topic)
         owner=re.search(r'(Maria|James|Asha|Elena|Nina|Arun|the office|Dr\. Chen) will (?:arrange|schedule|send|pick up)',text,re.I)
         day=re.search(r'\b(Monday|Tuesday|Wednesday|Thursday|Friday)\b',text,re.I)
+        interval=re.search(r'\bwithin\s+(?:\d{1,2}|one|two|three|four|five|six|seven)\s+days?\b',text,re.I)
         location=re.search(r'\bat ([A-Z][A-Za-z ]{2,40}?)(?: on | after |[.,]|$)',text)
         unknown_owner="they'll" in lower
         citation=Citation(source_id=source['id'],version=source['version'],quote=text)
@@ -98,7 +101,7 @@ def fixture_extract(snapshot):
             return None
         step=ProposedStep(topic=topic,title=FIXTURE_TITLES[topic],
             detail=text,owner=None if unknown_owner or deferred else keep('owner',owner.group(1) if owner else None),
-            timeframe=keep('timeframe',day.group(1).capitalize() if day else None),
+            timeframe=keep('timeframe',interval.group() if interval else day.group(1).capitalize() if day else None),
             location=keep('location',location.group(1).strip() if location else None),
             dependencies=['Office order must be available'] if 'order' in lower else ['Supporting document needed'] if 'supporting document' in lower else ['Prescription must reach the pharmacy'] if topic=='prescription' else list(previous.dependencies) if previous and not deferred else [],
             needs_clarification=True,explanation='Reported in the conversation; approvals and external completion remain unconfirmed.',citations=refs)

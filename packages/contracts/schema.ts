@@ -67,6 +67,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dev/demo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Demo */
+        post: operations["start_demo_dev_demo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dev/demo-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Demo Info */
+        get: operations["demo_info_dev_demo_info_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/dev/fixture": {
         parameters: {
             query?: never;
@@ -520,6 +554,23 @@ export interface paths {
         put?: never;
         /** Repeat Callback */
         post: operations["repeat_callback_encounters__encounter_id__continuity_sandbox_callbacks__action_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{encounter_id}/demo/turn": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Demo Turn */
+        post: operations["demo_turn_encounters__encounter_id__demo_turn_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1829,6 +1880,8 @@ export interface components {
              */
             consent_epoch: number;
             coverage?: components["schemas"]["Coverage"] | null;
+            /** Demo Run */
+            demo_run?: string | null;
             /** Evidence */
             evidence: components["schemas"]["Evidence"][];
             /**
@@ -1836,6 +1889,7 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            lab_preference?: components["schemas"]["LabPreference"] | null;
             patient: components["schemas"]["Patient"];
             /** Plan */
             plan: components["schemas"]["PlanItem"][];
@@ -2124,6 +2178,16 @@ export interface components {
              */
             membership_id: string;
         };
+        /** LabPreference */
+        LabPreference: {
+            /** Location */
+            location: string;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+        };
         /** LabelMap */
         LabelMap: {
             /** Label */
@@ -2257,6 +2321,10 @@ export interface components {
         };
         /** ObstacleView */
         ObstacleView: {
+            /** Alternative */
+            alternative?: {
+                [key: string]: unknown;
+            } | null;
             /**
              * Checked At
              * Format: date-time
@@ -2264,6 +2332,8 @@ export interface components {
             checked_at: string;
             /** Choices */
             choices?: components["schemas"]["ChoiceView"][];
+            /** Expires At */
+            expires_at?: string | null;
             /** Fact */
             fact: string;
             /**
@@ -2298,6 +2368,8 @@ export interface components {
              * @enum {string}
              */
             state: "open" | "resolved";
+            /** Supporting Sources */
+            supporting_sources?: string[];
         };
         /** OutcomeRequest */
         OutcomeRequest: {
@@ -3179,6 +3251,46 @@ export interface operations {
             };
         };
     };
+    start_demo_dev_demo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    demo_info_dev_demo_info_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
     fixture_info_dev_fixture_get: {
         parameters: {
             query?: never;
@@ -4028,6 +4140,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    demo_turn_encounters__encounter_id__demo_turn_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RedeemRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

@@ -103,6 +103,11 @@ class Coverage(Contract):
     member_ref: str
 
 
+class LabPreference(Contract):
+    location: str = Field(max_length=60)
+    source_id: UUID
+
+
 class EncounterView(Contract):
     id: UUID
     version: int = Field(ge=0)
@@ -122,6 +127,9 @@ class EncounterView(Contract):
     viewer_role: Role = "patient"
     understanding: UnderstandingStatus | None = None
     coverage: Coverage | None = None
+    # A fresh fictional calendar namespace; ordinary saved visits retain their original sandbox.
+    demo_run: UUID | None = None
+    lab_preference: LabPreference | None = None
 
 
 class EncounterSummary(Contract):

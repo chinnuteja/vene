@@ -13,7 +13,7 @@ from bring_vene.persistence.models import (EncounterRecord,ExecutionRecord,Execu
 from bring_vene.understanding.service import fingerprint
 from bring_vene.execution.contracts import ExecutionView,ActionView,BundleOutcome,BundleResult,ErrandOption
 from bring_vene.execution import errands
-from bring_vene.execution.gateway import OfficeGateway
+from bring_vene.execution.gateway import OfficeGateway,for_run
 
 TERMINAL={'confirmed','rejected','invalidated','cancelled'}
 
@@ -58,7 +58,7 @@ def scope_valid(session,view,action):
     credential=session.get(SessionRecord,data['session_hash'],populate_existing=True)
     member=session.get(MembershipRecord,credential.membership_id,populate_existing=True) if credential else None
     clinician=session.get(MembershipRecord,UUID(data['clinician_id']),populate_existing=True) if data.get('clinician_id') else None
-    try:current=plan_fingerprint(view,action.item_id)==data['plan_fingerprint']
+    try:current=plan_fingerprint(view,action.item_id)==data['plan_fingerprint'] and data.get('sandbox_run')==(str(view.demo_run) if view.demo_run else None)
     except DomainError:current=False
     if data.get('clinician_id'):
         try:current=current and reviewed_documents(session,view,action.item_id)==data.get('document_bindings',{})
@@ -74,7 +74,8 @@ def fresh(action):
 def action_digest(action):
     # Non-lab errands also bind their kind; lab keeps the Phase 6 digest shape.
     kind={} if action.content.get('kind','lab')=='lab' else {'kind':action.content['kind']}
-    return fingerprint({**kind,'action_id':str(action.id),'plan':action.content['plan_fingerprint'],
+    tenant={'sandbox_run':action.content['sandbox_run']} if action.content.get('sandbox_run') else {}
+    return fingerprint({**kind,**tenant,'action_id':str(action.id),'plan':action.content['plan_fingerprint'],
         'scope_revision':action.content['scope_revision'],'window':action.content['window'],
         'location':action.content.get('location','Riverside Lab'),'day':action.content.get('day','2026-10-20'),
         'slot':action.content.get('slot'),'availability_revision':action.content.get('availability_revision'),
@@ -131,6 +132,11 @@ def lookup(engine,visit_id,item_id,token,csrf,request,settings,gateway=None):
             raise DomainError(422,'The sandbox handles sourced lab, imaging, referral and prescription steps only.')
         if request.location not in errand.locations:
             raise DomainError(422,'Choose one of the fictional '+errand.place+' locations.')
+        from bring_vene.feasibility.availability import deadline
+        dates=deadline(item.timeframe,view.visit_at)
+        if dates and not dates[0].isoformat()<=request.day<=dates[1].isoformat():
+            raise DomainError(422,'This appointment is outside the stated time window. Clarify it with the clinician first.')
+        sandbox_run=view.demo_run
         grant=session.get(ExecutionScopeRecord,(visit_id,item_id))
         if not grant or not grant.allowed or grant.session_hash!=credential.token_hash:
             raise DomainError(403,'Allow this sandbox availability lookup first.')
@@ -143,11 +149,12 @@ def lookup(engine,visit_id,item_id,token,csrf,request,settings,gateway=None):
             'kind':errand.kind,'title':item.title,'window':request.window,'plan_fingerprint':plan_fingerprint(view,item_id),
             'location':request.location,'day':request.day,
             'scope_revision':grant.revision,'session_hash':credential.token_hash,'message':'Checking the local sandbox '+errand.place+'.'})
+        if sandbox_run:action.content={**action.content,'sandbox_run':str(sandbox_run)}
         session.add(action);action_id=action.id
     # No transcript, name, visit ID or plan detail goes to the office. Recheck scope on return.
     payload=request.model_dump(mode='json')
     if errand.institution!='lab':payload['institution']=errand.institution
-    try:response=(gateway or OfficeGateway(settings)).call('/lookup',payload)
+    try:response=(gateway or for_run(settings,sandbox_run)).call('/lookup',payload)
     except Exception as error:
         # Type only: never log request fields, credentials or provider bodies.
         logging.getLogger(__name__).warning('Sandbox lookup failed (%s)',type(error).__name__)
@@ -181,6 +188,7 @@ def prerequisites(engine,visit_id,action_id,token,csrf,request,settings,gateway=
         action,_,_=validate(session)
         needs_order=request.order and not action.content.get('order_id')
         errand=errands.for_action(action.content)
+        sandbox_run=action.content.get('sandbox_run')
     receipt=None;order_id=None
     if needs_order:
         # The external order is explicitly synthetic. Its original request ID is
@@ -189,10 +197,10 @@ def prerequisites(engine,visit_id,action_id,token,csrf,request,settings,gateway=
         order_id=uuid5(NAMESPACE_URL,'bring-vene:sandbox-order:'+str(action_id))
         body={'request_id':str(order_id)}
         if errand.institution!='lab':body['institution']=errand.institution
-        try:receipt=(gateway or OfficeGateway(settings)).call('/orders',body)
+        try:receipt=(gateway or for_run(settings,sandbox_run)).call('/orders',body)
         except Exception:raise DomainError(503,'The sandbox '+errand.document+' could not be verified. Nothing was approved.')
         if (receipt.get('status')!='available' or receipt.get('order_id')!=str(order_id) or
-            receipt.get('institution','lab')!=errand.institution):raise DomainError(503,'Unverified sandbox document response.')
+            receipt.get('institution','lab')!=errand.institution or receipt.get('sandbox_run')!=sandbox_run):raise DomainError(503,'Unverified sandbox document response.')
     with Session(engine) as session,session.begin():
         action,member,view=validate(session)
         data={**action.content,'clinician_id':str(member.id),'clinician_at':utc_now().isoformat(),
@@ -278,6 +286,7 @@ def dispatch(engine,settings,claimed=None,gateway=None):
         initial=session.get(ExecutionRecord,action_id)
         if not initial:return True
         visit_id=initial.encounter_id
+        sandbox_run=initial.content.get('sandbox_run')
     with Session(engine) as session,session.begin():
         _,view=lock(session,visit_id);action=session.get(ExecutionRecord,action_id)
         job=session.get(ExecutionOutboxRecord,action_id,with_for_update=True)
@@ -299,7 +308,7 @@ def dispatch(engine,settings,claimed=None,gateway=None):
         if institution!='lab':payload['institution']=institution
     result=None
     try:
-        adapter=gateway or OfficeGateway(settings)
+        adapter=gateway or for_run(settings,sandbox_run)
         if reconcile:
             check=adapter.call('/requests/'+str(action_id))
             if check['found']:

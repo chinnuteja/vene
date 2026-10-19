@@ -18,13 +18,26 @@ from bring_vene.domain.contracts import EncounterView, PlanItem
 from bring_vene.domain.context import context_adapter
 from bring_vene.domain.service import DomainError, utc_now
 from bring_vene.execution import errands
-from bring_vene.execution.gateway import OfficeGateway
-from bring_vene.execution.service import access, patient, plan_fingerprint
+from bring_vene.execution.gateway import OfficeGateway,for_run
+from bring_vene.execution.service import access, patient, plan_fingerprint as execution_fingerprint
 from bring_vene.persistence.models import (CallRecord, EncounterRecord, ExecutionRecord, ExecutionScopeRecord, FeasibilityCheckRecord,
     MembershipRecord, ObstacleRecord, SessionRecord, StandingCheckRecord)
 from bring_vene.feasibility.contracts import (ChoiceView, FeasibilityView, ObstacleView, Resolution, StandingView)
 
 log = logging.getLogger(__name__)
+
+
+def plan_fingerprint(view,item_id):
+    base=execution_fingerprint(view,item_id)
+    item=next(p for p in view.plan if p.id==item_id)
+    from bring_vene.feasibility.availability import deadline
+    preference=view.lab_preference
+    if item.kind=='lab' and not item.location and preference and deadline(item.timeframe,view.visit_at):
+        from bring_vene.understanding.service import fingerprint
+        source=next((e for e in view.evidence if e.id==preference.source_id),None)
+        return fingerprint({'plan':base,'preference':preference.model_dump(mode='json'),
+                            'source':source.model_dump(mode='json') if source else None})
+    return base
 
 # Which checks each errand kind gets, and which standing permission each check needs.
 CHECKS = {'lab': ['availability'], 'imaging': ['availability', 'coverage'], 'prescription': ['coverage', 'stock'],
@@ -163,7 +176,10 @@ def claim(engine):
         row.state = 'running'
         row.content = {**row.content, 'started_at': utc_now().isoformat()}
         evidence = [e.text for e in view.evidence if e.id in item.evidence_refs]
-        return row.id, row.kind, item.model_copy(deep=True), evidence, view.coverage
+        preference=view.lab_preference
+        preferred=({'location':preference.location,'source_id':str(preference.source_id)} if preference and any(e.id==preference.source_id and preference.location in e.text
+            for e in view.evidence) else None)
+        return row.id, row.kind, item.model_copy(deep=True), evidence, view.coverage,view.visit_at,preferred,view.demo_run
 
 
 def weekday(timeframe):
@@ -179,11 +195,20 @@ def medicine(gateway, item, evidence):
     return next((n for n in names if re.search(r'\b' + re.escape(n) + r'\b', text, re.I)), None)
 
 
-def run(kind, item, evidence, coverage, gateway):
+def run(kind, item, evidence, coverage, gateway,visit_at=None,preferred_lab=None):
     """One read-only check. Returns (result facts, obstacle or None). Network only, no locks held."""
     errand = errands.for_item(item)
     location = item.location if item.location in errand.locations else errand.locations[0]
     if kind == 'availability':
+        if errand.kind=='lab' and visit_at:
+            from bring_vene.feasibility.availability import check,deadline
+            if deadline(item.timeframe,visit_at):
+                stated=item.location in errand.locations
+                preferred=item.location if stated else preferred_lab['location'] if preferred_lab else None
+                if not preferred:return {'applicable':False,'reason':'The preferred lab needs clarification.'},None
+                facts,obstacle=check(item,visit_at,gateway,preferred)
+                if obstacle and not stated:obstacle['supporting_sources']=[preferred_lab['source_id']]
+                return facts,obstacle
         day_name = weekday(item.timeframe)
         if not day_name:
             return {'applicable': False, 'reason': 'No weekday was stated for this step.'}, None
@@ -314,9 +339,9 @@ def tick(engine, settings, gateway=None):
         return False
     if claimed == 'skipped':
         return True
-    check_id, kind, item, evidence, coverage = claimed
+    check_id, kind, item, evidence, coverage,visit_at,preferred_lab,sandbox_run = claimed
     try:
-        outcome = run(kind, item, evidence, coverage, gateway or OfficeGateway(settings))
+        outcome = run(kind, item, evidence, coverage, gateway or for_run(settings,sandbox_run),visit_at,preferred_lab)
     except Exception as error:
         # Type only: never log request fields, credentials or provider bodies.
         log.warning('Feasibility check failed (%s)', type(error).__name__)
@@ -336,7 +361,9 @@ def present(session, view, row, member):
         state=row.state, fact=row.content['fact'], source=row.content['source'],
         checked_at=datetime.fromisoformat(row.content['checked_at']), resolver=resolver,
         plan_alternatives=row.content.get('alternatives', []), choices=choices,
-        resolution=Resolution.model_validate(row.content['resolution']) if row.content.get('resolution') else None)
+        resolution=Resolution.model_validate(row.content['resolution']) if row.content.get('resolution') else None,
+        alternative=row.content.get('alternative'),supporting_sources=row.content.get('supporting_sources',[]),
+        expires_at=row.content.get('expires_at'))
 
 
 def state(engine, visit_id, token):
@@ -349,10 +376,15 @@ def state(engine, visit_id, token):
             ObstacleRecord.state.in_(['open', 'resolved'])).order_by(ObstacleRecord.created_at.desc()).limit(20)).all()
         obstacles = []
         for row in rows:
+            try:
+                if plan_fingerprint(view,row.item_id)!=row.content['plan_fingerprint']:continue
+            except DomainError:continue
             if member.role != 'patient':
                 # A guest sees an obstacle only for a step and sources shared with them, at the same version.
                 try:
-                    shared = row.item_id in visible and plan_fingerprint(view, row.item_id) == row.content['plan_fingerprint']
+                    visible_sources={str(e.id) for e in context_adapter.view(view,member.role,member.id).evidence}
+                    shared = (row.item_id in visible and plan_fingerprint(view, row.item_id) == row.content['plan_fingerprint'] and
+                              set(row.content.get('supporting_sources',[]))<=visible_sources)
                 except DomainError:
                     shared = False
                 if not shared:
@@ -433,9 +465,11 @@ def open_review(engine, visit_id, auth_id, clinician_id, settings, gateway=None)
                      'plan_fingerprint': plan_fingerprint(view, auth_id), 'location': 'Evergreen Health Plan', 'day': '2026-10-15',
                      'scope_revision': scope.revision, 'session_hash': scope.session_hash,
                      'message': 'Preparing the submission with the sandbox health plan.'})
+        sandbox_run=view.demo_run
+        if sandbox_run:action.content={**action.content,'sandbox_run':str(sandbox_run)}
         session.add(action)
         action_id = action.id
-    adapter = gateway or OfficeGateway(settings)
+    adapter = gateway or for_run(settings,sandbox_run)
     order_id = uuid5(NAMESPACE_URL, 'bring-vene:sandbox-order:' + str(action_id))
     try:
         review = adapter.call('/lookup', {'window': 'morning', 'location': 'Evergreen Health Plan', 'day': '2026-10-15',

@@ -91,6 +91,16 @@ def scope_allows(session,call,view,cue):
         obstacle=session.get(ObstacleRecord,UUID(data['obstacle_id']))
         # A resolved, superseded or corrected obstacle is no longer something to raise.
         if not obstacle or obstacle.encounter_id!=view.id or obstacle.state!='open':return False
+        from bring_vene.feasibility.service import plan_fingerprint as obstacle_fingerprint
+        try:
+            if obstacle_fingerprint(view,obstacle.item_id)!=obstacle.content['plan_fingerprint']:return False
+        except DomainError:return False
+        if obstacle.content.get('expires_at'):
+            from datetime import datetime
+            if datetime.fromisoformat(obstacle.content['expires_at'])<=utc_now():return False
+        for source_id in obstacle.content.get('supporting_sources',[]):
+            evidence=next((e for e in view.evidence if str(e.id)==source_id),None)
+            if not evidence or not roles<=set(evidence.audiences):return False
     if data.get('execution_snapshots'):
         from bring_vene.execution.service import snapshot,scope_valid,fresh
         from bring_vene.persistence.models import ExecutionRecord
@@ -175,11 +185,14 @@ def refresh(session,encounter,call,row,view,settings):
 def add_obstacle_cue(session,encounter,call,row,view,settings,obstacle):
     item=next((p for p in view.plan if p.id==obstacle.item_id),None)
     if not item:return None
+    from bring_vene.feasibility.service import plan_fingerprint as obstacle_fingerprint
+    if obstacle_fingerprint(view,item.id)!=obstacle.content['plan_fingerprint']:return None
     data=obstacle.content
     # Spoken wording names no medicine and no patient; private wording carries the full fact and source.
     return make_cue(session,encounter,call,row,view,settings,key='obstacle:'+str(obstacle.id),title='Practical check · '+item.title,
         suggestion=data['fact']+' Source: '+data['source']+'.',text=data['spoken'],score=190,
-        refs={'plan_ids':[str(item.id)],'obstacle_id':str(obstacle.id)})
+        refs={'plan_ids':[str(item.id)],'obstacle_id':str(obstacle.id),
+              'supporting_sources':data.get('supporting_sources',[])})
 
 
 def obstacle_cue(session,visit_id,obstacle,settings):

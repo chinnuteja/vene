@@ -1,7 +1,8 @@
 """Independent HTTP sandbox. No patient names, transcripts or clinical instructions."""
 import secrets
+import hashlib
 import time
-from datetime import timedelta
+from datetime import date,datetime,timedelta
 from uuid import UUID, uuid4
 from fastapi import FastAPI, Depends, Header, HTTPException
 from typing import Literal
@@ -9,9 +10,9 @@ from pydantic import Field
 from sqlalchemy.orm import Session
 from bring_vene.config import Settings
 from bring_vene.persistence.database import make_engine
-from bring_vene.persistence.models import OfficeStateRecord, OfficeRequestRecord,OfficeCallbackOutboxRecord,OfficeFamilyReceiptRecord
+from bring_vene.persistence.models import EncounterRecord,OfficeStateRecord, OfficeRequestRecord,OfficeCallbackOutboxRecord,OfficeFamilyReceiptRecord
 from bring_vene.domain.service import utc_now
-from bring_vene.execution.contracts import Input, OfficeLookup, OfficeScenario, CoverageQuery, StockQuery
+from bring_vene.execution.contracts import Input, OfficeLookup, OfficeScenario, CoverageQuery, StockQuery,CalendarSearch
 from bring_vene.execution.errands import ERRANDS, BY_INSTITUTION
 
 Institution = Literal['lab','imaging','specialist','pharmacy','plan']
@@ -34,16 +35,30 @@ class FamilyDelivery(Input):
     text: str=Field(min_length=3,max_length=2000)
     digest: str=Field(min_length=64,max_length=64)
 
-def state_id(institution):
+def state_id(institution,run=None):
     # The lab keeps the original Phase 6 row so saved sandbox data stays valid.
-    return 'office' if institution=='lab' else institution
+    return 'd:'+hashlib.sha256((str(run)+'/'+institution).encode()).hexdigest()[:18] if run else 'office' if institution=='lab' else institution
 
-def ensure(session,institution='lab',lock=False):
-    row = session.get(OfficeStateRecord,state_id(institution),with_for_update=lock)
+def ensure(session,institution='lab',lock=False,run=None):
+    row = session.get(OfficeStateRecord,state_id(institution,run),with_for_update=lock)
     if not row:
         # Creation is a one-time launcher migration step; request access does not seed.
         raise HTTPException(503,'Sandbox office has not been initialized.')
+    if run and row.content.get('sandbox_run')!=str(run):raise HTTPException(409,'Sandbox calendar namespace mismatch.')
     return row
+
+
+def create_calendar(session,run):
+    """Independent fictional world per rehearsal; previous receipts and saved visits remain intact."""
+    for institution in BY_INSTITUTION:
+        slots=institution_slots(institution)
+        if institution=='lab':
+            slots=[{'id':'lab:'+str(run)+':'+location.lower().replace(' ','-')+':'+day+':morning',
+                'label':label+' · 9:00 AM ET · '+location,'window':'morning','location':location,'day':day,
+                'starts_at':day+'T09:00:00-04:00','institution':'lab'}
+                for location,day,label in [('Riverside Lab','2026-10-23','Fri, Oct 23'),('Northside','2026-10-22','Thu, Oct 22')]]
+        session.add(OfficeStateRecord(id=state_id(institution,run),content={'mode':'normal','revision':1,'reserved':[],
+                                      'slots':slots,'sandbox_run':str(run)}))
 
 def serialize_writes(session):
     # One lock orders idempotency keys across every institution's writes.
@@ -91,17 +106,23 @@ def initialize(engine):
 def office_app(settings=None,engine=None):
     settings=settings or Settings();engine=engine if engine is not None else make_engine(settings.database_url)
     app=FastAPI(title='Bring Vene — LOCAL SANDBOX OFFICE')
-    def authorized(authorization: str | None = Header(default=None)):
+    def authorized(authorization: str | None = Header(default=None),
+                   run:UUID|None=Header(default=None,alias='x-vene-sandbox-run')):
         if not settings.bring_vene_development or not settings.office_token or not secrets.compare_digest(authorization or '', 'Bearer '+settings.office_token):
             raise HTTPException(403,'Sandbox service access denied.')
+        if run:
+            with Session(engine) as session:
+                visit=session.get(EncounterRecord,run)
+                if not visit or visit.projection.get('demo_run')!=str(run):raise HTTPException(404,'Sandbox calendar not found.')
+        return run
 
     @app.get('/health')
     def health():return {'sandbox':True}
 
     @app.post('/scenario',dependencies=[Depends(authorized)])
-    def scenario(body:OfficeScenario):
+    def scenario(body:OfficeScenario,run=Depends(authorized)):
         with Session(engine) as session,session.begin():
-            row=ensure(session,body.institution,lock=True)
+            row=ensure(session,body.institution,lock=True,run=run)
             row.content={**row.content,'mode':body.mode,'revision':row.content['revision']+1}
             return {'sandbox':True,'institution':body.institution,'mode':body.mode,'revision':row.content['revision']}
 
@@ -111,9 +132,9 @@ def office_app(settings=None,engine=None):
         return {'sandbox':True,'institution':'plan','names':sorted({n for plan in PLANS.values() for n in plan['formulary']})}
 
     @app.post('/coverage',dependencies=[Depends(authorized)])
-    def coverage(body:CoverageQuery):
+    def coverage(body:CoverageQuery,run=Depends(authorized)):
         with Session(engine) as session:
-            mode=ensure(session,'plan').content['mode']
+            mode=ensure(session,'plan',run=run).content['mode']
         if body.member_ref not in MEMBERS:raise HTTPException(404,'Member not found in the sandbox plan.')
         plan=PLANS[MEMBERS[body.member_ref]]
         if mode=='delayed':time.sleep(1.4)
@@ -126,9 +147,9 @@ def office_app(settings=None,engine=None):
         return result
 
     @app.post('/stock',dependencies=[Depends(authorized)])
-    def stock(body:StockQuery):
+    def stock(body:StockQuery,run=Depends(authorized)):
         with Session(engine) as session:
-            content=ensure(session,'pharmacy').content
+            content=ensure(session,'pharmacy',run=run).content
         if body.location not in BY_INSTITUTION['pharmacy'].locations:raise HTTPException(404,'Pharmacy not found.')
         return {'sandbox':True,'institution':'pharmacy','location':body.location,'checked_at':utc_now().isoformat(),
             'reference':str(uuid4()),'in_stock':content['mode']!='out_of_stock'}
@@ -139,11 +160,11 @@ def office_app(settings=None,engine=None):
             'requires':['referral packet']}
 
     @app.post('/lookup',dependencies=[Depends(authorized)])
-    def lookup(body:OfficeLookup):
+    def lookup(body:OfficeLookup,run=Depends(authorized)):
         if body.institution=='plan':
             # A prior-authorization review is opened per request rather than chosen from a calendar.
             with Session(engine) as session,session.begin():
-                row=ensure(session,'plan',lock=True);content=row.content
+                row=ensure(session,'plan',lock=True,run=run);content=row.content
                 slot={'id':'plan:review:'+str(uuid4()),'label':'Prior authorization review · Evergreen Health Plan (fictional)',
                     'window':body.window,'location':'Evergreen Health Plan','day':body.day,'institution':'plan'}
                 row.content={**content,'slots':[*content['slots'],slot][-200:]}
@@ -151,7 +172,7 @@ def office_app(settings=None,engine=None):
                 return {'sandbox':True,'institution':'plan','revision':content['revision'],'checked_at':stamp.isoformat(),
                     'expires_at':(stamp+timedelta(seconds=120)).isoformat(),'slot':slot}
         with Session(engine) as session:
-            content=ensure(session,body.institution).content
+            content=ensure(session,body.institution,run=run).content
             delay=content['mode']=='delayed'
             stamp=utc_now();revision=content['revision']
             slot=next((s for s in content['slots'] if s['window']==body.window and s['location']==body.location and s['day']==body.day and s['id'] not in content['reserved']),None)
@@ -161,32 +182,51 @@ def office_app(settings=None,engine=None):
         if delay:time.sleep(1.4)
         return result
 
+    @app.post('/availability',dependencies=[Depends(authorized)])
+    def availability(body:CalendarSearch,run=Depends(authorized)):
+        start,end=date.fromisoformat(body.earliest),date.fromisoformat(body.latest)
+        if end<start or (end-start).days>14:raise HTTPException(422,'Choose a window of up to fourteen days.')
+        if body.preferred not in BY_INSTITUTION['lab'].locations:raise HTTPException(422,'Unknown lab.')
+        with Session(engine) as session:
+            content=ensure(session,'lab',run=run).content
+            available=[] if content['mode']=='no_slot' else [s for s in content['slots'] if s['id'] not in content['reserved'] and s['day']>=body.earliest]
+            def expose(slot):
+                day=date.fromisoformat(slot['day']);hour=datetime.fromisoformat(slot['starts_at']).hour
+                return {**slot,'day_name':day.strftime('%A'),'time_label':str(hour%12 or 12)+('am' if hour<12 else 'pm')}
+            preferred=sorted((s for s in available if s['location']==body.preferred),key=lambda s:s['starts_at'])
+            alternatives=sorted((s for s in available if s['location']!=body.preferred and s['day']<=body.latest),key=lambda s:s['starts_at'])
+            stamp=utc_now()
+            return {'sandbox':True,'institution':'lab','reference':str(uuid4()),'revision':content['revision'],
+                'checked_at':stamp.isoformat(),'expires_at':(stamp+timedelta(seconds=120)).isoformat(),
+                'preferred_first':expose(preferred[0]) if preferred else None,'alternatives':[expose(s) for s in alternatives[:8]]}
+
     @app.post('/orders',dependencies=[Depends(authorized)])
-    def order(body:Order):
+    def order(body:Order,run=Depends(authorized)):
         with Session(engine) as session,session.begin():
             serialize_writes(session)
             old=session.get(OfficeRequestRecord,body.request_id)
             if old:
-                if old.kind!='order' or old.content.get('institution','lab')!=body.institution:raise HTTPException(409,'Request ID reused.')
+                if old.kind!='order' or old.content.get('institution','lab')!=body.institution or old.content.get('sandbox_run')!=(str(run) if run else None):raise HTTPException(409,'Request ID reused.')
                 return old.content
             # A synthetic clinician document (order, referral packet or prescription) for one institution.
             receipt={'sandbox':True,'order_id':str(body.request_id),'status':'available','issued_at':utc_now().isoformat(),
                 'institution':body.institution,'document':BY_INSTITUTION[body.institution].document}
+            if run:receipt['sandbox_run']=str(run)
             session.add(OfficeRequestRecord(request_id=body.request_id,kind='order',content=receipt));return receipt
 
     @app.post('/bookings',dependencies=[Depends(authorized)])
-    def booking(body:Booking):
+    def booking(body:Booking,run=Depends(authorized)):
         ambiguous=False
         with Session(engine) as session,session.begin():
-            serialize_writes(session);row=ensure(session,body.institution,lock=True)
+            serialize_writes(session);row=ensure(session,body.institution,lock=True,run=run)
             old=session.get(OfficeRequestRecord,body.request_id)
             payload=body.model_dump(mode='json')
             if body.institution=='lab':payload.pop('institution') # Original Phase 6 request shape.
             if old:
-                if old.kind!='booking' or old.content['payload']!=payload:raise HTTPException(409,'Request ID reused with different content.')
+                if old.kind!='booking' or old.content['payload']!=payload or old.content.get('sandbox_run')!=(str(run) if run else None):raise HTTPException(409,'Request ID reused with different content.')
                 return old.content['result']
             order=session.get(OfficeRequestRecord,body.order_id)
-            if not order or order.kind!='order' or order.content.get('institution','lab')!=body.institution:
+            if not order or order.kind!='order' or order.content.get('institution','lab')!=body.institution or order.content.get('sandbox_run')!=(str(run) if run else None):
                 raise HTTPException(409,'Required sandbox '+BY_INSTITUTION[body.institution].document+' missing.')
             content=row.content
             valid_slots={s['id'] for s in content['slots']}
@@ -199,7 +239,7 @@ def office_app(settings=None,engine=None):
                 # Two identical receipt events in one sandbox response exercise ingestion
                 # without pretending to send authenticated office callbacks (Phase 7).
                 result['duplicate_events']=[dict(result),dict(result)]
-            session.add(OfficeRequestRecord(request_id=body.request_id,kind='booking',content={'payload':payload,'result':result}))
+            session.add(OfficeRequestRecord(request_id=body.request_id,kind='booking',content={'payload':payload,'result':result,**({'sandbox_run':str(run)} if run else {})}))
             session.flush() # Persist the office parent before its independent callback outbox.
             for _ in range(2 if content['mode']=='duplicate_callback' else 1):
                 session.add(OfficeCallbackOutboxRecord(id=uuid4(),request_id=body.request_id,content=result,
@@ -210,9 +250,10 @@ def office_app(settings=None,engine=None):
         return result
 
     @app.get('/requests/{request_id}',dependencies=[Depends(authorized)])
-    def reconcile(request_id:UUID):
+    def reconcile(request_id:UUID,run=Depends(authorized)):
         with Session(engine) as session:
             old=session.get(OfficeRequestRecord,request_id)
+            if old and old.content.get('sandbox_run')!=(str(run) if run else None):old=None
             return {'sandbox':True,'found':bool(old),'result':old.content['result'] if old and old.kind=='booking' else None}
 
     @app.post('/callbacks/{request_id}/repeat',dependencies=[Depends(authorized)])

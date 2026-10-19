@@ -26,8 +26,8 @@ class Errand:
 
 ERRANDS = {
     'lab': Errand('lab', 'lab', 'lab', 'lab order', 'slot', 'Lab reservation confirmed',
-        ('Riverside Lab', 'Harbor Lab', 'Hilltop Lab'),
-        (('2026-10-20', 'Tue, Oct 20'), ('2026-10-21', 'Wed, Oct 21'), ('2026-10-23', 'Fri, Oct 23'))),
+        ('Riverside Lab', 'Harbor Lab', 'Hilltop Lab', 'Northside'),
+        (('2026-10-20', 'Tue, Oct 20'), ('2026-10-21', 'Wed, Oct 21'), ('2026-10-23', 'Fri, Oct 23'), ('2026-10-22','Thu, Oct 22'))),
     'imaging': Errand('imaging', 'imaging', 'imaging center', 'imaging order', 'slot', 'Imaging appointment confirmed',
         ('Lakeside Imaging', 'Northgate Imaging'),
         (('2026-10-21', 'Wed, Oct 21'), ('2026-10-22', 'Thu, Oct 22'))),

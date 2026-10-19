@@ -1,6 +1,8 @@
-param([ValidateSet('fixture','live')][string]$Mode = 'fixture', [switch]$Production, [switch]$ModelLive, [switch]$TtsLive, [switch]$LiveProviders)
+param([ValidateSet('fixture','live')][string]$Mode = 'fixture', [switch]$Production, [switch]$ModelLive, [switch]$TtsLive, [switch]$LiveProviders, [switch]$Guided)
 . "$PSScriptRoot/common.ps1"
 $runtime = Read-Runtime
+if ($Guided -and ($LiveProviders -or $ModelLive -or $Mode -eq 'live')) { throw 'Guided fixture must be explicitly separate from live providers.' }
+if ($Guided) { $env:DEMO_GUIDED='true' }
 Start-ProjectDatabase $runtime
 Set-DatabaseEnvironment $runtime
 Invoke-Checked $UvExe @('run','--frozen','alembic','-c','services/backend/alembic.ini','upgrade','head')

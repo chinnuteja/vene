@@ -16,7 +16,7 @@ function People({ call }: {call: Call}) {
   return <div className="call-people">{participants.map(p=>{const assistant=p.identity.startsWith('vene:'); const server=call.participants.find(c=>'human:'+c.connection_id===p.identity);return <div key={p.identity} className={'call-person '+(assistant?'assistant':'')}><div className="person-orb">{assistant?<Sparkles size={25}/>:p.name?.split(' ').map(n=>n[0]).slice(0,2).join('')}</div><strong>{assistant?'Vene':p.name}</strong><span>{assistant ? call.state==='active'?'Listening with permission':'Disclosed assistant · paused' : server?.consent==='agreed'?'Agreed to Vene processing':server?.consent==='declined'?'Human conversation only':'Agreement needed'}</span></div>;})}</div>;
 }
 
-export function CallPanel({visit,viewer}:{visit:Encounter;viewer:Identity}) {
+export function CallPanel({visit,viewer,compact=false}:{visit:Encounter;viewer:Identity;compact?:boolean}) {
   const [call,storeCall]=useState<Call|null>(null),[room,setRoom]=useState<Room|null>(null),[admission,setAdmission]=useState<Admission|null>(null);
   const [unsupportedBrowser,setUnsupportedBrowser]=useState(false);
   const [audioNeedsStart,setAudioNeedsStart]=useState(false),[receiving,setReceiving]=useState(false);
@@ -58,6 +58,11 @@ export function CallPanel({visit,viewer}:{visit:Encounter;viewer:Identity}) {
     if(busy)return;setBusy(true);setError('');intentional.current=false;
     let next:Room|null=null,details:Admission|null=null,joined=false;
     try{
+      if(compact&&viewer.role==='patient'){
+        await request('/encounters/'+visit.id+'/understanding/processing',{method:'POST',body:JSON.stringify({command_id:crypto.randomUUID(),enabled:true})});
+        await request('/encounters/'+visit.id+'/feasibility/standing',{method:'POST',body:JSON.stringify({kinds:['scheduling']})});
+        await request('/encounters/'+visit.id+'/speech/mode',{method:'POST',body:JSON.stringify({command_id:crypto.randomUUID(),mode:'on_request'})});
+      }
       stopMeter();meterContext.current=new AudioContext();void meterContext.current.resume();
       next=new Room({adaptiveStream:true,dynacast:true,singlePeerConnection:true});resource.current=next;
       // Unlock playback in this click's user activation, before network awaits.
@@ -113,6 +118,16 @@ export function CallPanel({visit,viewer}:{visit:Encounter;viewer:Identity}) {
       if(!next.localParticipant.permissions?.canPublish)throw new Error('Admission was not verified.');
       if(track){await next.localParticipant.publishTrack(track,{source:Track.Source.Microphone});preview.current=null;}
       joined=true;setMic(withMic);setAdmission(details);setCall(details.call);setRoom(next);
+      if(compact){
+        for(let i=0;i<40;i++){
+          const current=await request<Call>(base),own=current.participants.find(p=>p.connection_id===pendingAdmission.connection_id);
+          if(own?.present&&(!withMic||own.track_epoch>0))break;
+          await new Promise(r=>setTimeout(r,100));
+        }
+        setCall(await request<Call>(base+'/consent',{method:'POST',body:JSON.stringify({command_id:crypto.randomUUID(),connection_id:details.connection_id,decision:'agreed',terms_version:'voice-processing-v1'})}));
+        const speech=await request<components['schemas']['SpeechView']>('/encounters/'+visit.id+'/speech');
+        if(speech.mode==='on_request')await request('/encounters/'+visit.id+'/speech/agreement',{method:'POST',body:JSON.stringify({command_id:crypto.randomUUID(),connection_id:details.connection_id,mode_revision:speech.mode_revision,agreed:true})});
+      }
     }catch(error){
       const message=error instanceof Error?error.message.toLowerCase():'';
       const category=['admission was not verified','pc connection','signal','unauthorized','timeout','permission'].find(c=>message.includes(c))??'media';
@@ -145,6 +160,17 @@ export function CallPanel({visit,viewer}:{visit:Encounter;viewer:Identity}) {
   }
   const own=call?.participants.find(p=>p.connection_id===admission?.connection_id);
   const allAgreed=Boolean(call?.participants.filter(p=>p.present).length&&call?.participants.filter(p=>p.present).every(p=>p.consent==='agreed'));
+  if(compact)return <section className="demo-call" aria-label="Visit conversation">
+    <span className={'demo-live-dot '+(call?.state==='active'?'active':'')}/><strong>{room?labels[call?.state??'waiting']:'Join this fictional conversation'}</strong>
+    {!room?<><p>Audio can be processed into private notes. No recording. Vene may speak when Maria invites it. {viewer.role==='patient'?'I also allow private understanding and read-only scheduling checks.':''}</p>
+      <button className="primary-button" disabled={busy} onClick={()=>void join(viewer.role==='clinician')}><Phone size={15}/>{busy?'Connecting…':'Join and agree'}</button></>:<><RoomContext.Provider value={room}><RoomAudioRenderer volume={viewer.role==='patient'?1:0}/></RoomContext.Provider>
+      <div className="button-row">{viewer.role==='patient'&&call?.state!=='active'&&<button className="primary-button" disabled={busy||!allAgreed||!call?.worker_ready} onClick={()=>void control('resume')}><Play size={14}/>Start listening</button>}
+      {call?.state==='active'&&<button className="small-button" disabled={busy} onClick={()=>void control('pause')}><Pause size={14}/>Pause</button>}
+      {viewer.role==='clinician'&&<button className="small-button" disabled={busy} onClick={()=>void toggleMic()}>{mic?<MicOff size={14}/>:<Mic size={14}/>} {mic?'Mute microphone':'Unmute microphone'}</button>}
+      <button className="source-link" onClick={()=>void agreement(own?.consent==='agreed'?'declined':'agreed')}>{own?.consent==='agreed'?'Withdraw agreement':'Agree again'}</button></div>
+      <span data-vene-output-active={receiving?'true':'false'} className="demo-audio-status">{receiving?'Receiving Vene audio':allAgreed?call?.worker_ready?'Everyone agreed':'Waiting for voice service':'Waiting for everyone’s agreement'}</span></>}
+    {error&&<p role="alert">{error}</p>}
+  </section>;
   return <section className="card call-panel" aria-label="Visit conversation"><div className="call-heading"><div><div className="eyebrow small">BRING VENE INTO THE CONVERSATION</div><h2>{room?'Here, together.':'A place to talk it through.'}</h2></div><span className={'pill '+(call?.state==='active'?'call-live':'')}>{call?labels[call.state]:'Checking call availability…'}</span></div>
     {error&&<p className="call-error" role="alert" aria-label="Call error">{error}<button className="source-link" onClick={()=>setError('')}>Dismiss</button></p>}
     {room&&audioNeedsStart&&<button className="small-button" onClick={()=>{void room.startAudio().then(()=>setAudioNeedsStart(false)).catch(()=>setError('Audio playback is blocked. Check browser audio permission and retry.'));}}>Enable call audio</button>}

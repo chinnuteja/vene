@@ -1,4 +1,5 @@
 import type { components } from '../../../../../packages/contracts/schema';
+import {apiBase} from './demo-scope';
 export type Encounter = Omit<components['schemas']['EncounterView'], 'suggestions'> & { suggestions: NonNullable<components['schemas']['EncounterView']['suggestions']> };
 export type Evidence = components['schemas']['Evidence'];
 export type Command = components['schemas']['CommandEnvelope'];
@@ -9,12 +10,13 @@ export class AccessError extends Error {}
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
+  if(typeof init?.body==='string'&&!headers.has('Content-Type'))headers.set('Content-Type','application/json');
   if (init?.method && init.method !== 'GET') {
     headers.set('x-vene-intent', 'mutation');
     if (csrf) headers.set('x-vene-csrf', csrf);
   }
   let response: Response;
-  try { response = await fetch('/api' + path, { ...init, headers, cache: 'no-store' }); }
+  try { response = await fetch(apiBase() + path, { ...init, headers, cache: 'no-store' }); }
   catch { throw new Error("We couldn't connect to your visit. Please try again in a moment."); }
   if (!response.ok) {
     if (response.status === 401) { csrf = ''; throw new AccessError('Your session has ended or access has been withdrawn.'); }

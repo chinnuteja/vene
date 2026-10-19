@@ -14,6 +14,7 @@ import {DraftedAgenda} from './drafted-agenda';
 import {InRoomMode} from './in-room-mode';
 import {DialIn} from './dial-in';
 import {VisitUpdates,type ServiceViews} from '@/lib/visit-updates';
+import {apiBase} from '@/lib/api/demo-scope';
 const CallPanel=dynamic(()=>import('./call-panel').then(m=>m.CallPanel),{ssr:false});
 
 type Stage = 'prepare' | 'visit' | 'follow-up';
@@ -56,7 +57,7 @@ export function VisitWorkspace({ stage }: { stage: Stage }) {
   }, [refresh]);
   useEffect(() => {
     if (!visit?.id || !viewer) return;
-    const stream = new EventSource('/api/encounters/' + visit.id + '/stream?services=true');
+    const stream = new EventSource(apiBase()+'/encounters/' + visit.id + '/stream?services=true');
     function update(event: MessageEvent) {
       const incoming: Encounter = JSON.parse(event.data);
       setVisit(current => !current || (incoming.version > current.version || (incoming.version === current.version && incoming.consent_epoch > current.consent_epoch)) ? incoming : current);

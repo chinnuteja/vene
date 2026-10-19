@@ -10,6 +10,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const runtime = JSON.parse(readFileSync(path.join(root, '.local/runtime.json'), 'utf8').replace(/^\uFEFF/, ''));
 const mode = process.argv[process.argv.indexOf('--mode') + 1] ?? 'fixture';
 const liveProviders=process.argv.includes('--live-providers');
+const guided=process.argv.includes('--guided');
+if(guided&&(liveProviders||process.argv.includes('--model-live')||mode==='live'))throw new Error('Guided fixture must be explicitly separate from live providers.');
+if(guided)process.env.DEMO_GUIDED='true';
 const voiceProvider=liveProviders||mode==='live'?'deepgram':'fixture';
 let modelProvider='fixture';
 if(process.argv.includes('--model-live')||liveProviders){

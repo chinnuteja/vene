@@ -77,6 +77,7 @@ test('patient, clinician and family remain isolated through approval and live re
     expect(await p.evaluate(() => document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
     await p.screenshot({path:evidence('phase-02-patient-mobile.png'),fullPage:true});
     const familyRow = p.locator('.member-row').filter({hasText:'Elena Alvarez'});
+    await p.getByText('Who can join this visit',{exact:true}).click();
     await familyRow.getByRole('button',{name:'Withdraw access',exact:true}).click();
     await familyRow.getByRole('button',{name:'Yes, withdraw access'}).click();
     await expect(f.getByRole('heading',{name:'This visit is no longer open.'})).toBeVisible();

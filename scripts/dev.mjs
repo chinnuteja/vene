@@ -12,8 +12,8 @@ const modeIndex=process.argv.indexOf('--mode');
 const mode = modeIndex>=0?process.argv[modeIndex+1]:'fixture';
 const liveProviders=process.argv.includes('--live-providers');
 const guided=process.argv.includes('--guided');
-if(guided&&(liveProviders||process.argv.includes('--model-live')||mode==='live'))throw new Error('Guided fixture must be explicitly separate from live providers.');
-if(guided)process.env.DEMO_GUIDED='true';
+if(guided&&(liveProviders||process.argv.includes('--model-live')||process.argv.includes('--tts-live')||mode==='live'))throw new Error('Guided fixture must be explicitly separate from live providers.');
+process.env.DEMO_GUIDED=String(guided);
 const voiceProvider=liveProviders||mode==='live'?'deepgram':'fixture';
 let modelProvider='fixture';
 if(process.argv.includes('--model-live')||liveProviders){

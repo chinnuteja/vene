@@ -1,6 +1,6 @@
 # Bring Vene — build status
 
-Updated: 15 October 2026.
+Updated: 19 October 2026.
 
 ## Current state
 
@@ -32,6 +32,10 @@ The user authorized Codex in this chat to build using this plan. Continue withou
 | 6 | Practical checks and authorized execution | Implemented; local sandbox gates passed; live-provider gates open | 112 backend + 18 Chromium; contracts/type/build passed; final 17 execution regressions passed | Actual HTTP office, two-peer speech, missing order, expiry/delay, timeout reconciliation, family receipt and desktop/mobile inspected |
 | 7 | Continuity and failure recovery | Implemented; local gates passed; inherited live gates open | 133 backend + 1 process-log regression + 25 browser total; contracts/type/build passed | Signed/duplicate replies, PDF review, actual family acknowledgement, private next visit/deletion and owned restart recovery passed |
 | 8 | Founder-ready integration and packaging | Implemented; local gates passed; live/performance/hardware/human gates open | Final browser: 25 passed, 2 explicit gates skipped; dependency audits show no known vulnerabilities | Three cases, ordinary controls, keyboard/zoom/reduced motion and platform smoke passed; Windows WebKit media unavailable |
+| 9 | Walk-out follow-through | Implemented; local gates passed (Linux) | 160 backend + 25 browser | Before-you-leave checklist, bundle approval, care-circle ask |
+| 10 | In-room obstacle catch | Implemented; local gates passed (Linux) | 173 backend + 27 browser; 20-turn latency p95 930–938 ms | Private obstacle cues, resolver-only answers, prior-auth gating |
+| 11 | Preparation drafted from open loops | Implemented; local gates passed (Linux) | 185 backend + 28 browser | Found loops, 3-interaction approval, private drafts |
+| 12 | Phone on the table and dial-in | Implemented; local gates passed (Linux); telephony/diarization/acoustic gates open | 201 backend + 29 browser | 390 px phone in real local WebRTC, agreement gate, speaker naming, guest isolation, PIN issue |
 
 Do not mark an entire phase passed when only its fixture configuration has passed and the phase requires a live gate. Independent work may continue while a specific gate remains unverified.
 
@@ -60,6 +64,27 @@ Phase 9 (walk-out follow-through) is implemented and its local gates passed on 1
 Phase 10 is implemented and its local gates passed on 19 October on Linux. With the patient's standing read-only permission, discussed steps are checked against sandbox institutions: a fictional health plan, a pharmacy, a specialist office and imaging and lab calendars. Obstacles are derived only from institution responses and become private cues in under a second. Detected obstacles: prior authorization required, not on formulary (plan-listed alternatives shown as facts), out of stock, no availability and a missing referral packet. Only the named resolver can answer. The clinician's "the office will submit prior authorization" prepares a plan submission that the patient approves, and imaging waits for it. Latency over 20 fixture turns: p95 930–938 ms from turn to obstacle, against a 3,000 ms target. `scripts/check.sh --all`: 173 backend tests and 27 browser scenarios passed, 4 explicit gates skipped. Live-model, live-speech and Windows/macOS runs are open. See docs/qa/phase-10.md. Phase 11 (preparation drafted from open loops) is next.
 
 Phase 11 is implemented and its local gates passed on 19 October on Linux. A MemoryPort with deterministic, source-citing rules finds unfinished steps, unanswered questions, offices still waiting and unconfirmed errands from earlier visits. Loops close on later completion, on an answer, or when the patient marks them done, and loops that share a source merge. Preparation opens with "Vene found N things worth bringing up". The patient reaches an approved list in 3 interactions. Drafts stay private until approval, with the clinician as the default audience and never family. Next visits inherit memory. `scripts/check.sh --all`: 185 backend tests and 28 browser scenarios passed, 4 explicit gates skipped, on the third full run. Earlier runs exposed two test races, both fixed, and one intermittent Phase 8 voice-recovery failure whose root cause is not established. Optional model phrasing was not implemented. See docs/qa/phase-11.md. Phase 12 (phone on the table and dial-in) is next.
+
+Phase 12 is implemented and its local gates passed on 19 October on Linux.
+
+- **One phone in the room.** The patient declares who is present and gives a disclosure, and records each person's agreement herself.
+- **Gate.** Nothing is processed until everyone agrees. Processing, resume and room ingestion are all closed until then.
+- **Voices.** Diarized voices are anonymous until the patient names them. Renaming a voice versions its sources and invalidates the interpretations that depend on them. A name is attribution only and never authority.
+- **Self-speech.** When Vene hears itself, those turns are dropped.
+- **New arrivals.** A new arrival pauses the call and closes the gate.
+- **Dial-in.** Hashed, single-use 15-minute PINs, admitted through a token-authenticated bridge endpoint. Caller ID is never identity. Keypad: 1 agree, 2 decline, 9 pause, 0 patient-only resume. Revocation disconnects the caller.
+- **Defect found and fixed.** A family suggestion was rejected with 409 by unrelated patient changes. Suggestions are now append-only and exempt from the version fence.
+
+`scripts/check.sh --all`: 201 backend tests and 29 browser scenarios passed and 4 explicit gates were skipped, on the third full run. The earlier runs exposed that defect and two test-ordering/race problems, all fixed.
+
+Open:
+- live diarization accuracy;
+- physical acoustics;
+- a real SIP/telephony bridge (documented as a contract only);
+- the patient-only phone spoken mode;
+- Windows/macOS re-runs.
+
+See docs/qa/phase-12.md. All planned phases 9–12 are implemented.
 
 No planned feature phase remains unimplemented. User-authorized test keys are configured: MODEL_PROVIDER=deepseek with DEEPSEEK_API_KEY, DEEPGRAM_API_KEY, CARTESIA_API_KEY and a verified public CARTESIA_VOICE_ID in ignored .env. Continue scripts/check-live.ps1 sequentially against the isolated test database; the combined live flow and speech safety passed, repeated timing remains open. It validates configuration before reset/calls, exercises actual recognition/model/speech and separately approved sandbox booking, and repeats speech timing. Review observed outputs, attribution, citations, unsupported claims and actual receipts; never treat a fixture pass as provider quality.
 

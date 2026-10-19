@@ -57,7 +57,9 @@ test('in-room mode keeps Vene off until everyone agrees, attributes voices witho
     const voice=card.getByLabel('Speaker S0',{exact:true});
     await expect(voice).toContainText('Unattributed speaker 1');
     await voice.getByRole('button',{name:'That\'s Dr. Chris Chen',exact:true}).click();
-    await expect(voice).toContainText('Dr. Chris Chen');
+    // The card already contains the "That's Dr. Chris Chen" button, so wait on the speaker's name itself.
+    await expect(voice.locator('strong')).toHaveText('Dr. Chris Chen');
+    await expect.poll(async()=>(await (await patient.request.get(base)).json()).evidence.find((e:{speaker_label:string|null})=>e.speaker_label==='S0')?.speaker).toBe('Dr. Chris Chen');
     const source=(await (await patient.request.get(base)).json()).evidence.find((e:{speaker_label:string|null})=>e.speaker_label==='S0');
     expect(source.speaker).toBe('Dr. Chris Chen');expect(source.attribution).toBe('patient_attested');expect(source.version).toBe(2);
     await card.screenshot({path:evidence('phase-12-speakers-mobile.png')});

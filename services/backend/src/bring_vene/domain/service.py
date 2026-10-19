@@ -58,7 +58,9 @@ def apply_command(engine, encounter_id: UUID, request: CommandEnvelope, clock=ut
             return CommandResult(
                 duplicate=True, event=EventEnvelope.model_validate(previous.envelope), encounter=view
             )
-        if request.expected_version != record.version:
+        # A family suggestion only appends a proposal and touches nothing the patient owns, so it
+        # commutes with any concurrent change; fencing it would reject it for edits the guest may not see.
+        if request.expected_version != record.version and not isinstance(request.command, SuggestionAdded):
             raise DomainError(409, "The visit changed. Refresh it before editing.")
         if request.evidence_refs:
             if role != "patient":

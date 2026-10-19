@@ -31,6 +31,9 @@ Date: 19 October 2026. Plan: IMPLEMENTATION_PLAN_PHASES_9-12.md, Phase 12.
 
 1. **Phone connections had nowhere to bind.** The first design stored a PIN reference in the connection's `session_hash`, which is a foreign key to browser sessions, so the database rejected it. The connection now has an explicit `dial_pin_id`, with a check constraint that each connection is either browser-bound or PIN-bound. The local databases still held the old 0014 schema and were rolled back by hand; nothing had been released.
 2. **Setup crowded the phone screen.** With everyone agreed, the setup steps still pushed Pause and the speakers far down. Setup now collapses while listening (found in screenshot review).
+3. **Family suggestions were rejected by unrelated patient changes.** Found in the second full run (`audience.spec.ts`). The family member submitted "Suggest to Maria" with the version from just before the patient's last sharing toggle, and the server answered 409 "The visit changed". The family member could not see that change and had done nothing wrong. A suggestion only appends a proposal and touches nothing the patient owns, so it is now exempt from the version fence. Command-ID idempotency still applies, and every patient edit stays fenced. Backend test `test_family_suggestion_survives_a_concurrent_patient_change_but_edits_stay_fenced`; mutation-checked (restoring the fence fails it).
+4. **Room test race.** The test waited for the card to contain "Dr. Chris Chen", which was already true because of the "That's Dr. Chris Chen" button, and then read the evidence too early. It now waits on the speaker's displayed name and polls the API.
+5. **Test order.** The room test first ran after `zz_media_fault`, which stops LiveKit, and timed out joining. It is renamed to `zz_l_room.spec.ts` so that it runs before the fault test.
 
 ## Tests
 
@@ -53,7 +56,7 @@ Date: 19 October 2026. Plan: IMPLEMENTATION_PLAN_PHASES_9-12.md, Phase 12.
     - withdrawing access disconnects the caller, including from the room sync;
     - a revoked PIN invalidates an admitted phone connection.
 - **Mutation checks:** each of these makes a test fail: the gate always open; no self-speech guard; renaming without invalidation; anyone can resume by keypad; a revoked PIN ignored.
-- **Browser (`zz_z_room.spec.ts`).** A 390 px phone with a fake microphone joins a **real local WebRTC call**:
+- **Browser (`zz_l_room.spec.ts`).** A 390 px phone with a fake microphone joins a **real local WebRTC call**:
   - room speech is refused (409) before agreement, and "Agreed" is disabled before the disclosure;
   - after everyone agrees, the patient joins, agrees and resumes, and the call becomes active;
   - fictional room speech arrives as "Unattributed speaker 1"; naming it gives Dr. Chris Chen, patient-attested, version 2;
@@ -63,7 +66,14 @@ Date: 19 October 2026. Plan: IMPLEMENTATION_PLAN_PHASES_9-12.md, Phase 12.
 
 ## Final verification
 
-See the BUILD_STATUS entry for the full `scripts/check.sh --all` result.
+`bash scripts/check.sh --all` on Linux, 19 October, third full run (`.local/logs/check-all-phase12c.log`), exit 0:
+
+- 201 backend tests passed.
+- Browser: 29 passed, 4 skipped. The skips are the existing explicit live and timing gates.
+- Phase 10 latency p95: turn to obstacle 1,019 ms, source to cue 903 ms.
+- Contracts, TypeScript and the production build passed.
+
+The first two runs failed on defects 3–5 above. All three were fixed and none was retried away.
 
 ## Not done or not verified
 

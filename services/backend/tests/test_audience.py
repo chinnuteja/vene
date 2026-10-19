@@ -106,6 +106,22 @@ def test_family_suggestion_is_a_proposal_and_accepted_draft_stays_private(visit_
     assert len(patient.get(BASE).json()["priorities"]) == 4
 
 
+
+def test_family_suggestion_survives_a_concurrent_patient_change_but_edits_stay_fenced(visit_engine):
+    app = create_app(engine=visit_engine)
+    patient, family = [authenticated_client(app, role) for role in ["patient", "family"]]
+    stale = family.get(BASE).json()["version"]
+    assert submit(patient, {"type":"sharing.changed", "item_id":SOURCE_ID, "audiences":["clinician"]}).status_code == 200
+    body = {"command_id": str(uuid4()), "expected_version": stale,
+            "command": {"type":"suggestion.added", "title":"Could I help with transport?", "detail":"I could drive."}}
+    first = family.post(BASE + "/commands", json=body)
+    assert first.status_code == 200 and first.json()["encounter"]["suggestions"][-1]["title"] == "Could I help with transport?"
+    assert family.post(BASE + "/commands", json=body).json()["duplicate"] is True
+    assert len(patient.get(BASE).json()["suggestions"]) == 1
+    stale_edit = patient.post(BASE + "/commands", json={"command_id": str(uuid4()), "expected_version": stale,
+                              "command": {"type":"preparation.approved", "approved":True}})
+    assert stale_edit.status_code == 409
+
 def test_edit_invalidates_approval_and_preserves_evidence(visit_engine):
     patient = authenticated_client(create_app(engine=visit_engine))
     submit(patient, {"type":"preparation.approved", "approved":True})

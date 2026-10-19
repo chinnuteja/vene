@@ -1,6 +1,6 @@
 # Third-party notices
 
-Phases 1–2 use maintained package dependencies and original application code. Phase 2 reuses the existing UI, generated contracts and backend packages; its invitation, scope and ContextAdapter services are original application code. OWASP's session and CSRF guidance was used as a design reference, not copied source.
+Phases 1â€“2 use maintained package dependencies and original application code. Phase 2 reuses the existing UI, generated contracts and backend packages; its invitation, scope and ContextAdapter services are original application code. OWASP's session and CSRF guidance was used as a design reference, not copied source.
 
 Phase 3 adapts the lifecycle structure of LiveKit Agents' multiparty transcriber at commit b58e83f5c77d5b4bd4c8586793885151a91c4c83, examples/other/transcription/multi-user-transcriber.py (Apache-2.0). The adaptation is services/backend/src/bring_vene/voice/supervisor.py. Its license and attribution notice are included under services/backend/src/bring_vene/voice/licenses. The implementation replaces startup/drain behavior with per-track consent gates and cancellation-safe ownership, and removes transcript logging and automatic shared transcription.
 
@@ -14,7 +14,7 @@ Phase 4 uses OpenAI's maintained Python SDK 2.54.0 (Apache-2.0), pinned directly
 
 Phase 5 uses LiveKit Agents 1.8.6, LiveKit RTC 1.1.20 and the maintained livekit-plugins-cartesia 1.8.6 dependency (Apache-2.0), pinned in uv.lock. Official AudioOutput/SpeechHandle and Cartesia documentation informed an original authorized audio sink and provider wrapper; no new example application source was copied. SDK licensing metadata is recorded in docs/qa/dependency-licenses.json. Windows System.Speech generates original fixture wording in memory using the installed platform voice; no voice model, speech recording or Windows binary is redistributed. The original microphone tone fixtures remain synthetic.
 
-The source snapshots under research/bring-vene-sources retain their separate licenses and are research material. Their licensing is not replaced by this file.
+The source snapshots under docs/background/research/bring-vene-sources retain their separate licenses and are research material. Their licensing is not replaced by this file.
 
 Package licenses are recorded from the resolved installation in docs/qa/dependency-licenses.json. Include applicable upstream license and NOTICE material whenever source is adapted in later phases.
 
@@ -24,7 +24,7 @@ The project-local PostgreSQL 17.11 Windows binary archive comes from EDB, linked
 
 Phase 6 adds original application code; no upstream application source was copied and no queue framework or new package was added. It reuses the existing pinned SQLAlchemy (MIT), psycopg (LGPL-3.0-or-later), FastAPI (MIT), Pydantic (MIT), Alembic (MIT), Next.js (MIT), React (MIT) and LiveKit dependencies. Exact installed versions and prior notices remain in the lockfiles and docs/qa/dependency-licenses.json. The office HTTP adapter uses Python 3.12 standard-library urllib (PSF license); redirects are refused and only the explicitly configured loopback sandbox is admitted. Internal test media setup was extracted from our original speech tests into tests/e2e/speech-helpers.ts; this is project code, not an upstream example.
 
-## Phases 7�8 reuse
+## Phases 7–8 reuse
 
 Phase 7 uses pypdf 6.20.1 (BSD-3-Clause), pinned in pyproject.toml and uv.lock, as an installed dependency. The original parser adapter uses a bounded secret-free child process, rejects scanned/encrypted PDFs, retains extracted provenance and does not copy upstream parser source. Installed distribution license text is retained in docs/qa/licenses/PYPDF_LICENSE. The original fictional PDF was authored with bundled ReportLab and rendered using bundled Poppler; those tools are not new application runtime dependencies.
 

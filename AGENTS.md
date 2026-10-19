@@ -2,9 +2,9 @@
 
 ## Task and scope
 
-The user accepted Bring Vene and authorized Codex in this chat to implement it using IMPLEMENTATION_PLAN.md. Do not reopen idea selection or ask for routine permission between phases. Do not delegate to subagents unless the user subsequently asks.
+The user accepted Bring Vene and authorized Codex in this chat to implement it using docs/background/IMPLEMENTATION_PLAN.md. Do not reopen idea selection or ask for routine permission between phases. Do not delegate to subagents unless the user subsequently asks.
 
-Read BUILD_STATUS.md first, then the relevant phase in IMPLEMENTATION_PLAN.md. VENE_COMPANY_CONTEXT.md distinguishes company facts from our hypotheses. Earlier research proposals are historical; the current accepted product is patient-controlled participation in a healthcare conversation with practical follow-through.
+Read BUILD_STATUS.md first, then the relevant phase in docs/background/IMPLEMENTATION_PLAN.md. docs/background/VENE_COMPANY_CONTEXT.md distinguishes company facts from our hypotheses. Earlier research proposals are historical; the current accepted product is patient-controlled participation in a healthcare conversation with practical follow-through.
 
 ## Execution
 
@@ -38,5 +38,5 @@ The research/bring-vene-sources snapshots are reference material, not executable
 
 Use project-owned launchers, isolated test databases and the verified local runtimes. Never terminate unrelated processes or stop unrelated containers to free a port. On Windows, launch background helpers hidden when Start-Process is used.
 
-Future test and startup commands in IMPLEMENTATION_PLAN.md are requirements to implement, not evidence that scripts already exist.
+Future test and startup commands in docs/background/IMPLEMENTATION_PLAN.md are requirements to implement, not evidence that scripts already exist.
 

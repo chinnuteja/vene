@@ -6,7 +6,10 @@ export async function proxyRequest(request:Request,path:string[],jar?:SessionJar
   if(request.method!=='GET'&&request.method!=='HEAD'){
     const origin=request.headers.get('origin'),browserOrigin=new URL(request.url);
     browserOrigin.host=request.headers.get('host')??browserOrigin.host;
-    if((origin&&origin!==browserOrigin.origin)||request.headers.get('sec-fetch-site')==='cross-site')
+    // Render terminates TLS before Next. Compare against the deployment's trusted
+    // public origin, never an arbitrary client-supplied forwarded-proto header.
+    const publicOrigin=process.env.RENDER_EXTERNAL_URL?new URL(process.env.RENDER_EXTERNAL_URL).origin:browserOrigin.origin;
+    if((origin&&origin!==publicOrigin)||request.headers.get('sec-fetch-site')==='cross-site')
       return Response.json({detail:'This origin is not allowed.'},{status:403});
   }
   const base=new URL(process.env.BACKEND_URL??'http://127.0.0.1:8000');

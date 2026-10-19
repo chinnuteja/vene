@@ -11,7 +11,9 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/package.json
 RUN pnpm install --frozen-lockfile
 COPY services/backend services/backend
-RUN pip install --no-cache-dir -e ./services/backend
+COPY pyproject.toml uv.lock ./
+RUN pip install --no-cache-dir uv==0.12.13 && uv sync --frozen --no-dev
+ENV PATH="/app/.venv/bin:$PATH"
 COPY apps/web apps/web
 COPY packages packages
 COPY fixtures fixtures

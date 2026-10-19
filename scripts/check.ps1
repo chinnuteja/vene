@@ -1,8 +1,8 @@
 param([int]$Phase = 1, [switch]$All)
 . "$PSScriptRoot/common.ps1"
-if ($Phase -notin @(1,2,3,4,5,6,7,8,9)) { throw 'Only Phases 1-9 checks are implemented. Later phases cannot be declared passed.' }
+if ($Phase -notin @(1,2,3,4,5,6,7,8,9,10)) { throw 'Only Phases 1-10 checks are implemented. Later phases cannot be declared passed.' }
 $runtime = Read-Runtime
-if ($All) { $Phase = 9; Write-Output 'All implemented checks: Phases 1-9. Live STT/model/TTS and physical acoustics remain separate gates.' }
+if ($All) { $Phase = 10; Write-Output 'All implemented checks: Phases 1-10. Live STT/model/TTS and physical acoustics remain separate gates.' }
 Set-DatabaseEnvironment $runtime
 $startedAt = Get-Date
 Invoke-Checked $NodeExe @('--test','scripts/child-logs.test.mjs')

@@ -32,4 +32,8 @@ def feasibility_router(engine, settings, mutation):
         service.resolve(engine, encounter_id, obstacle_id, *credentials(request), body, settings)
         return result(encounter_id, request)
 
+    @router.get('/obstacles/{obstacle_id}/timings')
+    def timings(encounter_id: UUID, obstacle_id: UUID, request: Request):
+        return service.timings(engine, encounter_id, obstacle_id, request.cookies.get(COOKIE))
+
     return router

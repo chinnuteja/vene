@@ -223,11 +223,9 @@ def run(kind, item, evidence, coverage, gateway):
                 'spoken': 'The sandbox health plan says this imaging needs prior authorization. '
                           'Could the office submit it before we finish?'}
         if errand.kind == 'prescription' and result['formulary'] == 'not_covered':
-            listed = ', '.join(result['alternatives'])
+            # Plan-listed alternatives travel as a separate, labelled field, never inside the spoken text.
             return facts, {'kind': 'not_on_formulary', 'source': source, 'alternatives': result['alternatives'],
-                'fact': result['plan'] + ' does not list ' + name + ' as covered.' +
-                        (' The plan lists these covered options in the same class: ' + listed + '.' if listed else '') +
-                        ' The clinician decides whether any change is appropriate.',
+                'fact': result['plan'] + ' does not list ' + name + ' as covered. The clinician decides whether any change is appropriate.',
                 'spoken': 'The sandbox health plan does not list this prescription as covered. '
                           'Could we look at coverage before we finish?'}
         return facts, None
@@ -475,3 +473,18 @@ def requires_authorization(session, view, action):
         ExecutionRecord.encounter_id == view.id, ExecutionRecord.item_id == authorization_item_id(view, action.item_id),
         ExecutionRecord.state == 'confirmed'))
     return not approved
+
+
+def timings(engine, visit_id, obstacle_id, token):
+    """Patient-only diagnostic: when the turn was finalized, checked and cued. No content."""
+    with Session(engine) as session, session.begin():
+        _, _, member, _ = access(session, visit_id, token)
+        patient(member)
+        row = session.get(ObstacleRecord, obstacle_id)
+        if not row or row.encounter_id != visit_id:
+            raise DomainError(404, 'Obstacle not found.')
+        spans = dict(row.content.get('timings', {}))
+        if spans.get('source_observed_at') and spans.get('cue_at'):
+            spans['source_to_cue_ms'] = int((datetime.fromisoformat(spans['cue_at']) -
+                                            datetime.fromisoformat(spans['source_observed_at'])).total_seconds() * 1000)
+        return spans

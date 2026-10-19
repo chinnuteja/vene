@@ -9,6 +9,7 @@ type Action=components['schemas']['ActionView'];
 type Errand=components['schemas']['ErrandOption'];
 type Circle=components['schemas']['CircleView'];
 type Bundle=components['schemas']['BundleResult'];
+type Feasibility=components['schemas']['FeasibilityView'];
 type Kind=Errand['kind'];
 const labels:Record<string,string>={checking:'Checking office',suggested:'Slot suggested · not booked',no_slot:'No suitable slot',expired:'Availability expired',queued:'Approved · queued',in_flight:'Request in flight',unknown:'Completion unknown · reconciling',confirmed:'Reservation confirmed',rejected:'Office rejected request',invalidated:'Changed · check again',cancelled:'Not sent',unavailable:'Office unavailable'};
 const scenarios=['normal','no_slot','expired','delayed','rejected','timeout_after_write','duplicate_callback'] as const;
@@ -23,13 +24,14 @@ function documentName(errand?:Errand){return errand?errand.document:'order';}
 // One plain sentence for what this step is waiting on. Separate facts stay separate.
 function waitingOn(a:Action|undefined,errand?:Errand){
   if(!a)return 'Not checked yet';
-  if(a.state==='confirmed')return 'Confirmed by the '+(errand?.place??'office')+' with a sandbox receipt';
+  if(a.state==='confirmed')return a.kind==='authorization'?'Approved by the sandbox health plan':'Confirmed by the '+(errand?.place??'office')+' with a sandbox receipt';
   if(a.state==='queued'||a.state==='in_flight')return 'Sent to the '+(errand?.place??'office')+' · waiting for its receipt';
   if(a.state==='unknown')return 'Reconciling with the '+(errand?.place??'office')+' before any retry';
   if(a.state!=='suggested')return a.message;
   const missing=[];
   if(!a.clinician_confirmed)missing.push('clinician confirmation');
   if(!a.order_available)missing.push('the '+documentName(errand));
+  if(/prior authorization/.test(a.message))missing.push('an approved prior authorization');
   if(!a.patient_authorized&&!missing.length)return 'Ready for your approval';
   return 'Waiting on '+missing.join(' and ');
 }
@@ -39,6 +41,7 @@ export function ExecutionPanel({visit,viewer}:{visit:Encounter;viewer:Identity})
   const [view,setView]=useState<View|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
   const [pollError,setPollError]=useState('');
   const [circle,setCircle]=useState<Circle|null>(null),[family,setFamily]=useState<Member[]>([]);
+  const [checks,setChecks]=useState<Feasibility|null>(null);
   const [windows,setWindows]=useState<Record<string,'morning'|'afternoon'>>({});
   const [places,setPlaces]=useState<Record<string,string>>({}),[days,setDays]=useState<Record<string,string>>({});
   const [scenarioKind,setScenarioKind]=useState<Kind>('lab');
@@ -48,8 +51,9 @@ export function ExecutionPanel({visit,viewer}:{visit:Encounter;viewer:Identity})
   useEffect(()=>{
     let alive=true;let pending=false;
     async function poll(){if(pending)return;pending=true;try{
-      const [data,asks]=await Promise.all([request<View>(root),viewer.role==='clinician'?Promise.resolve(null):request<Circle>(circleRoot)]);
-      if(alive){setView(data);setCircle(asks);setPollError('');}
+      const [data,asks,found]=await Promise.all([request<View>(root),viewer.role==='clinician'?Promise.resolve(null):request<Circle>(circleRoot),
+        viewer.role==='family'?Promise.resolve(null):request<Feasibility>('/encounters/'+visit.id+'/feasibility')]);
+      if(alive){setView(data);setCircle(asks);setChecks(found);setPollError('');}
     }catch(e){if(alive){setView(null);setPollError((e as Error).message);}}finally{pending=false;}}
     void poll();const timer=setInterval(()=>void poll(),750);return()=>{alive=false;clearInterval(timer);};
   },[root,circleRoot,viewer.membership_id,viewer.role,visit.version]);
@@ -98,7 +102,8 @@ export function ExecutionPanel({visit,viewer}:{visit:Encounter;viewer:Identity})
       {steps.map(({item,kind})=>{const a=latestFor(item.id);const errand=catalog.get(kind!);const done=a?.state==='confirmed';const problem=a&&['no_slot','rejected','expired','invalidated','unavailable','cancelled'].includes(a.state);
         return <li key={item.id} className={'walkout-row'+(done?' done':problem?' problem':'')}>
           {done?<CheckCircle2 size={20} aria-hidden/>:problem?<CircleAlert size={20} aria-hidden/>:a?<Clock size={20} aria-hidden/>:<Circle size={20} aria-hidden/>}
-          <div><strong>{item.title}</strong><span className="muted"> · {errand?.place??kind}</span><p>{waitingOn(a,errand)}{done&&a?.slot?' · '+String(a.slot.label):''}</p></div>
+          <div><strong>{item.title}</strong><span className="muted"> · {errand?.place??kind}</span><p>{waitingOn(a,errand)}{done&&a?.slot?' · '+String(a.slot.label):''}</p>
+            {(checks?.obstacles??[]).filter(o=>o.item_id===item.id&&o.state==='open').map(o=><p key={o.id} className="walkout-obstacle">Still open: {o.fact}</p>)}</div>
         </li>;})}
     </ol>}
     {patient&&ready.length>0&&<button className="primary-button walkout-approve" disabled={busy} onClick={()=>void change('/approve-ready',{digests:ready.map(a=>a.digest)})}>Approve the ready steps ({ready.length})</button>}

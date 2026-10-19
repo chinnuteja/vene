@@ -178,7 +178,7 @@ def add_obstacle_cue(session,encounter,call,row,view,settings,obstacle):
     data=obstacle.content
     # Spoken wording names no medicine and no patient; private wording carries the full fact and source.
     return make_cue(session,encounter,call,row,view,settings,key='obstacle:'+str(obstacle.id),title='Practical check · '+item.title,
-        suggestion=data['fact']+' Source: '+data['source']+', checked '+data['checked_at']+'.',text=data['spoken'],score=190,
+        suggestion=data['fact']+' Source: '+data['source']+'.',text=data['spoken'],score=190,
         refs={'plan_ids':[str(item.id)],'obstacle_id':str(obstacle.id)})
 
 

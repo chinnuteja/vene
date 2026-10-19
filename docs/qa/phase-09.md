@@ -37,9 +37,17 @@ One conversation can now produce several real sandbox errands: lab, imaging, a s
   - **James:** imaging, prescription and the seeded referral. The clinician sends each document in their own browser context, the patient approves the 3 ready steps at once, all three confirm with distinct receipts, Nina receives a scoped ask and answers yes, the patient sees the answer, and the family payloads omit receipts, orders, digests and sessions. Desktop and 390 px mobile, no horizontal overflow, no page errors.
   - **Asha:** the imaging center rejects and the pharmacy times out after its write. One approval leads to imaging rejected and the pharmacy going `unknown` then `confirmed` through reconciliation, with neither rolled back.
 
-## Results
+## Final verification
 
-See the "Final verification" section below.
+`scripts/check.sh --all` (Phases 1–9, Linux, 19 October), run after the final UI change:
+
+| Check | Result |
+|---|---|
+| Backend (pytest, real Postgres) | 160 passed (144 earlier + 16 new) |
+| Child-log regression, contract drift, TypeScript, production build | Passed |
+| Browser (Chromium, real local WebRTC and HTTP sandbox) | 25 passed, 4 skipped |
+
+The skipped scenarios are the explicit live-provider gate, the 20-trial speech timing gate, and the Firefox and WebKit smoke tests (no project-installed browsers). Evidence screenshots and `phase-09-walkout.json` are written to `.local/evidence`; they are not committed.
 
 ## Not done or not verified
 

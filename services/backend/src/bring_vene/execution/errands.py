@@ -38,6 +38,9 @@ ERRANDS = {
     'prescription': Errand('prescription', 'pharmacy', 'pharmacy', 'prescription', 'pickup window', 'Pickup confirmed',
         ('Main Street Pharmacy', 'Harbor Pharmacy'),
         (('2026-10-15', 'Thu, Oct 15'), ('2026-10-16', 'Fri, Oct 16'))),
+    # Created only when a clinician says the office will submit it (Phase 10); never proposed by a model.
+    'authorization': Errand('authorization', 'plan', 'health plan', 'authorization request', 'review',
+        'Prior authorization approved', ('Evergreen Health Plan',), (('2026-10-15', 'Thu, Oct 15'),)),
 }
 BY_INSTITUTION = {errand.institution: errand for errand in ERRANDS.values()}
 LEGACY_LAB = re.compile(r'\b(lab|laboratory|blood)\b', re.I)

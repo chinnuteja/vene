@@ -11,10 +11,10 @@ from bring_vene.config import Settings
 from bring_vene.persistence.database import make_engine
 from bring_vene.persistence.models import OfficeStateRecord, OfficeRequestRecord,OfficeCallbackOutboxRecord,OfficeFamilyReceiptRecord
 from bring_vene.domain.service import utc_now
-from bring_vene.execution.contracts import Input, OfficeLookup, OfficeScenario
+from bring_vene.execution.contracts import Input, OfficeLookup, OfficeScenario, CoverageQuery, StockQuery
 from bring_vene.execution.errands import ERRANDS, BY_INSTITUTION
 
-Institution = Literal['lab','imaging','specialist','pharmacy']
+Institution = Literal['lab','imaging','specialist','pharmacy','plan']
 
 class Booking(Input):
     # Deliberately minimal: no patient name, transcript, medicine, dose or instruction fields.
@@ -65,9 +65,20 @@ def institution_slots(institution):
                 'location':location,'day':day,'starts_at':day+'T'+hour+':00:00-04:00','institution':institution})
     return slots
 
+# Fictional health plans. Rules and formulary are plan facts the sandbox returns; Vene never derives them.
+PLANS={'basic':{'name':'Evergreen Basic (fictional)','prior_auth':['imaging'],
+        'formulary':{'Tamorin':'covered','Celvane':'covered','Lorvexa':'not_covered'},'alternatives':{'Lorvexa':['Tamorin','Celvane']}},
+    'plus':{'name':'Evergreen Plus (fictional)','prior_auth':[],
+        'formulary':{'Tamorin':'covered','Celvane':'covered','Lorvexa':'covered'},'alternatives':{}}}
+MEMBERS={'EVG-B-1001':'basic','EVG-P-2002':'plus','EVG-B-3003':'basic'}
+
 def initialize(engine):
     with Session(engine) as session, session.begin():
+        if not session.get(OfficeStateRecord,'plan',with_for_update=True):
+            # Review resources are created per lookup; members and rules are fixed fictional data.
+            session.add(OfficeStateRecord(id='plan',content={'mode':'normal','revision':1,'reserved':[],'slots':[]}))
         for institution in BY_INSTITUTION:
+            if institution=='plan':continue
             slots=institution_slots(institution);key=state_id(institution)
             row=session.get(OfficeStateRecord,key,with_for_update=True)
             if not row:session.add(OfficeStateRecord(id=key,content={'mode':'normal','revision':1,'reserved':[],'slots':slots}))
@@ -94,8 +105,51 @@ def office_app(settings=None,engine=None):
             row.content={**row.content,'mode':body.mode,'revision':row.content['revision']+1}
             return {'sandbox':True,'institution':body.institution,'mode':body.mode,'revision':row.content['revision']}
 
+    @app.get('/formulary',dependencies=[Depends(authorized)])
+    def formulary():
+        # Published medicine names only, so a caller can match locally without sending free text.
+        return {'sandbox':True,'institution':'plan','names':sorted({n for plan in PLANS.values() for n in plan['formulary']})}
+
+    @app.post('/coverage',dependencies=[Depends(authorized)])
+    def coverage(body:CoverageQuery):
+        with Session(engine) as session:
+            mode=ensure(session,'plan').content['mode']
+        if body.member_ref not in MEMBERS:raise HTTPException(404,'Member not found in the sandbox plan.')
+        plan=PLANS[MEMBERS[body.member_ref]]
+        if mode=='delayed':time.sleep(1.4)
+        result={'sandbox':True,'institution':'plan','plan':plan['name'],'service':body.service,'reference':str(uuid4()),
+            'checked_at':utc_now().isoformat(),'prior_authorization_required':body.service in plan['prior_auth'],
+            'formulary':None,'alternatives':[]}
+        if body.service=='prescription':
+            result['formulary']=plan['formulary'].get(body.medicine or '','unknown')
+            result['alternatives']=plan['alternatives'].get(body.medicine or '',[]) if result['formulary']=='not_covered' else []
+        return result
+
+    @app.post('/stock',dependencies=[Depends(authorized)])
+    def stock(body:StockQuery):
+        with Session(engine) as session:
+            content=ensure(session,'pharmacy').content
+        if body.location not in BY_INSTITUTION['pharmacy'].locations:raise HTTPException(404,'Pharmacy not found.')
+        return {'sandbox':True,'institution':'pharmacy','location':body.location,'checked_at':utc_now().isoformat(),
+            'reference':str(uuid4()),'in_stock':content['mode']!='out_of_stock'}
+
+    @app.get('/requirements',dependencies=[Depends(authorized)])
+    def requirements():
+        return {'sandbox':True,'institution':'specialist','reference':str(uuid4()),'checked_at':utc_now().isoformat(),
+            'requires':['referral packet']}
+
     @app.post('/lookup',dependencies=[Depends(authorized)])
     def lookup(body:OfficeLookup):
+        if body.institution=='plan':
+            # A prior-authorization review is opened per request rather than chosen from a calendar.
+            with Session(engine) as session,session.begin():
+                row=ensure(session,'plan',lock=True);content=row.content
+                slot={'id':'plan:review:'+str(uuid4()),'label':'Prior authorization review · Evergreen Health Plan (fictional)',
+                    'window':body.window,'location':'Evergreen Health Plan','day':body.day,'institution':'plan'}
+                row.content={**content,'slots':[*content['slots'],slot][-200:]}
+                stamp=utc_now()
+                return {'sandbox':True,'institution':'plan','revision':content['revision'],'checked_at':stamp.isoformat(),
+                    'expires_at':(stamp+timedelta(seconds=120)).isoformat(),'slot':slot}
         with Session(engine) as session:
             content=ensure(session,body.institution).content
             delay=content['mode']=='delayed'

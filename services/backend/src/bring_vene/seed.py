@@ -22,6 +22,8 @@ def seed(engine, fixture: Path | None = None):
             for evidence in view.evidence:
                 if not any(e.id == evidence.id for e in saved.evidence):
                     saved.evidence.append(evidence)
+            if saved.coverage is None:
+                saved.coverage = view.coverage
             existing.projection = saved.model_dump(mode="json")
         session.flush()
         for evidence in view.evidence:

@@ -211,6 +211,8 @@ def approve_action(session,view,action,digest):
     dependencies=[]
     if not action.content.get('clinician_id'):dependencies.append('clinician confirmation')
     if not action.content.get('order_id'):dependencies.append('required sandbox '+('order' if errand.kind=='lab' else errand.document))
+    from bring_vene.feasibility.service import requires_authorization
+    if requires_authorization(session,view,action):dependencies.append('approved prior authorization')
     if dependencies:
         message='Waiting on '+', '.join(dependencies)+('. No booking dispatched.' if errand.kind=='lab' else '. Nothing was sent.')
         action.content={**action.content,'message':message}

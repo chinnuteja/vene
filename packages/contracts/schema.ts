@@ -662,6 +662,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/encounters/{encounter_id}/feasibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** State */
+        get: operations["state_encounters__encounter_id__feasibility_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{encounter_id}/feasibility/obstacles/{obstacle_id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve */
+        post: operations["resolve_encounters__encounter_id__feasibility_obstacles__obstacle_id__resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{encounter_id}/feasibility/standing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Standing */
+        post: operations["standing_encounters__encounter_id__feasibility_standing_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/encounters/{encounter_id}/invitations": {
         parameters: {
             query?: never;
@@ -1022,7 +1073,7 @@ export interface components {
              * @default lab
              * @enum {string}
              */
-            kind: "lab" | "imaging" | "referral" | "prescription";
+            kind: "lab" | "imaging" | "referral" | "prescription" | "authorization";
             /** Message */
             message: string;
             /**
@@ -1268,6 +1319,16 @@ export interface components {
             /** Worker Ready */
             worker_ready: boolean;
         };
+        /** ChoiceView */
+        ChoiceView: {
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "office_will_submit" | "review_later" | "review_coverage" | "use_another_window" | "choose_another_pharmacy" | "office_will_send";
+            /** Label */
+            label: string;
+        };
         /** CircleView */
         CircleView: {
             /** Rides */
@@ -1361,6 +1422,13 @@ export interface components {
              * @default false
              */
             sandbox_tools_enabled: boolean;
+        };
+        /** Coverage */
+        Coverage: {
+            /** Member Ref */
+            member_ref: string;
+            /** Plan */
+            plan: string;
         };
         /** CueApproval */
         CueApproval: {
@@ -1485,6 +1553,7 @@ export interface components {
              * @default 0
              */
             consent_epoch: number;
+            coverage?: components["schemas"]["Coverage"] | null;
             /** Evidence */
             evidence: components["schemas"]["Evidence"][];
             /**
@@ -1551,7 +1620,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "lab" | "imaging" | "referral" | "prescription";
+            kind: "lab" | "imaging" | "referral" | "prescription" | "authorization";
             /** Locations */
             locations: string[];
             /** Offered */
@@ -1675,6 +1744,17 @@ export interface components {
             state: string;
             /** Text */
             text: string;
+        };
+        /** FeasibilityView */
+        FeasibilityView: {
+            /**
+             * Checking
+             * @default 0
+             */
+            checking: number;
+            /** Obstacles */
+            obstacles: components["schemas"]["ObstacleView"][];
+            standing?: components["schemas"]["StandingView"] | null;
         };
         /** FixtureLaunch */
         FixtureLaunch: {
@@ -1840,6 +1920,50 @@ export interface components {
              */
             visit_at: string;
         };
+        /** ObstacleView */
+        ObstacleView: {
+            /**
+             * Checked At
+             * Format: date-time
+             */
+            checked_at: string;
+            /** Choices */
+            choices?: components["schemas"]["ChoiceView"][];
+            /** Fact */
+            fact: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+            /** Item Title */
+            item_title: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "no_slot_in_window" | "prior_authorization_required" | "not_on_formulary" | "not_in_stock" | "missing_supporting_document";
+            /** Plan Alternatives */
+            plan_alternatives?: string[];
+            resolution?: components["schemas"]["Resolution"] | null;
+            /**
+             * Resolver
+             * @enum {string}
+             */
+            resolver: "patient" | "clinician";
+            /** Source */
+            source: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "open" | "resolved";
+        };
         /** Patient */
         Patient: {
             /** Age */
@@ -1903,7 +2027,7 @@ export interface components {
              */
             id: string;
             /** Kind */
-            kind?: ("lab" | "imaging" | "referral" | "prescription" | "other") | null;
+            kind?: ("lab" | "imaging" | "referral" | "prescription" | "authorization" | "other") | null;
             /** Location */
             location?: string | null;
             /**
@@ -1921,7 +2045,7 @@ export interface components {
              * @default preparation
              * @enum {string}
              */
-            origin: "preparation" | "interpretation" | "human";
+            origin: "preparation" | "interpretation" | "human" | "resolution";
             /** Owner */
             owner?: string | null;
             /**
@@ -2076,6 +2200,36 @@ export interface components {
             /** Token */
             token: string;
         };
+        /** Resolution */
+        Resolution: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** By Name */
+            by_name: string;
+            /**
+             * By Role
+             * @enum {string}
+             */
+            by_role: "patient" | "clinician";
+            /**
+             * Choice
+             * @enum {string}
+             */
+            choice: "office_will_submit" | "review_later" | "review_coverage" | "use_another_window" | "choose_another_pharmacy" | "office_will_send";
+            /** Label */
+            label: string;
+        };
+        /** ResolveRequest */
+        ResolveRequest: {
+            /**
+             * Choice
+             * @enum {string}
+             */
+            choice: "office_will_submit" | "review_later" | "review_coverage" | "use_another_window" | "choose_another_pharmacy" | "office_will_send";
+        };
         /** ReviewRequest */
         ReviewRequest: {
             /** Fingerprint */
@@ -2144,12 +2298,12 @@ export interface components {
              * @default lab
              * @enum {string}
              */
-            kind: "lab" | "imaging" | "referral" | "prescription";
+            kind: "lab" | "imaging" | "referral" | "prescription" | "authorization";
             /**
              * Mode
              * @enum {string}
              */
-            mode: "normal" | "no_slot" | "expired" | "delayed" | "rejected" | "timeout_after_write" | "duplicate_callback";
+            mode: "normal" | "no_slot" | "expired" | "delayed" | "rejected" | "timeout_after_write" | "duplicate_callback" | "out_of_stock";
         };
         /** ScopeRequest */
         ScopeRequest: {
@@ -2302,6 +2456,18 @@ export interface components {
             receipts: components["schemas"]["SpeechReceipt"][];
             /** Revision */
             revision: number;
+        };
+        /** StandingRequest */
+        StandingRequest: {
+            /** Kinds */
+            kinds: ("scheduling" | "coverage" | "pharmacy")[];
+        };
+        /** StandingView */
+        StandingView: {
+            /** Active */
+            active: boolean;
+            /** Kinds */
+            kinds: ("scheduling" | "coverage" | "pharmacy")[];
         };
         /** Suggestion */
         Suggestion: {
@@ -3701,6 +3867,108 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    state_encounters__encounter_id__feasibility_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeasibilityView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resolve_encounters__encounter_id__feasibility_obstacles__obstacle_id__resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+                obstacle_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeasibilityView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    standing_encounters__encounter_id__feasibility_standing_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StandingRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeasibilityView"];
                 };
             };
             /** @description Validation Error */

@@ -35,6 +35,8 @@ def ensure_case(engine,case):
     if case=='asha':
         template['priorities'][2]['title']='Mention my afternoon transport window';template['priorities'][2]['detail']='My ride is available in the afternoon. Confirm the date and place before arranging anything.'
         template['evidence'][2]['text']='Afternoon appointments work with my ride; I need an agreed date and place.'
+    template['coverage']={'plan':'Evergreen Plus (fictional)' if case=='james' else 'Evergreen Basic (fictional)',
+        'member_ref':{'james':'EVG-P-2002','asha':'EVG-B-3003'}[case]}
     view=EncounterView.model_validate(template)
     with Session(engine) as session,session.begin():
         if session.get(EncounterRecord,vid):return vid # Never overwrite saved fixture changes.

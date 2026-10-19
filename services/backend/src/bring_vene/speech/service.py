@@ -86,6 +86,11 @@ def speech_gate(session,encounter,call,row,settings):
 def scope_allows(session,call,view,cue):
     roles={session.get(MembershipRecord,c.membership_id).role for c in humans(session,call)}-{'patient'}
     data=cue.content
+    if data.get('obstacle_id'):
+        from bring_vene.persistence.models import ObstacleRecord
+        obstacle=session.get(ObstacleRecord,UUID(data['obstacle_id']))
+        # A resolved, superseded or corrected obstacle is no longer something to raise.
+        if not obstacle or obstacle.encounter_id!=view.id or obstacle.state!='open':return False
     if data.get('execution_snapshots'):
         from bring_vene.execution.service import snapshot,scope_valid,fresh
         from bring_vene.persistence.models import ExecutionRecord
@@ -157,11 +162,34 @@ def refresh(session,encounter,call,row,view,settings):
         make_cue(session,encounter,call,row,view,settings,key='office:'+str(action.id)+':'+action.state+':'+snapshot(action)[:12],
             title='Office check · '+data['title'],suggestion=data['message']+' Source: local sandbox '+place+', checked '+data.get('checked_at','unknown')+'.',
             text=text,score=180,refs={'plan_ids':[str(action.item_id)],'execution_snapshots':{str(action.id):snapshot(action)}})
+    from bring_vene.persistence.models import ObstacleRecord
+    for obstacle in session.scalars(select(ObstacleRecord).where(ObstacleRecord.encounter_id==view.id,ObstacleRecord.state=='open')):
+        add_obstacle_cue(session,encounter,call,row,view,settings,obstacle)
     session.flush()
     # Bound the actionable queue; an old history is not a live generation queue.
     active=session.scalars(select(CueRecord).where(CueRecord.encounter_id==view.id,CueRecord.state=='pending')
         .order_by(CueRecord.score.desc(),CueRecord.created_at.desc())).all()
     for cue in active[8:]:cue.state='expired'
+
+
+def add_obstacle_cue(session,encounter,call,row,view,settings,obstacle):
+    item=next((p for p in view.plan if p.id==obstacle.item_id),None)
+    if not item:return None
+    data=obstacle.content
+    # Spoken wording names no medicine and no patient; private wording carries the full fact and source.
+    return make_cue(session,encounter,call,row,view,settings,key='obstacle:'+str(obstacle.id),title='Practical check · '+item.title,
+        suggestion=data['fact']+' Source: '+data['source']+', checked '+data['checked_at']+'.',text=data['spoken'],score=190,
+        refs={'plan_ids':[str(item.id)],'obstacle_id':str(obstacle.id)})
+
+
+def obstacle_cue(session,visit_id,obstacle,settings):
+    """Called by the feasibility worker in the same transaction that records a new obstacle."""
+    encounter,call,row,view=lock(session,visit_id)
+    cue=add_obstacle_cue(session,encounter,call,row,view,settings,obstacle)
+    if cue:
+        session.flush()
+        obstacle.content={**obstacle.content,'timings':{**obstacle.content.get('timings',{}),'cue_at':cue.created_at.isoformat()}}
+    return cue
 
 
 def receipt(delivery,private=False):

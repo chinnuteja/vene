@@ -93,5 +93,9 @@
     }
   ],
   "updated_at": "2026-10-12T15:00:00Z",
-  "synthetic": true
+  "synthetic": true,
+  "coverage": {
+    "plan": "Evergreen Basic (fictional)",
+    "member_ref": "EVG-B-1001"
+  }
 }

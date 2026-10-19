@@ -62,7 +62,8 @@
               "lab",
               "imaging",
               "referral",
-              "prescription"
+              "prescription",
+              "authorization"
             ],
             "title": "Kind",
             "type": "string"
@@ -578,6 +579,33 @@
         "title": "CallView",
         "type": "object"
       },
+      "ChoiceView": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "enum": [
+              "office_will_submit",
+              "review_later",
+              "review_coverage",
+              "use_another_window",
+              "choose_another_pharmacy",
+              "office_will_send"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ],
+        "title": "ChoiceView",
+        "type": "object"
+      },
       "CircleView": {
         "additionalProperties": false,
         "properties": {
@@ -839,6 +867,25 @@
           "callback_count"
         ],
         "title": "ContinuityView",
+        "type": "object"
+      },
+      "Coverage": {
+        "additionalProperties": false,
+        "properties": {
+          "member_ref": {
+            "title": "Member Ref",
+            "type": "string"
+          },
+          "plan": {
+            "title": "Plan",
+            "type": "string"
+          }
+        },
+        "required": [
+          "plan",
+          "member_ref"
+        ],
+        "title": "Coverage",
         "type": "object"
       },
       "CueApproval": {
@@ -1163,6 +1210,16 @@
             "title": "Consent Epoch",
             "type": "integer"
           },
+          "coverage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Coverage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "evidence": {
             "items": {
               "$ref": "#/components/schemas/Evidence"
@@ -1299,7 +1356,8 @@
               "lab",
               "imaging",
               "referral",
-              "prescription"
+              "prescription",
+              "authorization"
             ],
             "title": "Kind",
             "type": "string"
@@ -1644,6 +1702,38 @@
         "title": "FamilyUpdateView",
         "type": "object"
       },
+      "FeasibilityView": {
+        "additionalProperties": false,
+        "properties": {
+          "checking": {
+            "default": 0,
+            "title": "Checking",
+            "type": "integer"
+          },
+          "obstacles": {
+            "items": {
+              "$ref": "#/components/schemas/ObstacleView"
+            },
+            "title": "Obstacles",
+            "type": "array"
+          },
+          "standing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StandingView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "obstacles"
+        ],
+        "title": "FeasibilityView",
+        "type": "object"
+      },
       "FixtureLaunch": {
         "additionalProperties": false,
         "properties": {
@@ -1984,6 +2074,102 @@
         "title": "NextVisitRequest",
         "type": "object"
       },
+      "ObstacleView": {
+        "additionalProperties": false,
+        "properties": {
+          "checked_at": {
+            "format": "date-time",
+            "title": "Checked At",
+            "type": "string"
+          },
+          "choices": {
+            "items": {
+              "$ref": "#/components/schemas/ChoiceView"
+            },
+            "title": "Choices",
+            "type": "array"
+          },
+          "fact": {
+            "title": "Fact",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "item_id": {
+            "format": "uuid",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "item_title": {
+            "title": "Item Title",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "no_slot_in_window",
+              "prior_authorization_required",
+              "not_on_formulary",
+              "not_in_stock",
+              "missing_supporting_document"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "plan_alternatives": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Plan Alternatives",
+            "type": "array"
+          },
+          "resolution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Resolution"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resolver": {
+            "enum": [
+              "patient",
+              "clinician"
+            ],
+            "title": "Resolver",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "open",
+              "resolved"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "item_id",
+          "item_title",
+          "kind",
+          "state",
+          "fact",
+          "source",
+          "checked_at",
+          "resolver"
+        ],
+        "title": "ObstacleView",
+        "type": "object"
+      },
       "Patient": {
         "additionalProperties": false,
         "properties": {
@@ -2145,6 +2331,7 @@
                   "imaging",
                   "referral",
                   "prescription",
+                  "authorization",
                   "other"
                 ],
                 "type": "string"
@@ -2181,7 +2368,8 @@
             "enum": [
               "preparation",
               "interpretation",
-              "human"
+              "human",
+              "resolution"
             ],
             "title": "Origin",
             "type": "string"
@@ -2538,6 +2726,75 @@
         "title": "RedeemRequest",
         "type": "object"
       },
+      "Resolution": {
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "by_name": {
+            "title": "By Name",
+            "type": "string"
+          },
+          "by_role": {
+            "enum": [
+              "patient",
+              "clinician"
+            ],
+            "title": "By Role",
+            "type": "string"
+          },
+          "choice": {
+            "enum": [
+              "office_will_submit",
+              "review_later",
+              "review_coverage",
+              "use_another_window",
+              "choose_another_pharmacy",
+              "office_will_send"
+            ],
+            "title": "Choice",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "choice",
+          "label",
+          "by_role",
+          "by_name",
+          "at"
+        ],
+        "title": "Resolution",
+        "type": "object"
+      },
+      "ResolveRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "choice": {
+            "enum": [
+              "office_will_submit",
+              "review_later",
+              "review_coverage",
+              "use_another_window",
+              "choose_another_pharmacy",
+              "office_will_send"
+            ],
+            "title": "Choice",
+            "type": "string"
+          }
+        },
+        "required": [
+          "choice"
+        ],
+        "title": "ResolveRequest",
+        "type": "object"
+      },
       "ReviewRequest": {
         "additionalProperties": false,
         "properties": {
@@ -2680,7 +2937,8 @@
               "lab",
               "imaging",
               "referral",
-              "prescription"
+              "prescription",
+              "authorization"
             ],
             "title": "Kind",
             "type": "string"
@@ -2693,7 +2951,8 @@
               "delayed",
               "rejected",
               "timeout_after_write",
-              "duplicate_callback"
+              "duplicate_callback",
+              "out_of_stock"
             ],
             "title": "Mode",
             "type": "string"
@@ -3092,6 +3351,56 @@
           "message"
         ],
         "title": "SpeechView",
+        "type": "object"
+      },
+      "StandingRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "kinds": {
+            "items": {
+              "enum": [
+                "scheduling",
+                "coverage",
+                "pharmacy"
+              ],
+              "type": "string"
+            },
+            "maxItems": 3,
+            "title": "Kinds",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kinds"
+        ],
+        "title": "StandingRequest",
+        "type": "object"
+      },
+      "StandingView": {
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "kinds": {
+            "items": {
+              "enum": [
+                "scheduling",
+                "coverage",
+                "pharmacy"
+              ],
+              "type": "string"
+            },
+            "title": "Kinds",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kinds",
+          "active"
+        ],
+        "title": "StandingView",
         "type": "object"
       },
       "Suggestion": {
@@ -5133,6 +5442,156 @@
           }
         },
         "summary": "Scenario"
+      }
+    },
+    "/encounters/{encounter_id}/feasibility": {
+      "get": {
+        "operationId": "state_encounters__encounter_id__feasibility_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeasibilityView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "State"
+      }
+    },
+    "/encounters/{encounter_id}/feasibility/obstacles/{obstacle_id}/resolve": {
+      "post": {
+        "operationId": "resolve_encounters__encounter_id__feasibility_obstacles__obstacle_id__resolve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "obstacle_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Obstacle Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeasibilityView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resolve"
+      }
+    },
+    "/encounters/{encounter_id}/feasibility/standing": {
+      "post": {
+        "operationId": "standing_encounters__encounter_id__feasibility_standing_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeasibilityView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Standing"
       }
     },
     "/encounters/{encounter_id}/invitations": {

@@ -60,14 +60,14 @@ class PlanItem(Sharing):
     patient_authorized: bool = False
     order_available: bool = False
     external_completed: bool = False
-    origin: Literal["preparation", "interpretation", "human"] = "preparation"
+    origin: Literal["preparation", "interpretation", "human", "resolution"] = "preparation"
     location: str | None = None
     dependencies: list[str] = Field(default_factory=list)
     needs_clarification: bool = True
     explanation: str = ""
     revision: int = 1
     # Administrative kind used for errand eligibility. None for steps saved before kinds existed.
-    kind: Literal["lab", "imaging", "referral", "prescription", "other"] | None = None
+    kind: Literal["lab", "imaging", "referral", "prescription", "authorization", "other"] | None = None
 
 
 class UnderstandingStatus(Contract):
@@ -91,6 +91,12 @@ class Suggestion(Contract):
     status: Literal["pending", "accepted", "rejected"] = "pending"
 
 
+class Coverage(Contract):
+    # Fictional plan membership used only for patient-authorized sandbox coverage checks.
+    plan: str
+    member_ref: str
+
+
 class EncounterView(Contract):
     id: UUID
     version: int = Field(ge=0)
@@ -109,6 +115,7 @@ class EncounterView(Contract):
     suggestions: list[Suggestion] = Field(default_factory=list)
     viewer_role: Role = "patient"
     understanding: UnderstandingStatus | None = None
+    coverage: Coverage | None = None
 
 
 class EncounterSummary(Contract):

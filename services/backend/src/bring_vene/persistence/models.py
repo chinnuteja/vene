@@ -391,3 +391,39 @@ class CareCircleRequestRecord(Base):
     content: Mapped[dict] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     answered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class StandingCheckRecord(Base):
+    __tablename__ = 'standing_checks'
+    encounter_id: Mapped[UUID] = mapped_column(ForeignKey('encounters.id', ondelete='CASCADE'), primary_key=True)
+    session_hash: Mapped[str] = mapped_column(String(64))
+    kinds: Mapped[list] = mapped_column(JSONB)
+    revision: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class FeasibilityCheckRecord(Base):
+    __tablename__ = 'feasibility_checks'
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True)
+    encounter_id: Mapped[UUID] = mapped_column(ForeignKey('encounters.id', ondelete='CASCADE'))
+    item_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True))
+    kind: Mapped[str] = mapped_column(String(16))
+    plan_fingerprint: Mapped[str] = mapped_column(String(64))
+    standing_revision: Mapped[int] = mapped_column(Integer)
+    state: Mapped[str] = mapped_column(String(16))
+    content: Mapped[dict] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ObstacleRecord(Base):
+    __tablename__ = 'obstacles'
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True)
+    encounter_id: Mapped[UUID] = mapped_column(ForeignKey('encounters.id', ondelete='CASCADE'))
+    item_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True))
+    check_id: Mapped[UUID] = mapped_column(ForeignKey('feasibility_checks.id', ondelete='CASCADE'))
+    kind: Mapped[str] = mapped_column(String(40))
+    state: Mapped[str] = mapped_column(String(16))
+    content: Mapped[dict] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

@@ -33,6 +33,10 @@ class Evidence(Sharing):
     version: int = 1
     speaker: str | None = None
     origin: Literal["fixture", "deepgram", "human"] | None = None
+    # One phone in the room: a diarization label and how its speaker was attributed. A
+    # patient-attested name is attribution only; it never carries that person's authority.
+    speaker_label: str | None = None
+    attribution: Literal["session", "patient_attested", "unattributed"] | None = None
 
 
 class Priority(Sharing):

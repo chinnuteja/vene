@@ -526,6 +526,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/encounters/{encounter_id}/dial-pins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Issue */
+        post: operations["issue_encounters__encounter_id__dial_pins_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/encounters/{encounter_id}/evidence/{evidence_id}": {
         parameters: {
             query?: never;
@@ -849,6 +866,142 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/encounters/{encounter_id}/room": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** State */
+        get: operations["state_encounters__encounter_id__room_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{encounter_id}/room/agreements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Attest */
+        post: operations["attest_encounters__encounter_id__room_agreements_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{encounter_id}/room/disclosure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Disclosure */
+        post: operations["disclosure_encounters__encounter_id__room_disclosure_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{encounter_id}/room/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End */
+        post: operations["end_encounters__encounter_id__room_end_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{encounter_id}/room/fixture-utterances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Fixture */
+        post: operations["fixture_encounters__encounter_id__room_fixture_utterances_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{encounter_id}/room/people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Person */
+        post: operations["add_person_encounters__encounter_id__room_people_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{encounter_id}/room/speakers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Map Label */
+        post: operations["map_label_encounters__encounter_id__room_speakers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{encounter_id}/room/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start */
+        post: operations["start_encounters__encounter_id__room_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/encounters/{encounter_id}/speech": {
         parameters: {
             query?: never;
@@ -1104,6 +1257,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/integrations/phone/admit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Admit */
+        post: operations["admit_integrations_phone_admit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1192,6 +1362,13 @@ export interface components {
             /** Digest */
             digest: string;
         };
+        /** Attest */
+        Attest: {
+            /** Agreed */
+            agreed: boolean;
+            /** Person Id */
+            person_id: string;
+        };
         /** AudioReceipt */
         AudioReceipt: {
             /**
@@ -1221,6 +1398,31 @@ export interface components {
             track_epoch: number;
             /** Track Sid */
             track_sid: string;
+        };
+        /** BridgeAdmit */
+        BridgeAdmit: {
+            /** Caller Number */
+            caller_number?: string | null;
+            /** Participant Identity */
+            participant_identity: string;
+            /** Pin */
+            pin: string;
+        };
+        /** BridgeAdmitted */
+        BridgeAdmitted: {
+            /** Announcement */
+            announcement: string;
+            /**
+             * Connection Id
+             * Format: uuid
+             */
+            connection_id: string;
+            /** Name */
+            name: string;
+            /** Prompt */
+            prompt: string;
+            /** Room */
+            room: string;
         };
         /** BundleOutcome */
         BundleOutcome: {
@@ -1732,6 +1934,8 @@ export interface components {
         };
         /** Evidence */
         Evidence: {
+            /** Attribution */
+            attribution?: ("session" | "patient_attested" | "unattributed") | null;
             /** Audiences */
             audiences?: ("clinician" | "family")[];
             /**
@@ -1753,6 +1957,8 @@ export interface components {
             source_type: "patient_report" | "office_message" | "imported_record" | "conversation";
             /** Speaker */
             speaker?: string | null;
+            /** Speaker Label */
+            speaker_label?: string | null;
             /** Text */
             text: string;
             /** Title */
@@ -1917,6 +2123,13 @@ export interface components {
              * Format: uuid
              */
             membership_id: string;
+        };
+        /** LabelMap */
+        LabelMap: {
+            /** Label */
+            label: string;
+            /** Person Id */
+            person_id?: string | null;
         };
         /** LookupRequest */
         LookupRequest: {
@@ -2109,6 +2322,54 @@ export interface components {
             name: string;
             /** Preferred Name */
             preferred_name: string;
+        };
+        /** Person */
+        Person: {
+            /** Agreed */
+            agreed?: boolean | null;
+            /** Attested At */
+            attested_at?: string | null;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "clinician" | "family" | "other";
+        };
+        /** PersonIn */
+        PersonIn: {
+            /** Name */
+            name: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "clinician" | "family" | "other";
+        };
+        /** PinIssued */
+        PinIssued: {
+            /** Dial Number */
+            dial_number?: string | null;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Name */
+            name: string;
+            /** Pin */
+            pin: string;
+        };
+        /** PinRequest */
+        PinRequest: {
+            /**
+             * Membership Id
+             * Format: uuid
+             */
+            membership_id: string;
         };
         /** PlanCorrection */
         PlanCorrection: {
@@ -2425,6 +2686,44 @@ export interface components {
             /** Where */
             where: string;
         };
+        /** RoomStart */
+        RoomStart: {
+            /** People */
+            people: components["schemas"]["PersonIn"][];
+        };
+        /** RoomUtterance */
+        RoomUtterance: {
+            /** Label */
+            label: string;
+            /** Text */
+            text: string;
+        };
+        /** RoomView */
+        RoomView: {
+            /** Disclosure */
+            disclosure: string;
+            /** Disclosure At */
+            disclosure_at?: string | null;
+            /**
+             * Fixture Input Enabled
+             * @default false
+             */
+            fixture_input_enabled: boolean;
+            /** People */
+            people?: components["schemas"]["Person"][];
+            /** Speakers */
+            speakers?: components["schemas"]["SpeakerView"][];
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "off" | "setting_up" | "active" | "declined";
+            /**
+             * Suppressed Self Speech
+             * @default 0
+             */
+            suppressed_self_speech: number;
+        };
         /** ScenarioRequest */
         ScenarioRequest: {
             /**
@@ -2470,6 +2769,19 @@ export interface components {
             expected_source_version: number;
             /** Text */
             text: string;
+        };
+        /** SpeakerView */
+        SpeakerView: {
+            /** Attributed */
+            attributed: boolean;
+            /** Label */
+            label: string;
+            /** Last Heard */
+            last_heard?: string | null;
+            /** Name */
+            name: string;
+            /** Person Id */
+            person_id?: string | null;
         };
         /** SpeakingConsent */
         SpeakingConsent: {
@@ -3737,6 +4049,41 @@ export interface operations {
             };
         };
     };
+    issue_encounters__encounter_id__dial_pins_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PinRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PinIssued"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     evidence_encounters__encounter_id__evidence__evidence_id__get: {
         parameters: {
             query?: never;
@@ -4379,6 +4726,274 @@ export interface operations {
             };
         };
     };
+    state_encounters__encounter_id__room_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    attest_encounters__encounter_id__room_agreements_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Attest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    disclosure_encounters__encounter_id__room_disclosure_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    end_encounters__encounter_id__room_end_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fixture_encounters__encounter_id__room_fixture_utterances_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoomUtterance"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_person_encounters__encounter_id__room_people_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    map_label_encounters__encounter_id__room_speakers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LabelMap"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_encounters__encounter_id__room_start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoomStart"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     state_encounters__encounter_id__speech_get: {
         parameters: {
             query?: never;
@@ -4854,6 +5469,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+        };
+    };
+    admit_integrations_phone_admit_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BridgeAdmit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BridgeAdmitted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

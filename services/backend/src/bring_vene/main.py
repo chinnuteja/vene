@@ -22,6 +22,8 @@ from bring_vene.continuity.router import continuity_router
 from bring_vene.circle.router import circle_router
 from bring_vene.feasibility.router import feasibility_router
 from bring_vene.memory.router import memory_router
+from bring_vene.room.router import room_router
+from bring_vene.dial.router import dial_router
 
 
 def authorized_view(engine, token, encounter_id):
@@ -301,6 +303,8 @@ def create_app(settings: Settings | None = None, engine=None):
     application.include_router(circle_router(db,settings,mutation))
     application.include_router(feasibility_router(db,settings,mutation))
     application.include_router(memory_router(db,settings,mutation))
+    application.include_router(room_router(db,settings,mutation))
+    application.include_router(dial_router(db,settings,mutation))
     return application
 
 

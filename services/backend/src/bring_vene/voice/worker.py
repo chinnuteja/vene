@@ -38,8 +38,20 @@ class RoomWorker:
         self.instance=uuid4()
         self.transport_lost=False
         self.speech=SpeechController(self.room,engine,visit_id,generation,settings)
+        self.room.on('sip_dtmf_received',self.keypad)
         self.room.on('reconnecting',lambda:setattr(self,'transport_lost',True))
         self.room.on('disconnected',lambda _reason:setattr(self,'transport_lost',True))
+
+    def keypad(self,dtmf):
+        # Phone participants use the keypad for consent, pause and resume. The digit is checked
+        # against the visit's current phone connections; nothing else about the caller is trusted.
+        participant=getattr(dtmf,'participant',None);digit=str(getattr(dtmf,'digit','') or '')
+        if not participant or not digit:return
+        async def handle():
+            from bring_vene.dial.service import keypad
+            result=await asyncio.to_thread(keypad,self.engine,self.visit_id,self.generation,participant.identity,digit,self.settings)
+            print('Phone keypad '+('accepted' if result.accepted else 'refused')+'.',flush=True)
+        asyncio.ensure_future(handle())
 
     async def fail(self,code='stt_unavailable'):
         await asyncio.to_thread(service.worker_failed,self.engine,self.visit_id,self.generation,code)
@@ -47,13 +59,16 @@ class RoomWorker:
     async def consume(self,key,track):
         connection_id,sid,track_epoch,consent_epoch=key
         stream=None;sink=None
-        async def final(text):
+        async def final(text,label=None):
             await asyncio.to_thread(service.finalize,self.engine,self.visit_id,self.generation,
-                connection_id,sid,track_epoch,consent_epoch,text,self.settings)
+                connection_id,sid,track_epoch,consent_epoch,text,self.settings,label)
         try:
             mode=service.provider(self.settings)
             if mode=='fixture':sink=FixtureSink()
-            elif mode=='deepgram':sink=DeepgramSink(self.settings,final,self.fail)
+            elif mode=='deepgram':
+                from bring_vene.room.service import room_track
+                diarize=await asyncio.to_thread(room_track,self.engine,self.visit_id,connection_id)
+                sink=DeepgramSink(self.settings,final,self.fail,diarize)
             else:await self.fail();return
             await sink.start()
             stream=audio_stream(track)

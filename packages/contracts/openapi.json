@@ -165,6 +165,27 @@
         "title": "ApprovalRequest",
         "type": "object"
       },
+      "Attest": {
+        "additionalProperties": false,
+        "properties": {
+          "agreed": {
+            "title": "Agreed",
+            "type": "boolean"
+          },
+          "person_id": {
+            "maxLength": 40,
+            "minLength": 3,
+            "title": "Person Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "person_id",
+          "agreed"
+        ],
+        "title": "Attest",
+        "type": "object"
+      },
       "AudioReceipt": {
         "additionalProperties": false,
         "properties": {
@@ -220,6 +241,75 @@
           "last_received_at"
         ],
         "title": "AudioReceipt",
+        "type": "object"
+      },
+      "BridgeAdmit": {
+        "additionalProperties": false,
+        "properties": {
+          "caller_number": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caller Number"
+          },
+          "participant_identity": {
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Participant Identity",
+            "type": "string"
+          },
+          "pin": {
+            "pattern": "^\\d{6}$",
+            "title": "Pin",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pin",
+          "participant_identity"
+        ],
+        "title": "BridgeAdmit",
+        "type": "object"
+      },
+      "BridgeAdmitted": {
+        "additionalProperties": false,
+        "properties": {
+          "announcement": {
+            "title": "Announcement",
+            "type": "string"
+          },
+          "connection_id": {
+            "format": "uuid",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          },
+          "room": {
+            "title": "Room",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connection_id",
+          "room",
+          "name",
+          "announcement",
+          "prompt"
+        ],
+        "title": "BridgeAdmitted",
         "type": "object"
       },
       "BundleOutcome": {
@@ -1499,6 +1589,22 @@
       "Evidence": {
         "additionalProperties": false,
         "properties": {
+          "attribution": {
+            "anyOf": [
+              {
+                "enum": [
+                  "session",
+                  "patient_attested",
+                  "unattributed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attribution"
+          },
           "audiences": {
             "items": {
               "enum": [
@@ -1557,6 +1663,17 @@
               }
             ],
             "title": "Speaker"
+          },
+          "speaker_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speaker Label"
           },
           "text": {
             "title": "Text",
@@ -1941,6 +2058,33 @@
           "membership_id"
         ],
         "title": "InviteRequest",
+        "type": "object"
+      },
+      "LabelMap": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "pattern": "^S\\d{1,2}$",
+            "title": "Label",
+            "type": "string"
+          },
+          "person_id": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person Id"
+          }
+        },
+        "required": [
+          "label"
+        ],
+        "title": "LabelMap",
         "type": "object"
       },
       "LookupRequest": {
@@ -2354,6 +2498,135 @@
           "age"
         ],
         "title": "Patient",
+        "type": "object"
+      },
+      "Person": {
+        "additionalProperties": false,
+        "properties": {
+          "agreed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agreed"
+          },
+          "attested_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attested At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "clinician",
+              "family",
+              "other"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "role"
+        ],
+        "title": "Person",
+        "type": "object"
+      },
+      "PersonIn": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 60,
+            "minLength": 2,
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "clinician",
+              "family",
+              "other"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "role"
+        ],
+        "title": "PersonIn",
+        "type": "object"
+      },
+      "PinIssued": {
+        "additionalProperties": false,
+        "properties": {
+          "dial_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dial Number"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "pin": {
+            "title": "Pin",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pin",
+          "expires_at",
+          "name"
+        ],
+        "title": "PinIssued",
+        "type": "object"
+      },
+      "PinRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "membership_id": {
+            "format": "uuid",
+            "title": "Membership Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "membership_id"
+        ],
+        "title": "PinRequest",
         "type": "object"
       },
       "PlanCorrection": {
@@ -3093,6 +3366,108 @@
         "title": "RideView",
         "type": "object"
       },
+      "RoomStart": {
+        "additionalProperties": false,
+        "properties": {
+          "people": {
+            "items": {
+              "$ref": "#/components/schemas/PersonIn"
+            },
+            "maxItems": 6,
+            "minItems": 1,
+            "title": "People",
+            "type": "array"
+          }
+        },
+        "required": [
+          "people"
+        ],
+        "title": "RoomStart",
+        "type": "object"
+      },
+      "RoomUtterance": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "pattern": "^S\\d{1,2}$",
+            "title": "Label",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 2000,
+            "minLength": 3,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "text"
+        ],
+        "title": "RoomUtterance",
+        "type": "object"
+      },
+      "RoomView": {
+        "additionalProperties": false,
+        "properties": {
+          "disclosure": {
+            "title": "Disclosure",
+            "type": "string"
+          },
+          "disclosure_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disclosure At"
+          },
+          "fixture_input_enabled": {
+            "default": false,
+            "title": "Fixture Input Enabled",
+            "type": "boolean"
+          },
+          "people": {
+            "items": {
+              "$ref": "#/components/schemas/Person"
+            },
+            "title": "People",
+            "type": "array"
+          },
+          "speakers": {
+            "items": {
+              "$ref": "#/components/schemas/SpeakerView"
+            },
+            "title": "Speakers",
+            "type": "array"
+          },
+          "state": {
+            "enum": [
+              "off",
+              "setting_up",
+              "active",
+              "declined"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "suppressed_self_speech": {
+            "default": 0,
+            "title": "Suppressed Self Speech",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "state",
+          "disclosure"
+        ],
+        "title": "RoomView",
+        "type": "object"
+      },
       "ScenarioRequest": {
         "additionalProperties": false,
         "properties": {
@@ -3203,6 +3578,52 @@
           "text"
         ],
         "title": "SourceCorrection",
+        "type": "object"
+      },
+      "SpeakerView": {
+        "additionalProperties": false,
+        "properties": {
+          "attributed": {
+            "title": "Attributed",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "last_heard": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Heard"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "person_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person Id"
+          }
+        },
+        "required": [
+          "label",
+          "name",
+          "attributed"
+        ],
+        "title": "SpeakerView",
         "type": "object"
       },
       "SpeakingConsent": {
@@ -5181,6 +5602,56 @@
         "summary": "Repeat Callback"
       }
     },
+    "/encounters/{encounter_id}/dial-pins": {
+      "post": {
+        "operationId": "issue_encounters__encounter_id__dial_pins_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PinIssued"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Issue"
+      }
+    },
     "/encounters/{encounter_id}/evidence/{evidence_id}": {
       "get": {
         "operationId": "evidence_encounters__encounter_id__evidence__evidence_id__get",
@@ -6139,6 +6610,376 @@
         "summary": "Outcome"
       }
     },
+    "/encounters/{encounter_id}/room": {
+      "get": {
+        "operationId": "state_encounters__encounter_id__room_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "State"
+      }
+    },
+    "/encounters/{encounter_id}/room/agreements": {
+      "post": {
+        "operationId": "attest_encounters__encounter_id__room_agreements_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Attest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Attest"
+      }
+    },
+    "/encounters/{encounter_id}/room/disclosure": {
+      "post": {
+        "operationId": "disclosure_encounters__encounter_id__room_disclosure_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Disclosure"
+      }
+    },
+    "/encounters/{encounter_id}/room/end": {
+      "post": {
+        "operationId": "end_encounters__encounter_id__room_end_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "End"
+      }
+    },
+    "/encounters/{encounter_id}/room/fixture-utterances": {
+      "post": {
+        "operationId": "fixture_encounters__encounter_id__room_fixture_utterances_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoomUtterance"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Fixture"
+      }
+    },
+    "/encounters/{encounter_id}/room/people": {
+      "post": {
+        "operationId": "add_person_encounters__encounter_id__room_people_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Person"
+      }
+    },
+    "/encounters/{encounter_id}/room/speakers": {
+      "post": {
+        "operationId": "map_label_encounters__encounter_id__room_speakers_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelMap"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Map Label"
+      }
+    },
+    "/encounters/{encounter_id}/room/start": {
+      "post": {
+        "operationId": "start_encounters__encounter_id__room_start_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoomStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start"
+      }
+    },
     "/encounters/{encounter_id}/speech": {
       "get": {
         "operationId": "state_encounters__encounter_id__speech_get",
@@ -6787,6 +7628,62 @@
           }
         },
         "summary": "Office Callback"
+      }
+    },
+    "/integrations/phone/admit": {
+      "post": {
+        "operationId": "admit_integrations_phone_admit_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BridgeAdmit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BridgeAdmitted"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Admit"
       }
     }
   }

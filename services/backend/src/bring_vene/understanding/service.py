@@ -70,10 +70,13 @@ def processing(engine,visit_id,token,csrf,request,settings):
         return view
 
 
-def add_source(session,encounter,row,view,member,text,origin,settings,utterance_id=None):
+def add_source(session,encounter,row,view,member,text,origin,settings,utterance_id=None,speaker=None,label=None,attribution=None):
+    # speaker/label/attribution are set only for one-phone-in-the-room turns; the device owner
+    # (member) stays the accountable source of the audio.
     if len(view.evidence)>=400:raise DomainError(409,'This visit has reached its source limit.')
-    source=Evidence(id=uuid4(),source_type='conversation',title=('Fictional turn \u00b7 ' if origin=='fixture' else 'Conversation \u00b7 ')+member.name,
-        text=text[:2000].strip(),observed_at=utc_now(),speaker=member.name,origin=origin,version=1)
+    name=speaker or member.name
+    source=Evidence(id=uuid4(),source_type='conversation',title=('Fictional turn \u00b7 ' if origin=='fixture' else 'Conversation \u00b7 ')+name,
+        text=text[:2000].strip(),observed_at=utc_now(),speaker=name,origin=origin,version=1,speaker_label=label,attribution=attribution)
     session.add(EvidenceRecord(id=source.id,encounter_id=view.id,content=source.model_dump(mode='json')))
     session.flush()
     session.add(TranscriptSourceRecord(id=source.id,encounter_id=view.id,membership_id=member.id,utterance_id=utterance_id,

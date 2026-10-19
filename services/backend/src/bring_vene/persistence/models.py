@@ -225,7 +225,7 @@ class CallConnectionRecord(Base):
     encounter_id: Mapped[UUID] = mapped_column(ForeignKey('calls.encounter_id', ondelete='CASCADE'), index=True)
     generation: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True))
     membership_id: Mapped[UUID] = mapped_column(ForeignKey('memberships.id', ondelete='CASCADE'), index=True)
-    session_hash: Mapped[str] = mapped_column(ForeignKey('participant_sessions.token_hash', ondelete='CASCADE'), index=True)
+    session_hash: Mapped[str | None] = mapped_column(ForeignKey('participant_sessions.token_hash', ondelete='CASCADE'), index=True)
     present: Mapped[bool] = mapped_column(Boolean, default=False)
     consent: Mapped[str] = mapped_column(String(16), default='pending')
     terms_version: Mapped[str | None] = mapped_column(String(32))
@@ -233,6 +233,9 @@ class CallConnectionRecord(Base):
     track_sid: Mapped[str | None] = mapped_column(String(100))
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     retired: Mapped[bool] = mapped_column(Boolean, default=False)
+    channel: Mapped[str] = mapped_column(String(8), default='browser')  # 'browser' or 'phone'
+    external_identity: Mapped[str | None] = mapped_column(String(80), nullable=True)  # phone bridge participant identity
+    dial_pin_id: Mapped[UUID | None] = mapped_column(ForeignKey('dial_pins.id', ondelete='CASCADE'), nullable=True)
 
 
 class AudioReceiptRecord(Base):
@@ -436,3 +439,33 @@ class MemoryOutcomeRecord(Base):
     outcome: Mapped[str] = mapped_column(String(16))
     encounter_id: Mapped[UUID | None] = mapped_column(ForeignKey('encounters.id', ondelete='SET NULL'))
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class RoomSessionRecord(Base):
+    __tablename__ = 'room_sessions'
+    encounter_id: Mapped[UUID] = mapped_column(ForeignKey('encounters.id', ondelete='CASCADE'), primary_key=True)
+    session_hash: Mapped[str] = mapped_column(String(64))
+    state: Mapped[str] = mapped_column(String(16))
+    content: Mapped[dict] = mapped_column(JSONB)
+    revision: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class SpeakerAttributionRecord(Base):
+    __tablename__ = 'speaker_attributions'
+    encounter_id: Mapped[UUID] = mapped_column(ForeignKey('encounters.id', ondelete='CASCADE'), primary_key=True)
+    label: Mapped[str] = mapped_column(String(16), primary_key=True)
+    person_id: Mapped[str | None] = mapped_column(String(40))
+    attested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class DialPinRecord(Base):
+    __tablename__ = 'dial_pins'
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True)
+    encounter_id: Mapped[UUID] = mapped_column(ForeignKey('encounters.id', ondelete='CASCADE'))
+    membership_id: Mapped[UUID] = mapped_column(ForeignKey('memberships.id', ondelete='CASCADE'))
+    pin_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

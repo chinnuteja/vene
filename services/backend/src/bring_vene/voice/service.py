@@ -9,7 +9,7 @@ from sqlalchemy import select,and_,text
 from sqlalchemy.orm import Session
 from bring_vene.auth import authenticate, digest
 from bring_vene.domain.service import DomainError, utc_now
-from bring_vene.persistence.models import (EncounterRecord, MembershipRecord, SessionRecord, CallRecord,
+from bring_vene.persistence.models import (RoomSessionRecord, EncounterRecord, MembershipRecord, SessionRecord, CallRecord,
     CallConnectionRecord, AudioReceiptRecord, UtteranceRecord, CallEventRecord)
 from bring_vene.voice.contracts import (CallView, CallParticipant, CallAdmission, AudioReceipt, CallDiagnostics, Utterance)
 
@@ -19,7 +19,8 @@ def room_name(call):
 
 
 def identity(connection):
-    return f'human:{connection.id}'
+    # A phone participant keeps the identity the phone bridge gave it; browsers use their connection.
+    return connection.external_identity or f'human:{connection.id}'
 
 
 def configured(settings):
@@ -34,6 +35,13 @@ def provider(settings):
 
 def valid_connection(session, connection, now=None):
     now=now or utc_now()
+    if connection.channel=='phone':
+        # Bound to the single-use PIN that admitted it and to the person's current membership.
+        from bring_vene.persistence.models import DialPinRecord
+        pin=session.get(DialPinRecord,connection.dial_pin_id)
+        member=session.get(MembershipRecord,connection.membership_id)
+        return bool(not connection.retired and pin and not pin.revoked_at and member and not member.revoked_at
+                    and connection.expires_at>now)
     credential=session.get(SessionRecord,connection.session_hash)
     member=session.get(MembershipRecord,connection.membership_id)
     return bool(not connection.retired and credential and member and not credential.revoked_at
@@ -102,6 +110,8 @@ def connections(session,call):
 
 def gate(session,encounter,call):
     if not call or call.ended or call.manual_pause or call.worker_error:return False
+    from bring_vene.room.service import gate_open
+    if not gate_open(session,encounter.id):return False # in-room people have not all agreed
     humans=[c for c in connections(session,call) if c.present]
     return bool(humans and all(valid_connection(session,c) and c.consent=='agreed' for c in humans))
 
@@ -239,7 +249,8 @@ def control(engine,visit_id,token,csrf,request,settings):
         if request.expected_revision!=call.revision:raise DomainError(409,'The call changed. Try again with the current state.')
         if request.type=='resume':
             humans=[c for c in connections(session,call) if c.present]
-            if call.ended or not humans or not all(valid_connection(session,c) and c.consent=='agreed' for c in humans):
+            from bring_vene.room.service import gate_open
+            if call.ended or not humans or not all(valid_connection(session,c) and c.consent=='agreed' for c in humans) or not gate_open(session,visit_id):
                 raise DomainError(409,'Everyone in the room needs to agree before Vene can process audio.')
             if provider(settings)=='unavailable' or call.worker_error or not call.worker_seen_at or (utc_now()-call.worker_seen_at).total_seconds()>3:
                 raise DomainError(503,'Voice processing is unavailable. The human conversation can continue.')
@@ -320,7 +331,7 @@ def accept_frame(engine,visit_id,generation,connection_id,track_sid,track_epoch,
         return True
 
 
-def finalize(engine,visit_id,generation,connection_id,track_sid,track_epoch,consent_epoch,text,settings=None):
+def finalize(engine,visit_id,generation,connection_id,track_sid,track_epoch,consent_epoch,text,settings=None,label=None):
     with Session(engine) as session,session.begin():
         if not permit(session,visit_id,generation,connection_id,track_sid,track_epoch,consent_epoch):return False
         row=session.get(CallConnectionRecord,connection_id)
@@ -330,7 +341,13 @@ def finalize(engine,visit_id,generation,connection_id,track_sid,track_epoch,cons
         session.flush()
         from bring_vene.understanding.service import ingest_voice
         from bring_vene.config import Settings
-        ingest_voice(session,visit_id,utterance,settings or Settings())
+        from bring_vene.room import service as room
+        member=session.get(MembershipRecord,row.membership_id)
+        record=session.get(RoomSessionRecord,visit_id)
+        if label and room.is_active(record) and row.session_hash==record.session_hash and member and member.role=='patient':
+            # One phone in the room: the device owner's track carries several diarized speakers.
+            room.ingest(session,visit_id,member,label,text,'deepgram',settings or Settings(),utterance.id)
+        else:ingest_voice(session,visit_id,utterance,settings or Settings())
         return True
 
 

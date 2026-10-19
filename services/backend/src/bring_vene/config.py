@@ -34,4 +34,6 @@ class Settings(BaseSettings):
     office_callback_url: str = ""
     office_callback_secret: str = ""
     continuity_retention_days: int = 7
-
+    # Dial-in (credential-gated): the phone bridge's shared token and the number callers dial.
+    phone_bridge_token: str = ""
+    phone_dial_number: str = ""

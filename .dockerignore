@@ -1,0 +1,17 @@
+.git
+.env
+.env.*
+!.env.example
+.local
+.venv
+node_modules
+**/node_modules
+**/.next*
+**/__pycache__
+**/.pytest_cache
+**/tsconfig.tsbuildinfo
+test-results
+playwright-report
+research
+docs/background
+*.log

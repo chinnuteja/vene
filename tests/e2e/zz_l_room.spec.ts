@@ -1,3 +1,4 @@
+// Runs before zz_media_fault, which deliberately kills and restarts the media server.
 import {evidence,chromiumLaunch} from './platform';
 import {test,expect,chromium,type BrowserContext} from '@playwright/test';
 import fs from 'node:fs';

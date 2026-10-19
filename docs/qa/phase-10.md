@@ -70,7 +70,16 @@ The target was under 3,000 ms p95. These are local fixture-interpreter measureme
 
 ## Final verification
 
-See the BUILD_STATUS entry for the full `scripts/check.sh --all` result.
+`scripts/check.sh --all` (Phases 1–10, Linux, 19 October), run after the final UI fixes:
+
+| Check | Result |
+|---|---|
+| Backend (pytest, real Postgres) | 173 passed (160 earlier + 13 new) |
+| Child-log regression, contract drift, TypeScript, production build | Passed |
+| Browser (Chromium, real local WebRTC and HTTP sandboxes) | 27 passed, 4 skipped |
+| Latency, second independent run inside the full suite | p95 930 ms turn → obstacle; 850 ms finalized turn → private cue |
+
+The skipped scenarios are the same explicit gates as in Phase 9: the live-provider gate, the 20-trial speech timing gate, and the Firefox and WebKit smoke tests.
 
 ## Not done or not verified
 

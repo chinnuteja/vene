@@ -18,7 +18,11 @@ test('sandbox execution completes the conversation loop with a reconciled office
   try{
     await post(patient,'/understanding/processing',{command_id:crypto.randomUUID(),enabled:true});
     await post(patient,'/understanding/fixture-turns',{command_id:crypto.randomUUID(),speaker:'clinician',text:'Maria will arrange the lab visit at Riverside Lab on Thursday after the office sends the order.'});
-    await expect.poll(async()=>{const v=await (await patient.request.get(base)).json();return v.plan.some((x:{title:string})=>x.title==='Arrange the lab visit');}).toBe(true);
+    // Wait until understanding has processed this turn, not merely until a lab step exists:
+    // earlier scenarios leave lab sources on this visit that an older run could cite.
+    await expect.poll(async()=>{const v=await (await patient.request.get(base)).json();const u=v.understanding;
+      return u.state==='ready'&&u.processed_revision===u.revision&&v.plan.some((x:{title:string,evidence_refs:string[]})=>x.title==='Arrange the lab visit'&&
+        v.evidence.some((e:{id:string,text:string})=>x.evidence_refs.includes(e.id)&&e.text.startsWith('Maria will arrange the lab visit at Riverside Lab on Thursday')));},{timeout:20000}).toBe(true);
     let visit=await (await patient.request.get(base)).json();let item=visit.plan.find((x:{title:string})=>x.title==='Arrange the lab visit');
     const itemId=item.id;
     async function share(){

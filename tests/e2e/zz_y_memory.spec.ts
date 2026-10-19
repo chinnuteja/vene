@@ -29,8 +29,9 @@ test('drafted preparation from open loops is approved in a few interactions and 
     // A lab confirmed after July closes July's unfinished lab; otherwise it is proposed.
     if(await confirmedLabAfterJuly(patient))await expect(card.getByText(LAB,{exact:true})).toHaveCount(0);
     else await expect(card.getByText(LAB,{exact:true})).toBeVisible();
-    await card.getByText('Why Vene suggested this').first().click();
-    await expect(card.locator('blockquote').first()).toContainText('Your question for the July visit · Check-in with Dr. Chen · Jul 12');
+    const bloodItem=card.getByRole('listitem').filter({hasText:BLOOD});
+    await bloodItem.getByText('Why Vene suggested this').click();
+    await expect(bloodItem.locator('blockquote')).toContainText('Your question for the July visit · Check-in with Dr. Chen · Jul 12');
     await card.screenshot({path:evidence('phase-11-drafted.png')});
     expect((await doctor.request.get(memory)).status()).toBe(403);
 

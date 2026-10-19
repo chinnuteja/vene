@@ -243,7 +243,10 @@ def main():
                 # Never leave a native handshake parked indefinitely. Hard stops
                 # are safe here because each room owns its process, not the FFI
                 # state of other rooms. No readiness or fixture success is faked.
-                overdue=time.monotonic()-started>15
+                # Native ICE itself waits 15 seconds before retrying. A 15-second
+                # supervisor kill raced that retry after a real server loss.
+                # Allow two ICE attempts plus signaling/backoff, still bounded.
+                overdue=time.monotonic()-started>40
                 startup_stuck=bool(overdue and (seen is None or seen<admitted_at))
                 stuck=startup_stuck or bool(error=='media_unavailable' and overdue)
                 if startup_stuck and key in wanted:service.worker_failed(engine,*key,'media_unavailable')

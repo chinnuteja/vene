@@ -92,6 +92,8 @@ test('in-room obstacle latency measured over twenty fixture turns',async({browse
   test.setTimeout(240000);
   const patient=await browser.newContext();await launch(patient);
   try{
+    await post(patient,'/understanding/processing',{command_id:crypto.randomUUID(),enabled:true});
+    await post(patient,'/feasibility/standing',{kinds:['coverage']});
     const samples:{turn_to_obstacle_ms:number,source_to_cue_ms:number}[]=[];
     for(let trial=0;trial<20;trial++){
       // Each new turn changes the step's sources, so the plan re-checks it and finds the rule again.

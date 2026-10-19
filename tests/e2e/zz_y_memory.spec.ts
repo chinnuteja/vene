@@ -44,6 +44,7 @@ test('drafted preparation from open loops is approved in a few interactions and 
     await expect(card.getByRole('status')).toContainText('Added to your list as private drafts.');
     const question=p.locator('.priority-card').filter({hasText:BLOOD});
     await expect(question).toBeVisible();
+    await question.getByText('Sharing and wording',{exact:true}).click();
     await expect(question.getByRole('checkbox',{name:'Dr. Chen',exact:true})).toBeChecked();
     await expect(question.getByRole('checkbox',{name:'Family',exact:true})).not.toBeChecked();
     // Before approval the clinician and family receive nothing new.

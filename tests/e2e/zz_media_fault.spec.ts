@@ -3,15 +3,16 @@ import {test,expect,chromium} from '@playwright/test';
 import path from 'node:path';
 import fs from 'node:fs';
 import {execFileSync,spawn} from 'node:child_process';
-import {base,launch} from './helpers';
+import {base,launch,endCall} from './helpers';
 async function state(context:any){return (await context.request.get(base+'/call',{maxRetries:2})).json();}
 test('server loss clears the call and offers a recoverable rejoin state',async({baseURL})=>{
   test.setTimeout(120000);
   test.skip(!process.env.BRING_VENE_MEDIA_PID,'Requires the owned isolated media runner.');
   const browser=await chromium.launch({...chromiumLaunch(),args:['--allow-loopback-in-peer-connection','--disable-features=WebRtcHideLocalIpsWithMdns']});
   let restarted: ReturnType<typeof spawn>|null=null;
+  let context:Awaited<ReturnType<typeof browser.newContext>>|null=null;
   try{
-    const context=await browser.newContext({baseURL});await launch(context);const page=await context.newPage();
+    context=await browser.newContext({baseURL});await launch(context);const page=await context.newPage();
     page.on('console',message=>{if(message.text().startsWith('Vene join status: '))console.log(message.text());});
     await page.goto('/visit');
     await page.getByRole('button',{name:'Join without a microphone',exact:true}).click();
@@ -32,6 +33,6 @@ test('server loss clears the call and offers a recoverable rejoin state',async({
     // Click dispatches an async control. Keep the browser and restarted media server
     // alive until its actual end acknowledgement, before another scenario starts.
     await expect.poll(async()=>(await state(context)).state).toBe('ended');
-  }finally{await browser.close();restarted?.kill();}
+  }finally{if(context)await endCall(context);await browser.close();restarted?.kill();}
 });
 

@@ -18,7 +18,7 @@ function candidates() {
   const folder = process.env.PLAYWRIGHT_BROWSERS_PATH;
   if (folder && existsSync(folder)) {
     for (const name of readdirSync(folder).filter(n => /^chromium-\d+$/.test(n)).sort().reverse()) {
-      for (const sub of ['chrome-linux64/chrome', 'chrome-linux/chrome', 'chrome-mac/Chromium.app/Contents/MacOS/Chromium', 'chrome-win/chrome.exe']) {
+      for (const sub of ['chrome-linux64/chrome', 'chrome-linux/chrome', 'chrome-mac/Chromium.app/Contents/MacOS/Chromium', 'chrome-win/chrome.exe', 'chrome-win64/chrome.exe']) {
         const file = path.join(folder, name, sub);
         if (existsSync(file)) found.push(file);
       }

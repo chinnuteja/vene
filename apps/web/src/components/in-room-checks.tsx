@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import {CircleAlert,CircleCheck,SearchCheck,ShieldCheck} from 'lucide-react';
 import {request,type Encounter,type Identity} from '@/lib/api/client';
+import {useVisitUpdates} from '@/lib/visit-updates';
 import type {components} from '../../../../packages/contracts/schema';
 type View=components['schemas']['FeasibilityView'];
 type Kind=components['schemas']['StandingRequest']['kinds'][number];
@@ -14,14 +15,11 @@ const KINDS:{id:Kind,label:string,detail:string}[]=[
 // Patient: chooses what Vene may look up during the visit. Patient and clinician: see what
 // those checks found and, if theirs to answer, respond. Family members see nothing here.
 export function InRoomChecks({visit,viewer,mode}:{visit:Encounter;viewer:Identity;mode:'permission'|'checks'}){
+  const updates=useVisitUpdates();
   const [view,setView]=useState<View|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const [chosen,setChosen]=useState<Kind[]|null>(null);
   const root='/encounters/'+visit.id+'/feasibility';const patient=viewer.role==='patient';
-  useEffect(()=>{
-    let alive=true,pending=false;
-    async function poll(){if(pending)return;pending=true;try{const data=await request<View>(root);if(alive){setView(data);setError('');}}catch(e){if(alive)setError((e as Error).message);}finally{pending=false;}}
-    void poll();const timer=setInterval(()=>void poll(),750);return()=>{alive=false;clearInterval(timer);};
-  },[root,viewer.membership_id,visit.version]);
+  useEffect(()=>{if(updates)setView(updates.feasibility);},[updates]);
   async function post(path:string,body:unknown){setBusy(true);setError('');try{setView(await request<View>(root+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}));setChosen(null);}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
   if(viewer.role==='family')return null;
   const saved=view?.standing?.kinds??[];const selection=chosen??saved;

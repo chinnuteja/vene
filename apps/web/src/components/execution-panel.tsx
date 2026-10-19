@@ -3,6 +3,7 @@ import {useDemoTools} from '@/lib/demo-tools';
 import {useEffect,useState} from 'react';
 import {CalendarCheck,CheckCircle2,Circle,CircleAlert,Clock,ShieldCheck,Users} from 'lucide-react';
 import {request,type Encounter,type Identity,type Member} from '@/lib/api/client';
+import {useVisitUpdates} from '@/lib/visit-updates';
 import type {components} from '../../../../packages/contracts/schema';
 type View=components['schemas']['ExecutionView'];
 type Action=components['schemas']['ActionView'];
@@ -38,6 +39,7 @@ function waitingOn(a:Action|undefined,errand?:Errand){
 
 export function ExecutionPanel({visit,viewer}:{visit:Encounter;viewer:Identity}){
   const demoTools=useDemoTools();
+  const updates=useVisitUpdates();
   const [view,setView]=useState<View|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
   const [pollError,setPollError]=useState('');
   const [circle,setCircle]=useState<Circle|null>(null),[family,setFamily]=useState<Member[]>([]);
@@ -48,15 +50,7 @@ export function ExecutionPanel({visit,viewer}:{visit:Encounter;viewer:Identity})
   const [notice,setNotice]=useState('');
   const root='/encounters/'+visit.id+'/execution',circleRoot='/encounters/'+visit.id+'/care-circle';
   const patient=viewer.role==='patient',clinician=viewer.role==='clinician',familyViewer=viewer.role==='family';
-  useEffect(()=>{
-    let alive=true;let pending=false;
-    async function poll(){if(pending)return;pending=true;try{
-      const [data,asks,found]=await Promise.all([request<View>(root),viewer.role==='clinician'?Promise.resolve(null):request<Circle>(circleRoot),
-        viewer.role==='family'?Promise.resolve(null):request<Feasibility>('/encounters/'+visit.id+'/feasibility')]);
-      if(alive){setView(data);setCircle(asks);setChecks(found);setPollError('');}
-    }catch(e){if(alive){setView(null);setPollError((e as Error).message);}}finally{pending=false;}}
-    void poll();const timer=setInterval(()=>void poll(),750);return()=>{alive=false;clearInterval(timer);};
-  },[root,circleRoot,viewer.membership_id,viewer.role,visit.version]);
+  useEffect(()=>{if(updates){setView(updates.execution);setCircle(updates.circle);setChecks(updates.feasibility);setPollError('');}},[updates]);
   useEffect(()=>{
     if(!patient)return;
     request<Member[]>('/encounters/'+visit.id+'/members').then(all=>setFamily(all.filter(m=>m.role==='family'&&!m.revoked))).catch(()=>setFamily([]));

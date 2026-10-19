@@ -1,7 +1,9 @@
 param([ValidateSet('fixture','live')][string]$Mode = 'fixture', [switch]$Production, [switch]$ModelLive, [switch]$TtsLive, [switch]$LiveProviders)
 . "$PSScriptRoot/common.ps1"
 $runtime = Read-Runtime
+Start-ProjectDatabase $runtime
 Set-DatabaseEnvironment $runtime
+Invoke-Checked $UvExe @('run','--frozen','alembic','-c','services/backend/alembic.ini','upgrade','head')
 $arguments = @((Join-Path $ProjectRoot 'scripts/dev.mjs'), '--mode', $Mode)
 if ($Production) { $arguments += '--production' }
 if ($ModelLive) { $arguments += '--model-live' }

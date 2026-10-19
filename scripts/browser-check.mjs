@@ -137,6 +137,11 @@ try {
   let voiceWarmed=false;for(let i=0;i<120;i++){try{const ready=JSON.parse(fs.readFileSync(env.VOICE_READY_FILE,'utf8'));if(ready.run_id===env.VOICE_RUN_ID&&ready.native_sdk_warmed){voiceWarmed=true;break;}}catch{}await new Promise(r=>setTimeout(r,500));}if(!voiceWarmed)throw new Error('Owned native voice SDK did not warm; no media pass was inferred.');
   console.log('Browser checks against isolated production frontend/API and bring_vene_test: ' + env.BRING_VENE_BASE_URL);
   const args=[path.join(root,'node_modules/@playwright/test/cli.js'),'test'];
+  if(process.env.BRING_VENE_E2E_REPEATS){
+    const repeats=Number(process.env.BRING_VENE_E2E_REPEATS);
+    if(!Number.isInteger(repeats)||repeats<1||repeats>20)throw new Error('Choose 1–20 explicit diagnostic repetitions.');
+    args.push('--repeat-each',String(repeats));
+  }
   if(process.env.BRING_VENE_E2E_GREP)args.push('--grep',process.env.BRING_VENE_E2E_GREP);
   const excluded=[];
   if(process.env.BRING_VENE_PHASE&&Number(process.env.BRING_VENE_PHASE)<3)excluded.push('WebRTC|microphone|device loss|server loss');

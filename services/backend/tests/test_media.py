@@ -301,3 +301,27 @@ def test_audio_batch_rechecks_current_authority_and_preserves_activity_windows(v
     control(p,'pause')
     assert not frame(visit_engine,p,one['connection_id'],generation,**batch)
     assert p.get(BASE+'/diagnostics').json()['receipts'][0]['samples']==1600
+
+
+def test_replaced_worker_cannot_finish_a_late_join_or_pause_its_healthy_replacement(visit_engine):
+    p,d,one,two,generation,identities,tracks=room(visit_engine)
+    old,new=uuid4(),uuid4()
+    assert service.worker_admitted(visit_engine,FIXTURE_VISIT,generation,old)
+    assert service.worker_started(visit_engine,FIXTURE_VISIT,generation,old)
+    agree(p,one['connection_id']);agree(d,two['connection_id']);assert control(p,'resume').status_code==200
+    assert service.worker_admitted(visit_engine,FIXTURE_VISIT,generation,new)
+    waiting=p.get(BASE).json();assert waiting['manual_pause'] and not waiting['worker_ready'] and waiting['gap_since']
+    assert not service.worker_started(visit_engine,FIXTURE_VISIT,generation,old)
+    assert service.worker_started(visit_engine,FIXTURE_VISIT,generation,new)
+    service.sync_room(visit_engine,FIXTURE_VISIT,generation,identities,tracks,0,True,instance=new)
+    assert control(p,'resume').status_code==200
+    before=p.get(BASE).json()
+    # These callbacks are delayed past the replacement's connected heartbeat.
+    service.worker_failed(visit_engine,FIXTURE_VISIT,generation,'media_unavailable',instance=old)
+    assert service.sync_room(visit_engine,FIXTURE_VISIT,generation,set(),{},0,True,instance=old) is None
+    assert not service.worker_started(visit_engine,FIXTURE_VISIT,generation,old)
+    after=p.get(BASE).json()
+    assert after['state']=='active' and after['revision']==before['revision']
+    assert all(c['present'] and c['consent']=='agreed' for c in after['participants'])
+    assert not frame(visit_engine,p,one['connection_id'],generation,instance=old)
+    assert frame(visit_engine,p,one['connection_id'],generation,instance=new)

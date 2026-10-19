@@ -16,6 +16,8 @@ from bring_vene.speech.player import SpeechController
 logging.basicConfig(level=logging.CRITICAL)
 for namespace in ['livekit','livekit.agents','livekit.plugins','aiohttp']:
     logging.getLogger(namespace).setLevel(logging.CRITICAL)
+from bring_vene.voice.diagnostics import install
+install()
 
 
 async def finish_connect_before_cancellation(room,url,token,options):
@@ -31,11 +33,11 @@ async def finish_connect_before_cancellation(room,url,token,options):
 
 
 class RoomWorker:
-    def __init__(self,engine,settings,visit_id,generation):
+    def __init__(self,engine,settings,visit_id,generation,instance=None):
         self.engine=engine;self.settings=settings;self.visit_id=visit_id;self.generation=generation
         self.room=rtc.Room();self.supervisor=TrackSupervisor(self.consume);self.epoch=None
         self.running=True
-        self.instance=uuid4()
+        self.instance=instance or uuid4()
         self.transport_lost=False
         self.speech=SpeechController(self.room,engine,visit_id,generation,settings)
         self.room.on('sip_dtmf_received',self.keypad)
@@ -54,14 +56,14 @@ class RoomWorker:
         asyncio.ensure_future(handle())
 
     async def fail(self,code='stt_unavailable'):
-        await asyncio.to_thread(service.worker_failed,self.engine,self.visit_id,self.generation,code)
+        await asyncio.to_thread(service.worker_failed,self.engine,self.visit_id,self.generation,code,self.instance)
 
     async def consume(self,key,track):
         connection_id,sid,track_epoch,consent_epoch=key
         stream=None;sink=None
         async def final(text,label=None):
             await asyncio.to_thread(service.finalize,self.engine,self.visit_id,self.generation,
-                connection_id,sid,track_epoch,consent_epoch,text,self.settings,label)
+                connection_id,sid,track_epoch,consent_epoch,text,self.settings,label,self.instance)
         try:
             mode=service.provider(self.settings)
             if mode=='fixture':sink=FixtureSink()
@@ -79,7 +81,7 @@ class RoomWorker:
                     for offset in range(0,frame.samples_per_channel,window)]
                 non_silent=any(activity)
                 accepted=await asyncio.to_thread(service.accept_frame,self.engine,self.visit_id,self.generation,
-                    connection_id,sid,track_epoch,consent_epoch,frame.samples_per_channel,non_silent,activity)
+                    connection_id,sid,track_epoch,consent_epoch,frame.samples_per_channel,non_silent,activity,self.instance)
                 if not accepted:break
                 # Cancellation and epoch checks precede each provider delivery. No pre-roll replay.
                 sink.push(frame)
@@ -101,10 +103,10 @@ class RoomWorker:
             print('Owned runtime connecting.',flush=True)
             await finish_connect_before_cancellation(self.room,self.settings.livekit_url,token,rtc.RoomOptions(auto_subscribe=False,single_peer_connection=True))
             print('Owned runtime connected.',flush=True)
-            await asyncio.to_thread(service.worker_started,self.engine,self.visit_id,self.generation,self.instance)
+            if not await asyncio.to_thread(service.worker_started,self.engine,self.visit_id,self.generation,self.instance):return
             from bring_vene.speech.service import recover
             await asyncio.to_thread(recover,self.engine,self.visit_id,self.generation)
-            await asyncio.to_thread(service.worker_recovered,self.engine,self.visit_id,self.generation)
+            await asyncio.to_thread(service.worker_recovered,self.engine,self.visit_id,self.generation,self.instance)
             async with api.LiveKitAPI(self.settings.livekit_url,self.settings.livekit_api_key,self.settings.livekit_api_secret) as control:
                 while self.running and not self.transport_lost and self.room.connection_state==rtc.ConnectionState.CONN_CONNECTED:
                     participants=list(self.room.remote_participants.values())
@@ -112,7 +114,7 @@ class RoomWorker:
                     tracks={p.identity:publication.sid for p in participants for publication in p.track_publications.values()
                             if publication.source==rtc.TrackSource.SOURCE_MICROPHONE}
                     state=await asyncio.to_thread(service.sync_room,self.engine,self.visit_id,self.generation,
-                        identities,tracks,len(self.supervisor.tasks)+int(self.speech.busy()))
+                        identities,tracks,len(self.supervisor.tasks)+int(self.speech.busy()),instance=self.instance)
                     if state is None:break
                     # Only authoritative current admissions remain in the room. Never trust metadata roles.
                     for p in participants:
@@ -141,7 +143,7 @@ class RoomWorker:
                     if not allowed:
                         await self.speech.stop('processing_paused')
                         await asyncio.to_thread(service.sync_room,self.engine,self.visit_id,self.generation,
-                            identities,tracks,0,True)
+                            identities,tracks,0,True,instance=self.instance)
                     await asyncio.sleep(.12)
                 if self.transport_lost or self.room.connection_state!=rtc.ConnectionState.CONN_CONNECTED:
                     await self.fail('media_unavailable')
@@ -180,7 +182,7 @@ def run_warm_runtime(connection):
             try:key=await asyncio.to_thread(connection.recv)
             except EOFError:return
             connection.close();print('Owned runtime assigned.',flush=True)
-            await RoomWorker(engine,settings,UUID(key[0]),UUID(key[1])).run()
+            await RoomWorker(engine,settings,UUID(key[0]),UUID(key[1]),UUID(key[2])).run()
         finally:await warm.aclose()
     try:asyncio.run(execute())
     finally:connection.close();engine.dispose()
@@ -264,7 +266,9 @@ def main():
                 reported_offline.clear()
                 for key in wanted:
                     if key not in jobs and spare and spare[2]:
-                        process,channel,_,_=spare;channel.send(tuple(str(x) for x in key));channel.close()
+                        instance=uuid4()
+                        if not service.worker_admitted(engine,*key,instance):continue
+                        process,channel,_,_=spare;channel.send(tuple(str(x) for x in (*key,instance)));channel.close()
                         jobs[key]=(process,time.monotonic(),datetime.now(timezone.utc));spare=None;print('Owned runtime admitted.',flush=True)
                 # Four total native runtimes, including one warm spare.
                 if spare is None and len(jobs)<4:

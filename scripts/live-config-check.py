@@ -8,7 +8,8 @@ s=Settings()
 model_key={'openai':('OPENAI_API_KEY',s.openai_api_key),'deepseek':('DEEPSEEK_API_KEY',s.deepseek_api_key)}.get(s.model_provider,('MODEL_PROVIDER (openai or deepseek)',False))
 missing=[name for name,value in [model_key,('DEEPGRAM_API_KEY',s.deepgram_api_key),
     ('CARTESIA_API_KEY',s.cartesia_api_key),('CARTESIA_VOICE_ID',s.cartesia_voice_id)] if not value]
-Path('docs/qa/phase-08-live-config.json').write_text(json.dumps({'checked_at':datetime.now(timezone.utc).isoformat(),
+Path('.local/evidence').mkdir(exist_ok=True,parents=True)
+Path('.local/evidence/live-config.json').write_text(json.dumps({'checked_at':datetime.now(timezone.utc).isoformat(),
     'model_provider':s.model_provider,'model_key_present':bool(model_key[1]),'deepgram_key_present':bool(s.deepgram_api_key),
     'cartesia_key_present':bool(s.cartesia_api_key),'cartesia_voice_present':bool(s.cartesia_voice_id),
     'missing':missing,'credential_validity':'not_established_by_presence_check'},indent=2)+'\n')

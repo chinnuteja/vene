@@ -16,6 +16,7 @@ try:
     report['status']='passed'
 except Exception as error:
     report.update(status='failed',error_type=type(error).__name__,http_status=getattr(error,'code',None))
-Path('docs/qa/phase-08-office-preflight.json').write_text(json.dumps(report,indent=2)+'\n')
+Path('.local/evidence').mkdir(exist_ok=True,parents=True)
+Path('.local/evidence/office-preflight.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
 print(json.dumps(report))
 raise SystemExit(0 if report['status']=='passed' else 1)

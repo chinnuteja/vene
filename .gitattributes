@@ -1,0 +1,3 @@
+# Generated contracts must compare identically after Windows and Linux checkouts.
+packages/contracts/*.ts text eol=lf
+packages/contracts/*.json text eol=lf

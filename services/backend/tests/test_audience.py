@@ -23,6 +23,30 @@ PRIORITY_ID = "20000000-0000-4000-8000-000000000001"
 SOURCE_ID = "30000000-0000-4000-8000-000000000001"
 
 
+def test_combined_service_stream_filters_private_room_and_rechecks_revocation(visit_engine):
+    from bring_vene.main import service_views
+    from bring_vene.persistence.models import RoomSessionRecord
+    settings = Settings(bring_vene_development=True, cookie_secure=False)
+    p, guest = [authenticated_client(create_app(settings, visit_engine), role) for role in ['patient', 'family']]
+    with Session(visit_engine) as session, session.begin():
+        session.add(RoomSessionRecord(encounter_id=FIXTURE_VISIT, session_hash='0'*64, state='active', revision=1,
+            updated_at=utc_now(), content={'people': [{'id': 'p', 'name': CANARY, 'role': 'other',
+                'agreed': True, 'attested_at': utc_now().isoformat()}], 'disclosure_at': utc_now().isoformat()}))
+    assert CANARY in json.dumps(service_views(visit_engine, p.cookies.get(COOKIE), FIXTURE_VISIT, settings))
+    assert CANARY not in json.dumps(service_views(visit_engine, guest.cookies.get(COOKIE), FIXTURE_VISIT, settings))
+    async def consume():
+        stream = view_stream(visit_engine, guest.cookies.get(COOKIE), FIXTURE_VISIT, lambda: asyncio.sleep(0, result=False),
+                             interval=0, settings=settings)
+        assert (await anext(stream)).startswith('event: snapshot')
+        packet = await anext(stream)
+        assert packet.startswith('event: services') and CANARY not in packet
+        with Session(visit_engine) as session, session.begin():
+            session.get(SessionRecord, digest(guest.cookies.get(COOKIE))).revoked_at = utc_now()
+        assert (await anext(stream)).startswith('event: access_revoked')
+        await stream.aclose()
+    asyncio.run(consume())
+
+
 def submit(client, command, **extra):
     version = client.get(BASE).json()["version"]
     return client.post(BASE + "/commands", json={"command_id": str(uuid4()), "expected_version": version,

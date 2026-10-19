@@ -214,12 +214,14 @@ def test_interrupted_processing_marks_a_gap_and_requires_resume(visit_engine):
     from test_media import room,agree,control,BASE as CALL_BASE
     from bring_vene.voice import service as voice
     p,d,one,two,generation,identities,tracks=room(visit_engine)
-    voice.worker_started(visit_engine,FIXTURE_VISIT,generation,uuid4())
+    first=uuid4();voice.worker_admitted(visit_engine,FIXTURE_VISIT,generation,first)
+    voice.worker_started(visit_engine,FIXTURE_VISIT,generation,first)
     agree(p,one['connection_id']);agree(d,two['connection_id']);assert control(p,'resume').status_code==200
     with Session(visit_engine) as session,session.begin():session.get(CallRecord,FIXTURE_VISIT).worker_seen_at=utc_now()-timedelta(seconds=5)
     # A delayed heartbeat alone is not evidence that processing restarted.
     assert voice.sync_room(visit_engine,FIXTURE_VISIT,generation,identities,tracks,0)['allowed']
-    voice.worker_started(visit_engine,FIXTURE_VISIT,generation,uuid4())
+    replacement=uuid4();voice.worker_admitted(visit_engine,FIXTURE_VISIT,generation,replacement)
+    voice.worker_started(visit_engine,FIXTURE_VISIT,generation,replacement)
     outcome=voice.sync_room(visit_engine,FIXTURE_VISIT,generation,identities,tracks,0)
     assert not outcome['allowed']
     current=p.get(CALL_BASE).json();assert current['manual_pause'] and current['gap_since']

@@ -275,11 +275,11 @@ def leave(engine,visit_id,token,csrf,connection_id,settings):
         return view(session,encounter,call,settings,member,credential)
 
 
-def sync_room(engine,visit_id,generation,identities,tracks,active_tasks,stopped=False):
+def sync_room(engine,visit_id,generation,identities,tracks,active_tasks,stopped=False,instance=None):
     """Only the owned RTC supervisor calls this; browser metadata cannot grant presence."""
     with Session(engine) as session,session.begin():
         encounter,call=lock_media_snapshot(session,visit_id)
-        if not call or call.generation!=generation or call.ended:return None
+        if not call or call.generation!=generation or call.ended or (instance is not None and call.worker_instance!=instance):return None
         changed=False
         for row in connections(session,call):
             present=identity(row) in identities and valid_connection(session,row)
@@ -302,22 +302,22 @@ def sync_room(engine,visit_id,generation,identities,tracks,active_tasks,stopped=
             'connections':{identity(c):(c.id,c.track_sid,c.track_epoch) for c in connections(session,call) if c.present and valid_connection(session,c)}}
 
 
-def permit(session,visit_id,generation,connection_id,track_sid,track_epoch,consent_epoch):
+def permit(session,visit_id,generation,connection_id,track_sid,track_epoch,consent_epoch,instance=None):
     encounter,call=lock_media_snapshot(session,visit_id)
     row=session.get(CallConnectionRecord,connection_id)
-    return bool(call and call.generation==generation and epoch(encounter)==consent_epoch and row and
+    return bool(call and call.generation==generation and (instance is None or call.worker_instance==instance) and epoch(encounter)==consent_epoch and row and
         row.encounter_id==visit_id and row.generation==generation and row.present and valid_connection(session,row) and
         row.track_sid==track_sid and row.track_epoch==track_epoch and gate(session,encounter,call))
 
 
-def accept_frame(engine,visit_id,generation,connection_id,track_sid,track_epoch,consent_epoch,samples,non_silent,activity=None):
+def accept_frame(engine,visit_id,generation,connection_id,track_sid,track_epoch,consent_epoch,samples,non_silent,activity=None,instance=None):
     activity=[non_silent] if activity is None else activity
     if not 1<=len(activity)<=5:raise ValueError('Invalid audio activity batch')
     with Session(engine) as session,session.begin():
         # Counters, current activity and stop-detection timing are transient;
         # transcripts, permission changes and playout receipts stay durable.
         session.execute(text('SET LOCAL synchronous_commit=off'))
-        if not permit(session,visit_id,generation,connection_id,track_sid,track_epoch,consent_epoch):return False
+        if not permit(session,visit_id,generation,connection_id,track_sid,track_epoch,consent_epoch,instance):return False
         receipt=session.scalar(select(AudioReceiptRecord).where(AudioReceiptRecord.connection_id==connection_id,
             AudioReceiptRecord.track_epoch==track_epoch,AudioReceiptRecord.consent_epoch==consent_epoch).with_for_update())
         now=utc_now()
@@ -331,9 +331,9 @@ def accept_frame(engine,visit_id,generation,connection_id,track_sid,track_epoch,
         return True
 
 
-def finalize(engine,visit_id,generation,connection_id,track_sid,track_epoch,consent_epoch,text,settings=None,label=None):
+def finalize(engine,visit_id,generation,connection_id,track_sid,track_epoch,consent_epoch,text,settings=None,label=None,instance=None):
     with Session(engine) as session,session.begin():
-        if not permit(session,visit_id,generation,connection_id,track_sid,track_epoch,consent_epoch):return False
+        if not permit(session,visit_id,generation,connection_id,track_sid,track_epoch,consent_epoch,instance):return False
         row=session.get(CallConnectionRecord,connection_id)
         utterance=Utterance(id=uuid4(),connection_id=row.id,membership_id=row.membership_id,track_epoch=track_epoch,
             consent_epoch=consent_epoch,text=text[:12000],finalized_at=utc_now(),provider='deepgram')
@@ -370,26 +370,37 @@ def utterances(engine,visit_id,token):
         return [Utterance.model_validate(row.content) for row in rows]
 
 
-def worker_failed(engine,visit_id,generation,code='media_unavailable'):
+def worker_failed(engine,visit_id,generation,code='media_unavailable',instance=None):
     with Session(engine) as session,session.begin():
         encounter,call=lock(session,visit_id)
-        if call and call.generation==generation and not call.ended:
+        if call and call.generation==generation and not call.ended and (instance is None or call.worker_instance==instance):
             if not call.manual_pause:call.gap_since=call.gap_since or utc_now()
             call.worker_error=code;call.manual_pause=True;bump(encounter,call)
+
+
+def worker_admitted(engine,visit_id,generation,instance):
+    """Reserve authority before native connect. A late old join cannot claim this lease."""
+    with Session(engine) as session,session.begin():
+        encounter,call=lock(session,visit_id)
+        if not call or call.generation!=generation or call.ended:return False
+        if call.worker_instance and call.worker_instance!=instance:
+            call.gap_since=call.gap_since or call.worker_seen_at or utc_now()
+            call.manual_pause=True;bump(encounter,call)
+        call.worker_instance=instance;call.worker_seen_at=None
+        return True
 
 
 def worker_started(engine,visit_id,generation,instance):
     with Session(engine) as session,session.begin():
         encounter,call=lock(session,visit_id)
-        if not call or call.generation!=generation or call.ended:return
-        if call.worker_instance and call.worker_instance!=instance and call.worker_seen_at:
-            call.gap_since=call.gap_since or call.worker_seen_at
-            call.manual_pause=True;bump(encounter,call)
+        if not call or call.generation!=generation or call.ended:return False
+        if call.worker_instance and call.worker_instance!=instance:return False
         call.worker_instance=instance;call.worker_seen_at=utc_now()
+        return True
 
 
-def worker_recovered(engine,visit_id,generation):
+def worker_recovered(engine,visit_id,generation,instance=None):
     with Session(engine) as session,session.begin():
         encounter,call=lock(session,visit_id)
-        if call and call.generation==generation and not call.ended and call.worker_error=='media_unavailable':
+        if call and call.generation==generation and not call.ended and call.worker_error=='media_unavailable' and (instance is None or call.worker_instance==instance):
             call.worker_error=None;call.manual_pause=True;bump(encounter,call)

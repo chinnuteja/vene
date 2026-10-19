@@ -36,13 +36,28 @@ def authorized_view(engine, token, encounter_id):
         return context_adapter.view(EncounterView.model_validate(record.projection), member.role, member.id)
 
 
-async def view_stream(engine, token, encounter_id, disconnected, interval=0.35):
+def service_views(engine, token, encounter_id, settings):
+    # Each domain service authenticates again and filters before serializing.
+    # These are replacements, never the private journal or unfiltered rows.
+    from bring_vene.execution.service import state as execution
+    from bring_vene.room.service import state as room
+    from bring_vene.circle.service import state as circle
+    from bring_vene.feasibility.service import state as feasibility
+    return {'execution': execution(engine, encounter_id, token, settings).model_dump(mode='json'),
+            'room': room(engine, encounter_id, token, settings).model_dump(mode='json'),
+            'circle': circle(engine, encounter_id, token).model_dump(mode='json'),
+            'feasibility': feasibility(engine, encounter_id, token).model_dump(mode='json')}
+
+
+async def view_stream(engine, token, encounter_id, disconnected, interval=0.35, settings=None):
     """Replacements only; never publish/replay the private event journal.
 
     Reads and revocation serialize on the encounter. Previously delivered bytes cannot
     be recalled. Every subsequent publication rechecks membership and current scope.
     """
+    import json
     last = None
+    last_services = None
     while not await disconnected():
         try:
             view = await asyncio.to_thread(authorized_view, engine, token, encounter_id)
@@ -52,6 +67,12 @@ async def view_stream(engine, token, encounter_id, disconnected, interval=0.35):
                 last = payload
             else:
                 yield ": keepalive\n\n"
+            if settings is not None:
+                services = await asyncio.to_thread(service_views, engine, token, encounter_id, settings)
+                serialized = json.dumps(services, separators=(',', ':'))
+                if serialized != last_services:
+                    yield f'event: services\ndata: {serialized}\n\n'
+                    last_services = serialized
         except DomainError:
             yield 'event: access_revoked\ndata: {}\n\n'
             return
@@ -216,7 +237,8 @@ def create_app(settings: Settings | None = None, engine=None):
     async def stream(encounter_id: UUID, request: Request):
         token = request.cookies.get(COOKIE)
         await asyncio.to_thread(authorized_view, db, token, encounter_id)
-        return StreamingResponse(view_stream(db, token, encounter_id, request.is_disconnected),
+        return StreamingResponse(view_stream(db, token, encounter_id, request.is_disconnected,
+                                             settings=settings if request.query_params.get('services') == 'true' else None),
                                   media_type="text/event-stream", headers={"X-Accel-Buffering": "no"})
 
     @application.post("/encounters/{encounter_id}/commands", response_model=CommandResult, dependencies=[Depends(mutation)])

@@ -12,6 +12,7 @@ try {
             if (-not $speechInput.text -or $speechInput.text.Length -gt 600) { throw 'Invalid speech input.' }
             $pcmMemory=[IO.MemoryStream]::new()
             $synthesizer.SetOutputToAudioStream($pcmMemory,$format)
+            if ($speechInput.voice) { $synthesizer.SelectVoice([string]$speechInput.voice) }
             $synthesizer.Speak([string]$speechInput.text)
             $encoded=[Convert]::ToBase64String($pcmMemory.ToArray())
             [Console]::Out.WriteLine((@{sample_rate=24000;voice=$synthesizer.Voice.Name;pcm=$encoded} | ConvertTo-Json -Compress))

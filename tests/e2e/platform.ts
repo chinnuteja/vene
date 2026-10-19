@@ -12,7 +12,8 @@ export function livekitServer(){
 // Default: Playwright's pinned Chromium. An explicit executable is used only when
 // that revision is unavailable on this machine (recorded by setup in runtime state).
 export function chromiumLaunch():{channel:'chromium'}|{executablePath:string}{
-  const explicit=process.env.BRING_VENE_CHROMIUM_PATH;
+  const recorded=path.resolve('.local/chromium.json');
+  const explicit=process.env.BRING_VENE_CHROMIUM_PATH??(fs.existsSync(recorded)?JSON.parse(fs.readFileSync(recorded,'utf8').replace(/^\uFEFF/,'')).executable:undefined);
   return explicit?{executablePath:explicit}:{channel:'chromium'};
 }
 // Test runs write evidence under ignored .local; selected files are promoted to docs/qa deliberately.

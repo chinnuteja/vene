@@ -3,6 +3,7 @@ import {useEffect,useState} from 'react';
 import {Mic,PauseCircle,ShieldCheck,Smartphone,UserPlus} from 'lucide-react';
 import {useDemoTools} from '@/lib/demo-tools';
 import {request,type Encounter,type Identity,type Member} from '@/lib/api/client';
+import {useVisitUpdates} from '@/lib/visit-updates';
 import type {components} from '../../../../packages/contracts/schema';
 type Room=components['schemas']['RoomView'];
 type Role=components['schemas']['PersonIn']['role'];
@@ -13,14 +14,13 @@ const ROLE:Record<Role,string>={clinician:'Clinician',family:'Family',other:'Som
 // a name given to a voice is attribution only, never that person's authority.
 export function InRoomMode({visit,viewer}:{visit:Encounter;viewer:Identity}){
   const demoTools=useDemoTools();
+  const updates=useVisitUpdates();
   const [room,setRoom]=useState<Room|null>(null),[members,setMembers]=useState<Member[]>([]);
   const [draft,setDraft]=useState<{name:string;role:Role}[]>([]),[name,setName]=useState(''),[role,setRole]=useState<Role>('clinician');
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
   const [fixture,setFixture]=useState({label:'S0',text:''});
   const root='/encounters/'+visit.id+'/room';const patient=viewer.role==='patient';
-  useEffect(()=>{let alive=true,pending=false;
-    async function poll(){if(pending)return;pending=true;try{const r=await request<Room>(root);if(alive){setRoom(r);setError('');}}catch(e){if(alive)setError((e as Error).message);}finally{pending=false;}}
-    void poll();const t=setInterval(()=>void poll(),1000);return()=>{alive=false;clearInterval(t);};},[root,visit.version]);
+  useEffect(()=>{if(updates)setRoom(updates.room);},[updates]);
   useEffect(()=>{if(!patient)return;request<Member[]>('/encounters/'+visit.id+'/members').then(m=>setMembers(m.filter(x=>x.role!=='patient'&&!x.revoked))).catch(()=>setMembers([]));},[patient,visit.id]);
   async function post(path:string,body?:unknown,message=''){setBusy(true);setError('');setNotice('');try{setRoom(await request<Room>(root+path,{method:'POST',headers:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)}));setNotice(message);}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
   async function pause(){setBusy(true);setError('');try{const call=await request<Call>('/encounters/'+visit.id+'/call');

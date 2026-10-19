@@ -10,7 +10,7 @@ from bring_vene.persistence.database import make_engine
 from bring_vene.persistence.models import CallRecord
 from bring_vene.voice import service
 from bring_vene.voice.supervisor import TrackSupervisor,FixtureSink,DeepgramSink,audio_stream
-from bring_vene.speech.player import SpeechController
+from bring_vene.speech.player import SpeechController,SpeechSynthesizer,PublicSpeaker
 
 # SDK/provider errors are translated into safe status codes; no transcript exception logs.
 logging.basicConfig(level=logging.CRITICAL)
@@ -33,13 +33,14 @@ async def finish_connect_before_cancellation(room,url,token,options):
 
 
 class RoomWorker:
-    def __init__(self,engine,settings,visit_id,generation,instance=None):
+    def __init__(self,engine,settings,visit_id,generation,instance=None,synthesizer=None):
         self.engine=engine;self.settings=settings;self.visit_id=visit_id;self.generation=generation
         self.room=rtc.Room();self.supervisor=TrackSupervisor(self.consume);self.epoch=None
         self.running=True
         self.instance=instance or uuid4()
         self.transport_lost=False
-        self.speech=SpeechController(self.room,engine,visit_id,generation,settings)
+        self.speech=SpeechController(self.room,engine,visit_id,generation,settings,
+            PublicSpeaker(self.room,engine,visit_id,settings,synthesizer))
         self.room.on('sip_dtmf_received',self.keypad)
         self.room.on('reconnecting',lambda:setattr(self,'transport_lost',True))
         self.room.on('disconnected',lambda _reason:setattr(self,'transport_lost',True))
@@ -104,6 +105,8 @@ class RoomWorker:
             await finish_connect_before_cancellation(self.room,self.settings.livekit_url,token,rtc.RoomOptions(auto_subscribe=False,single_peer_connection=True))
             print('Owned runtime connected.',flush=True)
             if not await asyncio.to_thread(service.worker_started,self.engine,self.visit_id,self.generation,self.instance):return
+            # Publish an empty authorized output before the first contribution; never synthesize text here.
+            await self.speech.speaker.initialize()
             from bring_vene.speech.service import recover
             await asyncio.to_thread(recover,self.engine,self.visit_id,self.generation)
             await asyncio.to_thread(service.worker_recovered,self.engine,self.visit_id,self.generation,self.instance)
@@ -177,13 +180,15 @@ def run_warm_runtime(connection):
     print('Owned runtime imports complete.',flush=True)
     async def execute():
         warm=rtc.AudioSource(24000,1,queue_size_ms=80)
+        synthesizer=SpeechSynthesizer(settings)
+        await synthesizer.warm()
         print('Owned runtime warmed.',flush=True);connection.send('ready')
         try:
             try:key=await asyncio.to_thread(connection.recv)
             except EOFError:return
             connection.close();print('Owned runtime assigned.',flush=True)
-            await RoomWorker(engine,settings,UUID(key[0]),UUID(key[1]),UUID(key[2])).run()
-        finally:await warm.aclose()
+            await RoomWorker(engine,settings,UUID(key[0]),UUID(key[1]),UUID(key[2]),synthesizer).run()
+        finally:await synthesizer.close();await warm.aclose()
     try:asyncio.run(execute())
     finally:connection.close();engine.dispose()
 

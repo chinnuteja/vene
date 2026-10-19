@@ -59,7 +59,7 @@ export async function setup(baseURL:string|undefined){
   for(const page of [p,d])page.on('console',message=>{if(message.text().startsWith('Vene join status: '))console.log(message.text());});
   await p.addInitScript(()=>{
     (window as unknown as {lastVeneAudio:number}).lastVeneAudio=0;
-    setInterval(()=>{if(document.querySelector('[data-vene-output-active="true"]'))(window as unknown as {lastVeneAudio:number}).lastVeneAudio=Date.now();},20);
+    setInterval(()=>{if(document.querySelector('[data-vene-output-active="true"]')){const observation=window as unknown as {firstVeneAudio:number;lastVeneAudio:number};if(!observation.firstVeneAudio)observation.firstVeneAudio=Date.now();observation.lastVeneAudio=Date.now();}},20);
   });
   await Promise.all([p.goto('/visit'),d.goto('/visit')]);
   await expect(p.getByRole('button',{name:'Join without a microphone',exact:true})).toBeVisible();

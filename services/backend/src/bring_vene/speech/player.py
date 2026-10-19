@@ -26,9 +26,21 @@ def offline_helper():
 
 
 class SpeechSynthesizer:
-    def __init__(self,settings):self.settings=settings;self.offline=None
+    def __init__(self,settings):self.settings=settings;self.offline=None;self.http=None;self.tts=None
+
+    async def warm(self):
+        # Opens only an empty provider connection. No private or public text is sent here.
+        if service.provider(self.settings)[0]=='cartesia' and self.tts is None:
+            import aiohttp
+            from livekit.plugins import cartesia
+            self.http=aiohttp.ClientSession()
+            self.tts=cartesia.TTS(api_key=self.settings.cartesia_api_key,model=self.settings.cartesia_model,
+                voice=self.settings.cartesia_voice_id,sample_rate=24000,http_session=self.http)
+            self.tts.prewarm()
 
     async def close(self):
+        if self.tts:await self.tts.aclose();self.tts=None
+        if self.http:await self.http.close();self.http=None
         process=self.offline;self.offline=None
         if process and process.returncode is None:
             process.kill();await process.wait()
@@ -62,15 +74,10 @@ class SpeechSynthesizer:
                 # Cancelled/failed generation discards its owned helper process.
                 if not received:await self.close()
         elif name=='cartesia':
-            import aiohttp
-            from livekit.plugins import cartesia
-            async with aiohttp.ClientSession() as http:
-                tts=cartesia.TTS(api_key=self.settings.cartesia_api_key,model=self.settings.cartesia_model,
-                    voice=self.settings.cartesia_voice_id,sample_rate=24000,http_session=http)
-                try:
-                    async with tts.synthesize(text,conn_options=APIConnectOptions(max_retry=0,timeout=8)) as stream:
-                        async for packet in stream:yield packet.frame
-                finally:await tts.aclose()
+            await self.warm()
+            async with self.tts.stream(conn_options=APIConnectOptions(max_retry=0,timeout=8)) as stream:
+                stream.push_text(text);stream.end_input()
+                async for packet in stream:yield packet.frame
         else:raise RuntimeError('tts_unconfigured')
 
 
@@ -136,10 +143,11 @@ class AuthorizedAudioOutput(io.AudioOutput):
 
 
 class PublicSpeaker:
-    def __init__(self,room,engine,visit_id,settings):
+    def __init__(self,room,engine,visit_id,settings,synthesizer=None):
         self.room=room;self.engine=engine;self.visit_id=visit_id;self.settings=settings
         self.output=None;self.session=None;self.handle=None;self.publication=None
-        self.synthesizer=SpeechSynthesizer(settings)
+        self.synthesizer=synthesizer or SpeechSynthesizer(settings)
+        self.init_lock=asyncio.Lock()
         self.watcher=SpeechFence(engine,visit_id,self.invalidate)
 
     def invalidate(self,reason):
@@ -147,6 +155,9 @@ class PublicSpeaker:
             self.output.fence=reason;self.interrupt()
 
     async def initialize(self):
+        async with self.init_lock:await self._initialize()
+
+    async def _initialize(self):
         if self.session:return
         try:
             await self.watcher.start()

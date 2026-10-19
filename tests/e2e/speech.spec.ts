@@ -62,12 +62,17 @@ test('speech latency measured through real decoded audio over twenty controlled 
       await p.getByRole('button',{name:'Help me keep track',exact:true}).click();
       const cue=p.locator('.private-cue').filter({hasText:title});
       await expect(cue.getByRole('button',{name:'Ask Vene to say this aloud',exact:true})).toBeEnabled();
+      await cue.getByRole('button',{name:'Ask Vene to say this aloud',exact:true}).scrollIntoViewIfNeeded();
       // Position the remote control before timing starts. Scrolling another
       // window must not consume a short contribution's interruption window.
       await d.getByRole('button',{name:'Unmute my microphone',exact:true}).scrollIntoViewIfNeeded();
+      await p.evaluate(()=>(window as unknown as {firstVeneAudio:number}).firstVeneAudio=0);
       const requestedAt=Date.now();await cue.getByRole('button',{name:'Ask Vene to say this aloud',exact:true}).click();
       await expect(p.locator('[data-vene-output-active="true"]')).toBeVisible({timeout:20000});
-      const receivedAt=Date.now();
+      const assertedAt=Date.now();
+      await expect.poll(()=>p.evaluate(()=>(window as unknown as {firstVeneAudio:number}).firstVeneAudio),{intervals:[20]}).toBeGreaterThan(0);
+      const receivedAt=await p.evaluate(()=>(window as unknown as {firstVeneAudio:number}).firstVeneAudio);
+      expect(receivedAt).toBeGreaterThanOrEqual(requestedAt);
       expect((await speech(patient)).receipts[0]?.state).toBe('speaking');
       await d.getByRole('button',{name:'Unmute my microphone',exact:true}).click();
       await expect.poll(async()=>(await speech(patient)).receipts[0]?.state).toBe('interrupted');
@@ -75,7 +80,7 @@ test('speech latency measured through real decoded audio over twenty controlled 
       const lastAudio=await p.evaluate(()=>(window as unknown as {lastVeneAudio:number}).lastVeneAudio);
       const receipt=(await speech(patient)).receipts[0];
       expect(receipt.stop_detected_at).toBeTruthy();expect(receipt.reason).toBe('human_interruption');
-      samples.push({trial:index+1,approval_to_received_audio_ms:receivedAt-requestedAt,
+      samples.push({trial:index+1,approval_to_received_audio_ms:receivedAt-requestedAt,approval_to_asserted_audio_ms:assertedAt-requestedAt,
         publisher_end_of_input_to_audio_ms:receipt.end_of_input_to_audio_ms,
         stop_detection_to_last_received_audio_ms:Math.max(0,lastAudio-Date.parse(receipt.stop_detected_at)),
         recognition_delay_ms:null});
@@ -85,6 +90,6 @@ test('speech latency measured through real decoded audio over twenty controlled 
     }
     const percentile=(values:number[])=>[...values].sort((a,b)=>a-b)[Math.ceil(values.length*.95)-1];
     expect((await speech(patient)).provider).toBe(liveTts?'cartesia':'fixture');
-    fs.writeFileSync(artifact('latency.json'),JSON.stringify({checked_at:new Date().toISOString(),samples:20,conditions:{transport:'local LiveKit loopback; two isolated Chromium instances with local-network permission',tts:liveTts?'Live Cartesia; original synthetic text':'Windows offline voice',question_text:title,actuation:'Remote unmute control positioned before approval; receipt must still be speaking at interruption request',human_input:'original tone WAV; three accepted 20 ms activity windows within authorized 100 ms input batches',quiet_seconds:.7,cooldown_seconds:.2,physical_microphone:false,recognition:'not exercised'},trials:samples,p95:{approval_to_received_audio_ms:percentile(samples.map(s=>s.approval_to_received_audio_ms)),publisher_end_of_input_to_audio_ms:percentile(samples.map(s=>s.publisher_end_of_input_to_audio_ms)),stop_detection_to_last_received_audio_ms:percentile(samples.map(s=>s.stop_detection_to_last_received_audio_ms))},clinical_standard:false},null,2)+'\n');
+    fs.writeFileSync(artifact('latency.json'),JSON.stringify({checked_at:new Date().toISOString(),samples:20,conditions:{transport:'local LiveKit loopback; two isolated Chromium instances with local-network permission',tts:liveTts?'Live Cartesia; original synthetic text':'Windows offline voice',question_text:title,actuation:'Remote unmute control positioned before approval; receipt must still be speaking at interruption request',human_input:'original tone WAV; three accepted 20 ms activity windows within authorized 100 ms input batches',quiet_seconds:.7,cooldown_seconds:.2,physical_microphone:false,recognition:'not exercised',receiver_observation:'20 ms sampler of decoded-audio RMS UI signal; first timestamp and later Playwright assertion retained separately'},trials:samples,p95:{approval_to_received_audio_ms:percentile(samples.map(s=>s.approval_to_received_audio_ms)),publisher_end_of_input_to_audio_ms:percentile(samples.map(s=>s.publisher_end_of_input_to_audio_ms)),stop_detection_to_last_received_audio_ms:percentile(samples.map(s=>s.stop_detection_to_last_received_audio_ms))},clinical_standard:false},null,2)+'\n');
   }finally{await finish(env);}
 });

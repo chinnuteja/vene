@@ -62,6 +62,7 @@ if(allLive){
   env.MODEL_PROVIDER=selected.stdout.trim();
 }
 
+env.VOICE_ADMISSION_WAIT_SECONDS='3';
 env.VOICE_RUN_ID=randomBytes(16).toString('hex');env.VOICE_READY_FILE=path.join(root,'.local/voice-ready-'+env.VOICE_RUN_ID+'.json');
 const understandingLog=fs.createWriteStream('.local/logs/browser-check-understanding.log',{flags:'a'});
 const understanding=spawn(python,['-m','bring_vene.understanding.worker'],{cwd:root,env,windowsHide:true,stdio:['ignore','pipe','pipe']});

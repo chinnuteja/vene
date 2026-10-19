@@ -16,7 +16,20 @@ def call_router(engine,settings,mutation):
 
     @router.post('/admit',response_model=CallAdmission,dependencies=[Depends(mutation)])
     def admit(encounter_id:UUID,request:Request):
-        return service.admit(engine,encounter_id,*credentials(request),settings)
+        admission=service.admit(engine,encounter_id,*credentials(request),settings)
+        # Commit the admission first. In an empty room the owned warm native
+        # participant can establish RTC before a listen-only human joins. Waiting
+        # is bounded; unavailable AI never fabricates readiness or blocks humans.
+        if not any(p.present for p in admission.call.participants):
+            import time
+            deadline=time.monotonic()+min(5,max(0,settings.voice_admission_wait_seconds))
+            while time.monotonic()<deadline:
+                current=service.read_call(engine,encounter_id,request.cookies.get(COOKIE),settings)
+                if current.generation!=admission.call.generation:break
+                admission.call=current
+                if current.worker_ready:break
+                time.sleep(.1)
+        return admission
 
     @router.post('/consent',response_model=CallView,dependencies=[Depends(mutation)])
     def consent(encounter_id:UUID,body:ConsentRequest,request:Request):

@@ -57,6 +57,7 @@ mkdirSync(path.join(root, '.local/logs'), { recursive: true });
 const env = { ...process.env, DATABASE_URL: runtime.database_url, BRING_VENE_MODE: mode, VOICE_PROVIDER:voiceProvider, LIVEKIT_URL:'ws://127.0.0.1:'+runtime.livekit_port, LIVEKIT_API_KEY:runtime.livekit_key, LIVEKIT_API_SECRET:runtime.livekit_secret, BRING_VENE_DEVELOPMENT: 'true', COOKIE_SECURE: 'false', NEXT_TELEMETRY_DISABLED: '1', NEXT_DIST_DIR: production ? '.next' : '.next-dev', BACKEND_URL: 'http://127.0.0.1:' + runtime.api_port };
 env.MODEL_PROVIDER=modelProvider;
 env.TTS_PROVIDER=ttsProvider;
+env.VOICE_ADMISSION_WAIT_SECONDS='3';
 env.VOICE_RUN_ID=randomBytes(16).toString('hex');env.VOICE_READY_FILE=path.join(root,'.local/voice-ready-'+env.VOICE_RUN_ID+'.json');
 env.OFFICE_URL='http://127.0.0.1:'+runtime.office_port;
 env.OFFICE_TOKEN=randomBytes(32).toString('hex');

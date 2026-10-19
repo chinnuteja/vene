@@ -81,6 +81,34 @@ def test_no_frames_before_all_consent_or_after_pause(visit_engine):
     assert p.get(BASE+'/diagnostics').json()['receipts'][0]['frames']==1
 
 
+@pytest.mark.parametrize('connected',[False,True])
+def test_first_admission_waits_for_actual_heartbeat_without_faking_it(visit_engine,monkeypatch,connected):
+    settings=SETTINGS.model_copy(update={'voice_admission_wait_seconds':.03})
+    read_call=service.read_call
+    observed=[]
+    def observe(engine,visit_id,token,configuration):
+        current=read_call(engine,visit_id,token,configuration)
+        observed.append(current)
+        if connected:
+            instance=uuid4()
+            # These transactions can acquire the visit lock only after admission
+            # committed. A heartbeat still does not authorize audio processing.
+            assert service.worker_admitted(engine,visit_id,current.generation,instance)
+            assert service.worker_started(engine,visit_id,current.generation,instance)
+            current=read_call(engine,visit_id,token,configuration)
+        return current
+    monkeypatch.setattr(service,'read_call',observe)
+    patient=authenticated_client(create_app(settings=settings,engine=visit_engine))
+    response=patient.post(BASE+'/admit')
+    assert response.status_code==200 and observed
+    result=response.json()
+    assert result['call']['worker_ready'] is connected
+    assert result['call']['manual_pause'] and result['call']['state']!='active'
+    claims=jwt.decode(result['token'],settings.livekit_api_secret,algorithms=['HS256'])
+    assert claims['sub']=='human:'+result['connection_id']
+    assert claims['video']['canPublish'] is False
+
+
 def test_silencing_output_does_not_pause_processing(visit_engine):
     p,d,one,two,generation,_,_=room(visit_engine)
     agree(p,one['connection_id']);agree(d,two['connection_id']);control(p,'resume')

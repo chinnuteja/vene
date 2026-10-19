@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     livekit_api_key: str = ""
     livekit_api_secret: str = ""
     voice_provider: str = "fixture"
+    voice_admission_wait_seconds: float = 0
     deepgram_api_key: str = ""
     deepgram_model: str = "nova-3"
     model_provider: str = "fixture"

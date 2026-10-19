@@ -52,11 +52,8 @@ def main():
             if stopped.wait(.5):raise RuntimeError('Demo startup stopped.')
         raise RuntimeError('Demo startup timed out.')
     try:
-        for module,port in [('bring_vene.main:app',8000),('bring_vene.execution.office:app',8002)]:
-            start(['uvicorn',module,'--host','127.0.0.1','--port',str(port),'--no-access-log'])
+        start(['python','-m','bring_vene.hosted_fixture'])
         ready('http://127.0.0.1:8000/health/ready')
-        start(['python','-m','bring_vene.understanding.worker'])
-        start(['python','-m','bring_vene.execution.worker'])
         start(['node','apps/web/node_modules/next/dist/bin/next','start','apps/web','--hostname','0.0.0.0','--port',env.get('PORT','10000')])
         print('Fictional guided demo started. No live voice, external calls or real bookings.',flush=True)
         while not stopped.wait(1):

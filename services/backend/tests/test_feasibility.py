@@ -73,7 +73,7 @@ def test_prior_authorization_obstacle_reaches_the_patient_privately_and_the_clin
     assert obstacle['fact']=='Evergreen Basic (fictional) requires prior authorization for this imaging.'
     assert obstacle['resolver']=='clinician' and obstacle['choices']==[]  # the patient sees it but cannot answer for the clinician
     seen=obstacles(d)[0];assert [c['id'] for c in seen['choices']]==['office_will_submit','review_later']
-    assert f.get(ROOT).json()=={'standing':None,'checking':0,'obstacles':[]}
+    assert f.get(ROOT).json()=={'standing':None,'checking':0,'failed':0,'obstacles':[]}
     assert 'standing' not in d.get(ROOT).text.replace('"standing":null','')
     [cue]=cues(visit_engine)
     assert cue.content['obstacle_id']==obstacle['id'] and 'Maria' not in cue.content['text'] and 'prior authorization' in cue.content['text']

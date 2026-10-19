@@ -28,8 +28,9 @@ async def execute(engine,settings,run_id,snapshot,gateway):
         return False
 
 
-async def run():
-    settings=Settings();engine=make_engine(settings.database_url);gateway=ModelGateway(settings);jobs={}
+async def run(settings=None,engine=None):
+    owns_engine=engine is None
+    settings=settings or Settings();engine=engine or make_engine(settings.database_url);gateway=ModelGateway(settings);jobs={}
     # One project-owned interpretation worker; a restart cannot leave a run authoritative.
     with engine.begin() as connection:
         connection.execute(update(InterpretationRunRecord).where(InterpretationRunRecord.state=='running')
@@ -55,7 +56,8 @@ async def run():
             await asyncio.sleep(.25)
     finally:
         for _,task in jobs.values():task.cancel()
-        await asyncio.gather(*(task for _,task in jobs.values()),return_exceptions=True);engine.dispose()
+        await asyncio.gather(*(task for _,task in jobs.values()),return_exceptions=True)
+        if owns_engine:engine.dispose()
 
 
 if __name__=='__main__':asyncio.run(run())

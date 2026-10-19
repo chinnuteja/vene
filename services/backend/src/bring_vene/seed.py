@@ -33,7 +33,22 @@ def seed(engine, fixture: Path | None = None):
             if not session.get(MembershipRecord, member_id):
                 session.add(MembershipRecord(id=member_id, encounter_id=view.id, role=role,
                     name={"patient": "Maria Alvarez", "clinician": "Dr. Chris Chen", "family": "Elena Alvarez"}[role]))
+    history = fixture.with_name(fixture.stem + "-history.json")
+    if history.exists():
+        seed_history(engine, EncounterView.model_validate_json(history.read_text(encoding="utf-8")))
     return view.id
+
+
+def seed_history(engine, view):
+    """An earlier fictional visit for the same patient. It has no memberships: it is reached
+    only through the patient's memory, never opened as a visit."""
+    with Session(engine) as session, session.begin():
+        if session.get(EncounterRecord, view.id):
+            return
+        session.add(EncounterRecord(id=view.id, version=view.version, projection=view.model_dump(mode="json"), updated_at=view.updated_at))
+        session.flush()
+        for evidence in view.evidence:
+            session.add(EvidenceRecord(id=evidence.id, encounter_id=view.id, content=evidence.model_dump(mode="json")))
 
 
 if __name__ == "__main__":

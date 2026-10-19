@@ -11,7 +11,7 @@ from bring_vene.execution.service import access,patient,plan_fingerprint
 from bring_vene.understanding.service import fingerprint
 from bring_vene.persistence.models import (EncounterRecord,EvidenceRecord,MembershipRecord,SessionRecord,ExecutionRecord,
     DocumentRecord,FamilyUpdateRecord,FamilyOutboxRecord,NextVisitRecord,OfficeCallbackRecord,CallRecord,OperationTraceRecord,
-    CallbackNonceRecord,DeletionAuditRecord)
+    CallbackNonceRecord,DeletionAuditRecord,MemoryOutcomeRecord)
 from bring_vene.continuity import documents
 from bring_vene.execution import errands
 from bring_vene.continuity.contracts import (ContinuityView,DocumentView,FamilyUpdateView,NextVisitCreated)
@@ -149,7 +149,8 @@ def next_visit(engine,visit_id,token,csrf,request):
         if not priorities:
             priorities=[Priority(id=uuid4(),title='What still needs an answer?',detail='Choose what to bring into this new visit.',selected=True,status='open',evidence_refs=[])]
         fresh=EncounterView(id=uuid4(),version=0,patient=view.patient.model_copy(deep=True),title='Preparing for your next visit',clinician='Your next clinician',
-            visit_at=request.visit_at,processing_state='preparing',priorities=priorities,plan=[],evidence=evidence,updated_at=utc_now())
+            visit_at=request.visit_at,processing_state='preparing',priorities=priorities,plan=[],evidence=evidence,updated_at=utc_now(),
+            coverage=view.coverage.model_copy(deep=True) if view.coverage else None)
         session.add(EncounterRecord(id=fresh.id,version=0,projection=fresh.model_dump(mode='json'),updated_at=fresh.updated_at));session.flush()
         for source in evidence:session.add(EvidenceRecord(id=source.id,encounter_id=fresh.id,content=source.model_dump(mode='json')))
         owner=MembershipRecord(id=uuid4(),encounter_id=fresh.id,role='patient',name=member.name);session.add(owner);session.flush()
@@ -175,6 +176,8 @@ def delete_encounter(engine,visit_id,token,csrf,request):
         if any(not c.ended and c.active_tasks for c in calls):raise DomainError(409,'End active processing before deleting this visit.')
         # Cascades purge projections, sources, sessions, commands, proposals, outboxes,
         # document text, callback records, next-visit copies and operational traces.
+        # Loop outcomes recorded from these visits are derived from them; earlier visits are not.
+        session.execute(delete(MemoryOutcomeRecord).where(MemoryOutcomeRecord.encounter_id.in_(ids)))
         for target_id in reversed(ids):session.execute(delete(EncounterRecord).where(EncounterRecord.id==target_id))
         session.add(DeletionAuditRecord(id=uuid4(),deleted_at=utc_now(),visit_count=len(ids)))
         return {'deleted':True,'visits_purged':len(ids),'external_reservations_cancelled':False}

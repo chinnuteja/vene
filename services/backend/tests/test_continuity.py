@@ -169,8 +169,11 @@ def test_next_preparation_is_private_and_deletion_purges_derived_content(visit_e
     result=service.delete_encounter(visit_engine,FIXTURE_VISIT,*cred(p),DeleteRequest(confirmation='DELETE SYNTHETIC VISIT',expected_version=version))
     assert result['visits_purged']==2 and not result['external_reservations_cancelled']
     with Session(visit_engine) as session:
-        for model in [EncounterRecord,DocumentRecord,FamilyUpdateRecord,OperationTraceRecord,NextVisitRecord]:
+        for model in [DocumentRecord,FamilyUpdateRecord,OperationTraceRecord,NextVisitRecord]:
             assert session.scalar(select(func.count()).select_from(model))==0
+        # The deleted visit and its next-visit copy are gone; the earlier July visit is separate history.
+        remaining={r.projection['title'] for r in session.scalars(select(EncounterRecord))}
+        assert remaining=={'Check-in with Dr. Chen'}
         assert session.scalar(select(DeletionAuditRecord)).visit_count==2
 
 def test_delete_refuses_unreconciled_external_work(visit_engine):

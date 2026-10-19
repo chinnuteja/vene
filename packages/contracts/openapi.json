@@ -579,6 +579,25 @@
         "title": "CallView",
         "type": "object"
       },
+      "CarryRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "keys": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Keys",
+            "type": "array"
+          }
+        },
+        "required": [
+          "keys"
+        ],
+        "title": "CarryRequest",
+        "type": "object"
+      },
       "ChoiceView": {
         "additionalProperties": false,
         "properties": {
@@ -1955,6 +1974,89 @@
         "title": "LookupRequest",
         "type": "object"
       },
+      "LoopSource": {
+        "additionalProperties": false,
+        "properties": {
+          "from_visit": {
+            "title": "From Visit",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "text",
+          "observed_at",
+          "from_visit"
+        ],
+        "title": "LoopSource",
+        "type": "object"
+      },
+      "LoopView": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "title": "Age",
+            "type": "string"
+          },
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "rule": {
+            "enum": [
+              "unfinished_step",
+              "unanswered_question",
+              "office_waiting",
+              "unknown_completion"
+            ],
+            "title": "Rule",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/LoopSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "rule",
+          "question",
+          "detail",
+          "days",
+          "age",
+          "sources"
+        ],
+        "title": "LoopView",
+        "type": "object"
+      },
       "MemberView": {
         "additionalProperties": false,
         "properties": {
@@ -1988,6 +2090,33 @@
           "revoked"
         ],
         "title": "MemberView",
+        "type": "object"
+      },
+      "MemoryView": {
+        "additionalProperties": false,
+        "properties": {
+          "already_listed": {
+            "default": 0,
+            "title": "Already Listed",
+            "type": "integer"
+          },
+          "loops": {
+            "items": {
+              "$ref": "#/components/schemas/LoopView"
+            },
+            "title": "Loops",
+            "type": "array"
+          },
+          "past_visits": {
+            "default": 0,
+            "title": "Past Visits",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "loops"
+        ],
+        "title": "MemoryView",
         "type": "object"
       },
       "ModeRequest": {
@@ -2168,6 +2297,31 @@
           "resolver"
         ],
         "title": "ObstacleView",
+        "type": "object"
+      },
+      "OutcomeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Key",
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "done",
+              "not_relevant"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "outcome"
+        ],
+        "title": "OutcomeRequest",
         "type": "object"
       },
       "Patient": {
@@ -2537,6 +2691,17 @@
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "loop_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Loop Key"
           },
           "selected": {
             "title": "Selected",
@@ -5832,6 +5997,146 @@
           }
         },
         "summary": "Revoke Member"
+      }
+    },
+    "/encounters/{encounter_id}/memory": {
+      "get": {
+        "operationId": "state_encounters__encounter_id__memory_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "State"
+      }
+    },
+    "/encounters/{encounter_id}/memory/carry": {
+      "post": {
+        "operationId": "carry_encounters__encounter_id__memory_carry_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CarryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Carry"
+      }
+    },
+    "/encounters/{encounter_id}/memory/outcomes": {
+      "post": {
+        "operationId": "outcome_encounters__encounter_id__memory_outcomes_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "encounter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Encounter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutcomeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Outcome"
       }
     },
     "/encounters/{encounter_id}/speech": {

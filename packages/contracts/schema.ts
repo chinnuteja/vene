@@ -798,6 +798,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/encounters/{encounter_id}/memory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** State */
+        get: operations["state_encounters__encounter_id__memory_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{encounter_id}/memory/carry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Carry */
+        post: operations["carry_encounters__encounter_id__memory_carry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{encounter_id}/memory/outcomes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Outcome */
+        post: operations["outcome_encounters__encounter_id__memory_outcomes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/encounters/{encounter_id}/speech": {
         parameters: {
             query?: never;
@@ -1335,6 +1386,11 @@ export interface components {
             transcripts_shared: false;
             /** Worker Ready */
             worker_ready: boolean;
+        };
+        /** CarryRequest */
+        CarryRequest: {
+            /** Keys */
+            keys: string[];
         };
         /** ChoiceView */
         ChoiceView: {
@@ -1880,6 +1936,40 @@ export interface components {
              */
             window: "morning" | "afternoon";
         };
+        /** LoopSource */
+        LoopSource: {
+            /** From Visit */
+            from_visit: string;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /** Text */
+            text: string;
+            /** Title */
+            title: string;
+        };
+        /** LoopView */
+        LoopView: {
+            /** Age */
+            age: string;
+            /** Days */
+            days: number;
+            /** Detail */
+            detail: string;
+            /** Key */
+            key: string;
+            /** Question */
+            question: string;
+            /**
+             * Rule
+             * @enum {string}
+             */
+            rule: "unfinished_step" | "unanswered_question" | "office_waiting" | "unknown_completion";
+            /** Sources */
+            sources: components["schemas"]["LoopSource"][];
+        };
         /** MemberView */
         MemberView: {
             /**
@@ -1896,6 +1986,21 @@ export interface components {
              * @enum {string}
              */
             role: "patient" | "clinician" | "family";
+        };
+        /** MemoryView */
+        MemoryView: {
+            /**
+             * Already Listed
+             * @default 0
+             */
+            already_listed: number;
+            /** Loops */
+            loops: components["schemas"]["LoopView"][];
+            /**
+             * Past Visits
+             * @default 0
+             */
+            past_visits: number;
         };
         /** ModeRequest */
         ModeRequest: {
@@ -1980,6 +2085,16 @@ export interface components {
              * @enum {string}
              */
             state: "open" | "resolved";
+        };
+        /** OutcomeRequest */
+        OutcomeRequest: {
+            /** Key */
+            key: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "done" | "not_relevant";
         };
         /** Patient */
         Patient: {
@@ -2130,6 +2245,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Loop Key */
+            loop_key?: string | null;
             /** Selected */
             selected: boolean;
             /**
@@ -4148,6 +4265,107 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EncounterView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    state_encounters__encounter_id__memory_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    carry_encounters__encounter_id__memory_carry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CarryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    outcome_encounters__encounter_id__memory_outcomes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OutcomeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryView"];
                 };
             };
             /** @description Validation Error */

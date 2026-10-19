@@ -1,0 +1,75 @@
+{
+  "id": "10000000-0000-4000-8000-000000000101",
+  "version": 0,
+  "patient": {
+    "id": "10000000-0000-4000-8000-000000000002",
+    "name": "Maria Alvarez",
+    "preferred_name": "Maria",
+    "age": 72
+  },
+  "title": "Check-in with Dr. Chen",
+  "clinician": "Dr. Chris Chen",
+  "visit_at": "2026-07-14T14:00:00Z",
+  "processing_state": "ended",
+  "priorities": [
+    {
+      "id": "20000000-0000-4000-8000-000000000101",
+      "title": "Do I still need to keep my blood pressure log?",
+      "detail": "I want to know whether to keep writing it down every morning.",
+      "selected": true,
+      "status": "open",
+      "evidence_refs": [
+        "30000000-0000-4000-8000-000000000102"
+      ],
+      "approved": true
+    }
+  ],
+  "plan": [
+    {
+      "id": "40000000-0000-4000-8000-000000000101",
+      "title": "Fasting lab work before the next visit",
+      "detail": "Dr. Chen asked for fasting lab work before the next visit.",
+      "owner": "Maria",
+      "timeframe": "Before the October visit",
+      "status": "draft",
+      "evidence_refs": [
+        "30000000-0000-4000-8000-000000000101"
+      ],
+      "origin": "interpretation",
+      "kind": "lab",
+      "needs_clarification": false,
+      "explanation": "From the July conversation."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "30000000-0000-4000-8000-000000000101",
+      "source_type": "conversation",
+      "title": "Conversation \u00b7 Dr. Chris Chen",
+      "text": "Please get fasting lab work done before our next visit in October.",
+      "observed_at": "2026-07-14T14:20:00Z",
+      "speaker": "Dr. Chris Chen",
+      "origin": "human"
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000102",
+      "source_type": "patient_report",
+      "title": "Your question for the July visit",
+      "text": "Do I still need to keep my blood pressure log every morning?",
+      "observed_at": "2026-07-12T10:00:00Z"
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000103",
+      "source_type": "office_message",
+      "title": "Message from the pharmacy about my refill",
+      "text": "Your Tamorin refill request needs a new prescription from Dr. Chen before we can fill it.",
+      "observed_at": "2026-10-05T16:00:00Z"
+    }
+  ],
+  "updated_at": "2026-10-05T16:00:00Z",
+  "synthetic": true,
+  "coverage": {
+    "plan": "Evergreen Basic (fictional)",
+    "member_ref": "EVG-B-1001"
+  }
+}

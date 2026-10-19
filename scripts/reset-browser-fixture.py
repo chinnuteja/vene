@@ -4,7 +4,7 @@ from pathlib import Path
 from sqlalchemy import delete
 from sqlalchemy.engine import make_url
 from bring_vene.persistence.database import make_engine
-from bring_vene.persistence.models import EncounterRecord,OfficeRequestRecord,OfficeStateRecord,OfficeFamilyReceiptRecord
+from bring_vene.persistence.models import EncounterRecord,OfficeRequestRecord,OfficeStateRecord,OfficeFamilyReceiptRecord,MemoryOutcomeRecord
 from bring_vene.seed import seed
 
 root = Path(__file__).resolve().parent.parent
@@ -18,6 +18,7 @@ try:
         connection.execute(delete(EncounterRecord))
         connection.execute(delete(OfficeRequestRecord))
         connection.execute(delete(OfficeFamilyReceiptRecord))
+        connection.execute(delete(MemoryOutcomeRecord))
         connection.execute(delete(OfficeStateRecord))
     seed(engine, root / 'fixtures/maria.json')
 finally:

@@ -39,9 +39,24 @@ def ensure_case(engine,case):
         'member_ref':{'james':'EVG-P-2002','asha':'EVG-B-3003'}[case]}
     view=EncounterView.model_validate(template)
     with Session(engine) as session,session.begin():
-        if session.get(EncounterRecord,vid):return vid # Never overwrite saved fixture changes.
-        session.add(EncounterRecord(id=vid,version=0,projection=view.model_dump(mode='json'),updated_at=view.updated_at));session.flush()
-        for source in view.evidence:session.add(EvidenceRecord(id=source.id,encounter_id=vid,content=source.model_dump(mode='json')))
-        for role,mid in members(case).items():session.add(MembershipRecord(id=mid,encounter_id=vid,role=role,
-            name=info['name'] if role=='patient' else info['family'] if role=='family' else 'Dr. Chris Chen'))
+        if not session.get(EncounterRecord,vid): # Never overwrite saved fixture changes.
+            session.add(EncounterRecord(id=vid,version=0,projection=view.model_dump(mode='json'),updated_at=view.updated_at));session.flush()
+            for source in view.evidence:session.add(EvidenceRecord(id=source.id,encounter_id=vid,content=source.model_dump(mode='json')))
+            for role,mid in members(case).items():session.add(MembershipRecord(id=mid,encounter_id=vid,role=role,
+                name=info['name'] if role=='patient' else info['family'] if role=='family' else 'Dr. Chris Chen'))
+    ensure_history(engine,case,view)
     return vid
+
+def ensure_history(engine,case,current):
+    """The same fictional July visit and pharmacy message, for this case's patient."""
+    from bring_vene.seed import seed_history
+    template=json.loads((Path(__file__).resolve().parents[4]/'fixtures/maria-history.json').read_text(encoding='utf-8'))
+    hid=uuid5(NAMESPACE_URL,'bring-vene:history:'+case);info=CASES[case]
+    template['id']=str(hid);template['patient']=current.patient.model_dump(mode='json');template['coverage']=current.coverage.model_dump(mode='json')
+    for collection in ['priorities','plan','evidence']:
+        for entry in template[collection]:
+            entry['id']=str(uuid5(hid,entry['id']))
+            if 'evidence_refs' in entry:entry['evidence_refs']=[str(uuid5(hid,x)) for x in entry['evidence_refs']]
+            for key in ['title','detail','text']:
+                if key in entry:entry[key]=entry[key].replace('Maria',info['preferred'])
+    seed_history(engine,EncounterView.model_validate(template))

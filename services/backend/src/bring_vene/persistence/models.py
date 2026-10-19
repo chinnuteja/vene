@@ -427,3 +427,12 @@ class ObstacleRecord(Base):
     content: Mapped[dict] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class MemoryOutcomeRecord(Base):
+    __tablename__ = 'memory_outcomes'
+    patient_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True)
+    loop_key: Mapped[str] = mapped_column(String(80), primary_key=True)
+    outcome: Mapped[str] = mapped_column(String(16))
+    encounter_id: Mapped[UUID | None] = mapped_column(ForeignKey('encounters.id', ondelete='SET NULL'))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

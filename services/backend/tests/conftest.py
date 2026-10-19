@@ -8,7 +8,7 @@ from sqlalchemy import delete, text
 from sqlalchemy.engine import make_url
 
 from bring_vene.persistence.database import make_engine
-from bring_vene.persistence.models import EncounterRecord, EventRecord, EvidenceRecord,OfficeRequestRecord,OfficeStateRecord,OfficeFamilyReceiptRecord
+from bring_vene.persistence.models import EncounterRecord, EventRecord, EvidenceRecord,OfficeRequestRecord,OfficeStateRecord,OfficeFamilyReceiptRecord,MemoryOutcomeRecord
 from bring_vene.seed import seed
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -48,6 +48,7 @@ def visit_engine(engine):
         connection.execute(delete(OfficeRequestRecord))
         connection.execute(delete(OfficeFamilyReceiptRecord))
         connection.execute(delete(OfficeStateRecord))
+        connection.execute(delete(MemoryOutcomeRecord))  # patient-level, not removed with encounters
     seed(engine, ROOT / "fixtures/maria.json")
     return engine
 

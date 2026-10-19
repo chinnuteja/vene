@@ -46,6 +46,8 @@ class Priority(Sharing):
     answer_detail: str | None = None
     answer_refs: list[UUID] = Field(default_factory=list)
     answer_audiences: list[Audience] = Field(default_factory=list)
+    # Set when the question was drafted from an open loop in earlier visits.
+    loop_key: str | None = None
 
 
 class PlanItem(Sharing):

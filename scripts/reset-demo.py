@@ -6,7 +6,8 @@ from sqlalchemy import select,delete
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 from bring_vene.persistence.database import make_engine
-from bring_vene.persistence.models import (EncounterRecord,NextVisitRecord,ExecutionRecord,OfficeRequestRecord,OfficeStateRecord,
+from bring_vene.domain.contracts import EncounterView
+from bring_vene.persistence.models import (MemoryOutcomeRecord,EncounterRecord,NextVisitRecord,ExecutionRecord,OfficeRequestRecord,OfficeStateRecord,
     OfficeFamilyReceiptRecord,FamilyUpdateRecord,CallRecord)
 from bring_vene.fixtures import CASES,ensure_case,visit_id
 from bring_vene.execution.office import initialize
@@ -37,7 +38,11 @@ try:
             office.content={**office.content,'mode':'normal','revision':office.content['revision']+1,'reserved':[x for x in office.content['reserved'] if x not in slots]}
         session.execute(delete(OfficeFamilyReceiptRecord).where(OfficeFamilyReceiptRecord.id.in_(update_ids)))
         session.execute(delete(OfficeRequestRecord).where(OfficeRequestRecord.request_id.in_(action_ids)))
-        for vid in reversed(ids):session.execute(delete(EncounterRecord).where(EncounterRecord.id==vid))
+        # Fictional patients' earlier visits and recorded loop outcomes reset with the demo.
+        patients={EncounterView.model_validate(r.projection).patient.id for r in session.scalars(select(EncounterRecord).where(EncounterRecord.id.in_(ids)))}
+        session.execute(delete(MemoryOutcomeRecord).where(MemoryOutcomeRecord.patient_id.in_(patients)))
+        history=[r.id for r in session.scalars(select(EncounterRecord)) if r.projection['patient']['id'] in {str(x) for x in patients} and r.id not in ids]
+        for vid in history+list(reversed(ids)):session.execute(delete(EncounterRecord).where(EncounterRecord.id==vid))
     for case in CASES:ensure_case(engine,case)
     initialize(engine)
     print('Three original fictional encounters reset and seeded in the '+('isolated test' if args.test else 'explicitly selected development')+' database.')

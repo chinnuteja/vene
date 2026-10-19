@@ -47,3 +47,4 @@
 .preparation-option{border:1px solid #dce4d5;border-radius:12px;margin:14px 0;background:#fafcf5}.preparation-option>summary{cursor:pointer;padding:17px 22px;font-size:13px;color:#607b55}.preparation-option>.card{border:0;margin:0;border-radius:0 0 12px 12px}
 .main{container-type:inline-size}.question-controls>details>summary{cursor:pointer;font-size:11px;color:#6b805f;padding:7px 0}.preparation-extras details>summary{cursor:pointer}.preparation-extras details>summary h2{font-size:23px}
 @container(max-width:650px){.hero-flower{display:none}.hero{min-height:0}.hero>div:first-child{width:100%}.hero h1{font-size:36px;max-width:100%}}
+.family-update .pill{max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.5}

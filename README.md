@@ -6,6 +6,8 @@ The visit ends with “get labs done within three days.” Then the patient gets
 
 Bring Vene catches that practical obstacle while the patient and clinician are still together. It privately compares the deadline, sourced preferences and office calendars, offers an alternative, and helps the patient raise it. The clinician sends the order. The patient approves the reservation. Everyone leaves with the same concrete next step.
 
+Try the [fictional hosted demo](https://bring-vene-concept.onrender.com/demo). It uses sample text and a labelled device voice preview. Actual live voice runs locally.
+
 ## Try it in 60 seconds
 
 Open `/demo`, then **Start demo**. Maria’s phone and Dr. Chen’s window have separate authenticated server sessions. Elena’s optional family view sees only what Maria shares.

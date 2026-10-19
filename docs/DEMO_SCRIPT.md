@@ -12,4 +12,4 @@
 
 **75–90s:** Maria taps Book Thursday 9am. Open the actual receipt. “The office confirms completion. Maria leaves with the next step underway.”
 
-All people, dates, institutions and bookings are fictional. If a provider fails, show the failure honestly. Select the guided configuration explicitly or play the recorded guided walkthrough under `.local/evidence/demo-video/`. The recording is actual UI interaction, not evidence of live-provider performance.
+All people, dates, institutions and bookings are fictional. If a provider fails, show the failure honestly. Select the guided configuration explicitly or play the recorded guided walkthrough under `.local/evidence/bring-vene-walkthrough.webm`. The recording is actual UI interaction, not evidence of live-provider performance.

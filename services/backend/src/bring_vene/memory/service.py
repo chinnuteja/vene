@@ -44,8 +44,7 @@ def state(engine, visit_id, token):
             loops.append(LoopView(key=loop.key, rule=loop.rule, question=loop.question, detail=loop.detail, days=days, age=age(days),
                 sources=[LoopSource(title=s.title, text=s.text, observed_at=s.observed_at,
                     from_visit='This visit' if s.encounter_id == view.id else
-                    (visits[s.encounter_id].title + ' · ' + short_date(visits[s.encounter_id].visit_at)) if s.encounter_id in visits
-                    else 'An earlier record') for s in loop.sources]))
+                    visits[s.encounter_id].title if s.encounter_id in visits else 'An earlier record') for s in loop.sources]))
         return MemoryView(loops=loops, already_listed=already, past_visits=len(visits))
 
 

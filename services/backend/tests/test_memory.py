@@ -33,7 +33,7 @@ def test_drafted_items_cite_stored_sources_with_correct_ages_and_skip_what_is_al
     assert found['office_waiting']['days']==8 and found['office_waiting']['age']=='8 days ago'
     for loop in body['loops']:
         assert loop['sources'] and all(s['text'] for s in loop['sources'])
-        assert loop['sources'][0]['from_visit'] in {'Check-in with Dr. Chen · Jul 14','This visit'}
+        assert loop['sources'][0]['from_visit'] in {'Check-in with Dr. Chen','This visit'}
     # The referral office message is already cited by "What is holding up my referral?".
     assert body['already_listed']==1 and body['past_visits']==1
 
@@ -149,3 +149,25 @@ def test_deleting_a_visit_purges_outcomes_recorded_from_it(visit_engine):
     with Session(visit_engine) as session:
         assert session.query(MemoryOutcomeRecord).count()==0
         assert session.get(EncounterRecord,HISTORY) is not None
+
+def test_a_carried_question_replaces_its_original_in_the_next_visit(visit_engine):
+    p,_,_=clients(visit_engine);found=loops(p)
+    p.post(ROOT+'/carry',json={'keys':[found['unanswered_question']['key']]})
+    created=p.post(f'/encounters/{FIXTURE_VISIT}/continuity/next-visit',json={'plan_ids':[],'visit_at':'2026-11-20T15:00:00Z'}).json()
+    from fastapi.testclient import TestClient
+    nxt=TestClient(create_app(SETTINGS,visit_engine));nxt.headers['x-vene-intent']='mutation'
+    nxt.post('/auth/redeem',json={'token':created['invitation']['token']})
+    questions=[l['question'] for l in nxt.get(f"/encounters/{created['encounter_id']}/memory").json()['loops']]
+    assert questions.count('Do I still need to keep my blood pressure log?')==1
+
+def test_loops_that_cite_the_same_source_merge_into_the_patients_own_question(visit_engine):
+    p,_,_=clients(visit_engine)
+    created=p.post(f'/encounters/{FIXTURE_VISIT}/continuity/next-visit',json={'plan_ids':[],'visit_at':'2026-11-20T15:00:00Z'}).json()
+    from fastapi.testclient import TestClient
+    nxt=TestClient(create_app(SETTINGS,visit_engine));nxt.headers['x-vene-intent']='mutation'
+    nxt.post('/auth/redeem',json={'token':created['invitation']['token']})
+    later=nxt.get(f"/encounters/{created['encounter_id']}/memory").json()['loops']
+    referral=[l for l in later if 'referral' in l['question'].lower()]
+    # The office message, the planned referral step and the question all cite the same message.
+    assert [l['question'] for l in referral]==['What is holding up my referral?']
+    assert any('supporting document' in s['text'] for s in referral[0]['sources'])

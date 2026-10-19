@@ -39,6 +39,7 @@ test('patient, clinician and family remain isolated through approval and live re
     await expect(d.getByRole('heading',{name:'What is holding up my referral?'})).toBeVisible();
     await expect(d.getByRole('heading',{name:'Where should I arrange my lab visit?'})).toBeVisible();
     await expect(f.getByText('No questions have been shared with you yet.')).toBeVisible();
+    await p.getByText('What Vene can carry with you',{exact:true}).click(); // sources are collapsed by default
     const sourceGroup = p.getByRole('group',{name:'Share source: Message from the referral office with'});
     await sourceGroup.getByRole('checkbox',{name:'Dr. Chen'}).click();
     await expect(sourceGroup.getByRole('checkbox',{name:'Dr. Chen'})).toBeEnabled();

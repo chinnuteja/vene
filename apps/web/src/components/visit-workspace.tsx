@@ -10,6 +10,7 @@ import {UnderstandingPanel,EvolvingVisitCard,ConversationSourceCorrection} from 
 import {ExecutionPanel} from './execution-panel';
 import {ContinuityPanel} from './continuity-panel';
 import {InRoomChecks} from './in-room-checks';
+import {DraftedAgenda} from './drafted-agenda';
 const CallPanel=dynamic(()=>import('./call-panel').then(m=>m.CallPanel),{ssr:false});
 
 type Stage = 'prepare' | 'visit' | 'follow-up';
@@ -123,6 +124,7 @@ export function VisitWorkspace({ stage }: { stage: Stage }) {
           <div className="visit-strip"><div className="calendar-icon"><CalendarDays size={22} /></div><div><strong>{visit.title}</strong><span>{date(visit.visit_at, { weekday: 'long', month: 'short', day: 'numeric' })} · {date(visit.visit_at, { hour: 'numeric', minute: '2-digit' })} ET</span></div><span className="pill">Upcoming visit</span></div>
           {stage==='visit'&&viewer&&<CallPanel visit={visit} viewer={viewer}/>}
           {stage==='visit'&&patient&&<UnderstandingPanel visit={visit} onReplace={setVisit}/>}
+          {stage === 'prepare' && patient && <DraftedAgenda visit={visit}/>}
           {stage === 'prepare' && !patient ? <GuestPreparation visit={visit} mutate={mutate} disabled={saving !== null} onSource={openSource} /> : stage === 'prepare' ? <div className="content-grid">
             <section className="card priorities"><div className="section-heading"><div><div className="eyebrow small">START WITH YOU</div><h2>What would you like to discuss?</h2></div><span className="count-pill">{selected.length} on your list</span></div><p className="muted intro">Choose what matters today. You can change your list.</p>
               <div className="priority-list">{visit.priorities.map((p, i) => <div key={p.id} className={'priority-card ' + (p.selected ? 'selected' : '')}>

@@ -53,6 +53,8 @@ class PostgresMemory:
         recorded = {row.loop_key for row in session.scalars(select(MemoryOutcomeRecord).where(
             MemoryOutcomeRecord.patient_id == patient_id))}
         answered = {p.loop_key for _, view in visits for p in view.priorities if p.loop_key and p.status == 'answered'}
+        # A carried question takes over from the loop it came from; only the latest copy can stay open.
+        carried = {p.loop_key: view.visit_at for _, view in visits for p in view.priorities if p.loop_key}
 
         def completed_later(kind, since):
             # A later confirmed errand of the same kind closes an earlier unfinished one.
@@ -105,6 +107,35 @@ class PostgresMemory:
         # Every proposal must cite at least one stored source; resolved loops never return.
         unique = {}
         for loop in loops:
+            if loop.key in carried and carried[loop.key] < as_of:
+                continue
             if loop.sources and loop.key not in recorded and loop.key not in answered:
                 unique.setdefault(loop.key, loop)
-        return sorted(unique.values(), key=lambda loop: loop.since)
+        return sorted(merge(unique.values()), key=lambda loop: loop.since)
+
+
+# When loops cite the same source they are one piece of unfinished business. The patient's own
+# question wording wins; a request sent but never confirmed is more specific than the planned step
+# it came from; an office message is the least specific.
+PREFERENCE = ['unanswered_question', 'unknown_completion', 'unfinished_step', 'office_waiting']
+
+
+def merge(loops):
+    groups = []
+    for loop in loops:
+        ids = {s.id for s in loop.sources}
+        joined = [g for g in groups if g['ids'] & ids]
+        group = {'ids': set(ids), 'loops': [loop]}
+        for other in joined:
+            group['ids'] |= other['ids']
+            group['loops'] += other['loops']
+            groups.remove(other)
+        groups.append(group)
+    merged = []
+    for group in groups:
+        members = sorted(group['loops'], key=lambda l: (PREFERENCE.index(l.rule), l.since))
+        lead = members[0]
+        sources = list({s.id: s for l in members for s in l.sources}.values())
+        merged.append(OpenLoop(key=lead.key, rule=lead.rule, question=lead.question, detail=lead.detail,
+                               since=min(l.since for l in members), sources=sources))
+    return merged

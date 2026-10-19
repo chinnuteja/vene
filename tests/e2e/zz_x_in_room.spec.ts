@@ -54,7 +54,7 @@ test('in-room obstacle reaches the patient privately and the clinician resolves 
     const spokenTexts=speech.cues.map((c:{public_text:string})=>c.public_text).join(' ');
     for(const name of ['Lorvexa','Tamorin','Celvane','Maria'])expect(spokenTexts).not.toContain(name);
     expect((await (await doctor.request.get(base+'/speech')).json()).cues).toEqual([]);
-    expect(await (await doctor.request.get(checks)).json()).toEqual({standing:null,checking:0,obstacles:[]});
+    expect(await (await doctor.request.get(checks)).json()).toEqual({standing:null,checking:0,failed:0,obstacles:[]});
     await panel.screenshot({path:evidence('phase-10-patient-obstacles.png')});await cue.screenshot({path:evidence('phase-10-private-cue.png')});
 
     // Shared with the clinician: they see the same facts and answer in their own view.
@@ -63,7 +63,7 @@ test('in-room obstacle reaches the patient privately and the clinician resolves 
     const clinicianPanel=d.getByRole('region',{name:'In-visit checks',exact:true});
     const auth=clinicianPanel.getByRole('article',{name:'Obstacle: Schedule the imaging',exact:true});
     await expect(auth).toBeVisible();
-    expect(await (await family.request.get(checks)).json()).toEqual({standing:null,checking:0,obstacles:[]});
+    expect(await (await family.request.get(checks)).json()).toEqual({standing:null,checking:0,failed:0,obstacles:[]});
     await clinicianPanel.screenshot({path:evidence('phase-10-clinician-obstacles.png')});
     await auth.getByRole('button',{name:'The office will submit prior authorization',exact:true}).click();
     await clinicianPanel.getByRole('article',{name:'Obstacle: Pick up the new prescription',exact:true}).getByRole('button',{name:"I'll review coverage",exact:true}).click();

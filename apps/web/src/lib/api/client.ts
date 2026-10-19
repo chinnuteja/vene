@@ -24,6 +24,8 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
         'Share a next step and its sources with everyone present before requesting a closeout.',
         'Share the question or step and its sources with everyone present first.',
         'Everyone present must agree to this speaking mode.',
+        'Ask after the reservation is confirmed, and share this step and its sources with this person first.',
+        'These steps changed. Review them again.',
       ]);
       throw new Error(guidance.has(body?.detail) ? body.detail : 'Your visit changed in another window. Refresh and try again.');
     }

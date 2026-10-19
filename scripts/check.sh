@@ -5,7 +5,7 @@ PHASE=1
 while [ $# -gt 0 ]; do
   case "$1" in --phase) PHASE="$2"; shift 2 ;; --all) PHASE=all; shift ;; *) echo "Unknown option: $1" >&2; exit 1 ;; esac
 done
-IMPLEMENTED=8
+IMPLEMENTED=9
 if [ "$PHASE" = all ]; then PHASE=$IMPLEMENTED; echo "All implemented checks: Phases 1-$IMPLEMENTED. Live STT/model/TTS and physical acoustics remain separate gates."; fi
 [[ "$PHASE" =~ ^[0-9]+$ ]] && [ "$PHASE" -ge 1 ] && [ "$PHASE" -le "$IMPLEMENTED" ] || { echo "Only Phases 1-$IMPLEMENTED checks are implemented. Later phases cannot be declared passed." >&2; exit 1; }
 require_runtime

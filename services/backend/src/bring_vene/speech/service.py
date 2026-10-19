@@ -151,10 +151,11 @@ def refresh(session,encounter,call,row,view,settings):
         if action.state not in {'no_slot','suggested','confirmed','unknown'} or not scope_valid(session,view,action):continue
         if action.state in {'no_slot','suggested'} and not fresh(action):continue
         data=action.content;errand=errands.for_action(data)
-        text=('The sandbox '+errand.place+' found no '+data['window']+' '+errand.offered+'. Could we clarify another window?' if action.state=='no_slot' else
-            'The sandbox '+errand.place+' reports: '+data['message'])
+        place='office' if errand.kind=='lab' else errand.place  # Lab keeps its Phase 6 spoken wording.
+        text=('The sandbox '+place+' found no '+data['window']+' '+errand.offered+'. Could we clarify another '+('appointment window' if errand.kind=='lab' else 'window')+'?' if action.state=='no_slot' else
+            'The sandbox '+place+' reports: '+data['message'])
         make_cue(session,encounter,call,row,view,settings,key='office:'+str(action.id)+':'+action.state+':'+snapshot(action)[:12],
-            title='Office check · '+data['title'],suggestion=data['message']+' Source: local sandbox '+errand.place+', checked '+data.get('checked_at','unknown')+'.',
+            title='Office check · '+data['title'],suggestion=data['message']+' Source: local sandbox '+place+', checked '+data.get('checked_at','unknown')+'.',
             text=text,score=180,refs={'plan_ids':[str(action.item_id)],'execution_snapshots':{str(action.id):snapshot(action)}})
     session.flush()
     # Bound the actionable queue; an old history is not a live generation queue.

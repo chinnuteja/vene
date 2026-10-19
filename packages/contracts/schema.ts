@@ -1537,6 +1537,28 @@ export interface components {
              */
             visit_at: string;
         };
+        /** ErrandOption */
+        ErrandOption: {
+            /** Confirmed */
+            confirmed: string;
+            /** Days */
+            days: {
+                [key: string]: unknown;
+            }[];
+            /** Document */
+            document: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "lab" | "imaging" | "referral" | "prescription";
+            /** Locations */
+            locations: string[];
+            /** Offered */
+            offered: string;
+            /** Place */
+            place: string;
+        };
         /** EventEnvelope */
         EventEnvelope: {
             /**
@@ -1605,6 +1627,11 @@ export interface components {
             actions: components["schemas"]["ActionView"][];
             /** Configured */
             configured: boolean;
+            /**
+             * Errands
+             * @default []
+             */
+            errands: components["schemas"]["ErrandOption"][];
             /**
              * Sandbox
              * @default true

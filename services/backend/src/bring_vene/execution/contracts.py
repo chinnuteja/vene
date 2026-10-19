@@ -65,7 +65,17 @@ class ActionView(BaseModel):
     patient_authorized: bool = False
     scope_allowed: bool = False
 
+class ErrandOption(BaseModel):
+    kind: Literal['lab','imaging','referral','prescription']
+    place: str
+    document: str
+    offered: str
+    confirmed: str
+    locations: list[str]
+    days: list[dict]
+
 class ExecutionView(BaseModel):
     sandbox: Literal[True] = True
     configured: bool
     actions: list[ActionView]
+    errands: list[ErrandOption] = []

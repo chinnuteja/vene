@@ -1276,6 +1276,62 @@
         "title": "EncounterView",
         "type": "object"
       },
+      "ErrandOption": {
+        "properties": {
+          "confirmed": {
+            "title": "Confirmed",
+            "type": "string"
+          },
+          "days": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "document": {
+            "title": "Document",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "lab",
+              "imaging",
+              "referral",
+              "prescription"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "locations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Locations",
+            "type": "array"
+          },
+          "offered": {
+            "title": "Offered",
+            "type": "string"
+          },
+          "place": {
+            "title": "Place",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "place",
+          "document",
+          "offered",
+          "confirmed",
+          "locations",
+          "days"
+        ],
+        "title": "ErrandOption",
+        "type": "object"
+      },
       "EventEnvelope": {
         "additionalProperties": false,
         "properties": {
@@ -1461,6 +1517,14 @@
           "configured": {
             "title": "Configured",
             "type": "boolean"
+          },
+          "errands": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ErrandOption"
+            },
+            "title": "Errands",
+            "type": "array"
           },
           "sandbox": {
             "const": true,

@@ -52,7 +52,8 @@ test('packaging variations exercise distinct dates locations dependencies and pr
       const familyPayload=await (await family.request.get(root+'/execution')).text();expect(familyPayload).not.toContain('PRIVATE_CANARY');expect(familyPayload).not.toContain('session_hash');
       await p.goto('/follow-up');await expect(p.getByRole('region',{name:'After-visit continuity',exact:true})).toBeVisible();
       await expect(p.getByText('Reservation confirmed',{exact:true})).toBeVisible();
-      await expect(p.getByLabel('Requested date for '+step.title,{exact:true})).toHaveValue(date);
+      // A sent or confirmed step shows its booked slot instead of the request form.
+      await expect(p.getByText(result.slot.label,{exact:true}).first()).toBeVisible();
       await p.evaluate(()=>{if(document.activeElement instanceof HTMLElement)document.activeElement.blur();window.scrollTo(0,0);});
       await p.screenshot({path:evidence('phase-08-')+caseName+'-desktop.png',fullPage:true});
       outcomes.push({case:caseName,encounter_id:identity.encounter_id,date,place,window,missing_order_blocked:true,office_rejection_exercised:caseName==='james',receipt_id:result.receipt.receipt_id,private_payload_absent:true});

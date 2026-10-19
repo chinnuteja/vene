@@ -145,6 +145,7 @@ try {
   if(process.env.BRING_VENE_PHASE&&Number(process.env.BRING_VENE_PHASE)<6)excluded.push('sandbox execution');
   if(process.env.BRING_VENE_PHASE&&Number(process.env.BRING_VENE_PHASE)<7)excluded.push('continuity recovery');
   if(process.env.BRING_VENE_PHASE&&Number(process.env.BRING_VENE_PHASE)<8)excluded.push('packaging');
+  if(process.env.BRING_VENE_PHASE&&Number(process.env.BRING_VENE_PHASE)<9)excluded.push('walk-out');
   if(excluded.length)args.push('--grep-invert',excluded.join('|'));
   // Keep this event loop alive: API/media/worker pipe logs must drain throughout
   // the suite. A synchronous CLI wait can fill an access-log pipe and stall HTTP.

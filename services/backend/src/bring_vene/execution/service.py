@@ -11,7 +11,7 @@ from bring_vene.domain.service import DomainError,utc_now
 from bring_vene.persistence.models import (EncounterRecord,ExecutionRecord,ExecutionScopeRecord,ExecutionOutboxRecord,
     SessionRecord,MembershipRecord)
 from bring_vene.understanding.service import fingerprint
-from bring_vene.execution.contracts import ExecutionView,ActionView,BundleOutcome,BundleResult
+from bring_vene.execution.contracts import ExecutionView,ActionView,BundleOutcome,BundleResult,ErrandOption
 from bring_vene.execution import errands
 from bring_vene.execution.gateway import OfficeGateway
 
@@ -107,7 +107,9 @@ def state(engine,visit_id,token,settings):
                 fingerprint=data['plan_fingerprint'] if member.role in {'patient','clinician'} and current else None,
                 clinician_confirmed=bool(data.get('clinician_id')),order_available=bool(data.get('order_id')),
                 patient_authorized=bool(data.get('approved_at')),scope_allowed=allowed if member.role=='patient' else False))
-        return ExecutionView(configured=bool(settings.office_url and settings.office_token),actions=actions)
+        catalog=[ErrandOption(kind=e.kind,place=e.place,document=e.document,offered=e.offered,confirmed=e.confirmed,
+            locations=list(e.locations),days=[{'day':day,'label':label} for day,label in e.days]) for e in errands.ERRANDS.values()]
+        return ExecutionView(configured=bool(settings.office_url and settings.office_token),actions=actions,errands=catalog)
 
 def scope(engine,visit_id,item_id,token,csrf,request):
     with Session(engine) as session,session.begin():
@@ -210,7 +212,7 @@ def approve_action(session,view,action,digest):
     if not action.content.get('clinician_id'):dependencies.append('clinician confirmation')
     if not action.content.get('order_id'):dependencies.append('required sandbox '+('order' if errand.kind=='lab' else errand.document))
     if dependencies:
-        message='Waiting on '+', '.join(dependencies)+'. Nothing was sent.'
+        message='Waiting on '+', '.join(dependencies)+('. No booking dispatched.' if errand.kind=='lab' else '. Nothing was sent.')
         action.content={**action.content,'message':message}
         return 'waiting',message
     message='You approved this exact sandbox request. Queued for the '+errand.place+'.'

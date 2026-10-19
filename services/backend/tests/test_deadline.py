@@ -119,3 +119,18 @@ def test_calendar_timeout_is_visible_to_patient_and_a_retry_uses_a_fresh_check(v
     assert feasibility.tick(visit_engine,SETTINGS,calendar)
     view=p.get(root+'/feasibility').json()
     assert view['failed']==0 and len(view['obstacles'])==1
+
+
+def test_sharing_instruction_and_preference_is_one_authorized_atomic_change(visit_engine):
+    run,clients,_=scenario(visit_engine);p,d=clients['patient'],clients['clinician'];root='/encounters/'+run
+    item=plan(visit_engine,run,p);view=p.get(root).json();ids=[item['id'],*item['evidence_refs'],view['lab_preference']['source_id']]
+    changes=[{'item_id':id,'audiences':['clinician']}for id in set(ids)]
+    def command(changes):return {'command_id':str(uuid4()),'expected_version':view['version'],'command':{'type':'sharing.batch_changed','changes':changes}}
+    assert d.post(root+'/commands',json=command(changes)).status_code==403
+    assert p.post(root+'/commands',json=command(changes+[{'item_id':str(uuid4()),'audiences':['clinician']}])).status_code==404
+    assert p.get(root).json()['version']==view['version'] and d.get(root).json()['evidence']==[]
+    request=command(changes);r=p.post(root+'/commands',json=request)
+    assert r.status_code==200 and r.json()['encounter']['version']==view['version']+1
+    assert p.post(root+'/commands',json=request).json()['duplicate']
+    shared=d.get(root).json();assert len(shared['plan'])==1 and len(shared['evidence'])==2
+    assert all('family'not in source['audiences']for source in p.get(root).json()['evidence'])

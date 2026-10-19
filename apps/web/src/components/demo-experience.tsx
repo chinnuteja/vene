@@ -40,6 +40,8 @@ export function DemoExperience(){
   const patient=viewer?.role==='patient',doctor=viewer?.role==='clinician',guided=config?.transport==='guided',fixture=config?.stt==='fixture';
   const item=visit?.plan.find(p=>p.kind==='lab'),obstacle=services?.feasibility.obstacles.find(o=>o.item_id===item?.id&&o.alternative);
   const action=services?.execution.actions.find(a=>a.item_id===item?.id),confirmed=action?.state==='confirmed';
+  const settled=visit?.understanding?.state==='ready'&&visit.understanding.revision===visit.understanding.processed_revision&&(fixture||!!speech&&speech.floor!=='paused'&&speech.quiet_for_seconds>=1);
+  useEffect(()=>{if(action?.state==='invalidated')setShared(false);},[action?.state]);
   useEffect(()=>{
     if(!visit||!viewer)return;
     if(patient){parent.postMessage({type:'vene-demo-checks',run:visit.id,role:'patient',enabled:visit.understanding?.enabled===true},location.origin);return;}
@@ -57,11 +59,13 @@ export function DemoExperience(){
   async function raise(){
     if(!item||!obstacle)return;
     const refs=[item.id,...item.evidence_refs,...(obstacle.supporting_sources??[])];
+    const current=await request<Encounter>(root),changes=[];
     for(const id of [...new Set(refs)]){
-      const current=await request<Encounter>(root),target=[...current.plan,...current.evidence].find(e=>e.id===id);
+      const target=[...current.plan,...current.evidence].find(e=>e.id===id);
       if(!target)throw new Error('The source changed. Review the new instruction first.');
-      if(!(target.audiences??[]).includes('clinician'))setVisit(await sendCommand(current,{type:'sharing.changed',item_id:id,audiences:[...(target.audiences??[]),'clinician']}));
+      if(!(target.audiences??[]).includes('clinician'))changes.push({item_id:id,audiences:[...(target.audiences??[]),'clinician' as const]});
     }
+    if(changes.length)setVisit(await sendCommand(current,{type:'sharing.batch_changed',changes}));
     await post('/execution/items/'+item.id+'/scope',{allowed:true});
     await post('/execution/items/'+item.id+'/lookup',{window:'morning',location:obstacle.alternative!.location,day:obstacle.alternative!.day});
     setShared(true);
@@ -91,7 +95,7 @@ export function DemoExperience(){
     {item&&<section className="demo-step"><span className="eyebrow small">{patient?'FROM YOUR CONVERSATION':'SHARED NEXT STEP'}</span><h2>Labs, {item.timeframe||'timing to clarify'}.</h2><p>{item.timeframe} · proposed by the clinician</p><small>Source: {visit.evidence.find(e=>item.evidence_refs.includes(e.id))?.speaker||'visit instruction'}</small></section>}
     {patient&&item&&!obstacle&&!confirmed&&<p className="demo-progress" role="status">{services?.feasibility.failed?'The calendar did not return a verified result.':services?.feasibility.checking?'Checking the requested deadline with the lab calendars…':'No alternative has been confirmed.'}{!!services?.feasibility.failed&&<button className="small-button" disabled={busy} onClick={()=>void act(async()=>{await post('/feasibility/standing',{kinds:['scheduling']});})}>Retry calendar check</button>}</p>}
     {patient&&obstacle&&!confirmed&&<section id="private-alternative" className="demo-alternative" aria-label="Private appointment alternative"><span><Sparkles size={14}/>JUST FOR YOU</span><h2>There’s a way to get this done on time.</h2><p>{obstacle.fact}</p><div className="demo-slot"><CalendarCheck size={24}/><div><strong>Thursday · 9:00 am</strong><small>Northside · before your deadline</small></div></div>
-      {!shared?<><p className="demo-share-review">Share this lab instruction and your Riverside preference with Dr. Chen, allow a Northside lookup, and invite Vene to raise this exact fact aloud.</p><button className="primary-button" disabled={busy} onClick={()=>void act(raise)}><Volume2 size={15}/>{busy?'Checking the current facts…':'Raise this with Dr. Chen'}</button></>:<p className="demo-shared"><Check size={14}/>Shared with Dr. Chen. {preview?'Device voice preview requested.':'Spoken contribution requested.'}</p>}
+      {!shared?<><p className="demo-share-review">Share this lab instruction and your Riverside preference with Dr. Chen, allow a Northside lookup, and invite Vene to raise this exact fact aloud.</p><button className="primary-button" disabled={busy||!settled} onClick={()=>void act(raise)}><Volume2 size={15}/>{busy?'Checking the current facts…':!settled?'Finishing the latest instruction…':'Raise this with Dr. Chen'}</button></>:<p className="demo-shared"><Check size={14}/>Shared with Dr. Chen. {preview?'Device voice preview requested.':'Spoken contribution requested.'}</p>}
       <small className="demo-source-note">Checked against the sandbox lab calendar. Slots can change.</small></section>}
     {doctor&&!item&&<section className="demo-guest-empty"><ShieldCheck size={25}/><h2>Only what Maria shares.</h2><p>Her private preferences and appointment suggestions are absent from this session.</p></section>}
     {doctor&&action?.state==='suggested'&&<section className="demo-clinician-action"><span className="eyebrow small">YOUR CLINICAL DECISION</span><h2>Northside is in time.</h2><p>Maria shared the lab step and asked about Thursday 9am. Confirm that this is intended, then issue the required sandbox lab order.</p><button className="primary-button" disabled={busy||action.order_available} onClick={()=>void act(async()=>{await post('/execution/actions/'+action.id+'/prerequisites',{expected_fingerprint:action.fingerprint,order:true});})}>{action.order_available?'Order sent ✓':'Confirm & send lab order'}</button><small>This records your decision. The model cannot issue an order.</small></section>}

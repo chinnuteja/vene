@@ -132,7 +132,7 @@ def set_standing(engine, visit_id, token, csrf, request):
 
 def enqueue(engine):
     with Session(engine) as session, session.begin():
-        for standing in session.scalars(select(StandingCheckRecord)).all():
+        for standing in session.scalars(select(StandingCheckRecord).where(StandingCheckRecord.kinds!=[])).all():
             encounter = session.get(EncounterRecord, standing.encounter_id)
             if not encounter:
                 continue

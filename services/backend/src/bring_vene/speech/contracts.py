@@ -73,6 +73,7 @@ class SpeechView(Contract):
     provider: Literal['fixture','cartesia','unavailable']
     provider_model: str
     quiet_seconds: float
+    quiet_for_seconds: float = 0
     consents: list[SpeakingConsent]
     cues: list[PrivateCue]
     receipts: list[SpeechReceipt]

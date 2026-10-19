@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from bring_vene.domain.contracts import (
     CommandEnvelope, CommandResult, EncounterView, EventEnvelope,
     PrioritySelectionChanged, TitleChanged,
-    SharingChanged, PreparationApproved, PriorityEdited, SuggestionAdded, SuggestionReviewed, Suggestion, Priority,
+    SharingChanged, SharingBatchChanged, PreparationApproved, PriorityEdited, SuggestionAdded, SuggestionReviewed, Suggestion, Priority,
 )
 from bring_vene.persistence.models import EncounterRecord, EventRecord, EvidenceRecord
 
@@ -91,6 +91,14 @@ def apply_command(engine, encounter_id: UUID, request: CommandEnvelope, clock=ut
             item.audiences = sorted(set(command.audiences))
             if isinstance(item, Priority) and item.answer_refs:
                 item.answer_audiences = sorted(set(command.audiences))
+        elif isinstance(command,SharingBatchChanged):
+            ids=[change.item_id for change in command.changes]
+            if len(ids)!=len(set(ids)):raise DomainError(422,'Review each sharing choice once.')
+            items={item.id:item for item in [*view.priorities,*view.plan,*view.evidence]}
+            if any(item_id not in items for item_id in ids):raise DomainError(404,'Item not found.')
+            for change in command.changes:
+                item=items[change.item_id];item.audiences=sorted(set(change.audiences))
+                if isinstance(item,Priority) and item.answer_refs:item.answer_audiences=list(item.audiences)
         elif isinstance(command, PreparationApproved):
             view.preparation_approved = command.approved
             for priority in view.priorities:

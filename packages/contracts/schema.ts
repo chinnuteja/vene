@@ -1663,7 +1663,7 @@ export interface components {
         /** CommandEnvelope */
         CommandEnvelope: {
             /** Command */
-            command: components["schemas"]["TitleChanged"] | components["schemas"]["PrioritySelectionChanged"] | components["schemas"]["SharingChanged"] | components["schemas"]["PreparationApproved"] | components["schemas"]["PriorityEdited"] | components["schemas"]["SuggestionAdded"] | components["schemas"]["SuggestionReviewed"];
+            command: components["schemas"]["TitleChanged"] | components["schemas"]["PrioritySelectionChanged"] | components["schemas"]["SharingChanged"] | components["schemas"]["SharingBatchChanged"] | components["schemas"]["PreparationApproved"] | components["schemas"]["PriorityEdited"] | components["schemas"]["SuggestionAdded"] | components["schemas"]["SuggestionReviewed"];
             /**
              * Command Id
              * Format: uuid
@@ -1965,7 +1965,7 @@ export interface components {
              */
             accepted_at: string;
             /** Command */
-            command: components["schemas"]["TitleChanged"] | components["schemas"]["PrioritySelectionChanged"] | components["schemas"]["SharingChanged"] | components["schemas"]["PreparationApproved"] | components["schemas"]["PriorityEdited"] | components["schemas"]["SuggestionAdded"] | components["schemas"]["SuggestionReviewed"];
+            command: components["schemas"]["TitleChanged"] | components["schemas"]["PrioritySelectionChanged"] | components["schemas"]["SharingChanged"] | components["schemas"]["SharingBatchChanged"] | components["schemas"]["PreparationApproved"] | components["schemas"]["PriorityEdited"] | components["schemas"]["SuggestionAdded"] | components["schemas"]["SuggestionReviewed"];
             /**
              * Command Id
              * Format: uuid
@@ -2820,6 +2820,16 @@ export interface components {
             /** Allowed */
             allowed: boolean;
         };
+        /** SharingBatchChanged */
+        SharingBatchChanged: {
+            /** Changes */
+            changes: components["schemas"]["SharingSelection"][];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "sharing.batch_changed";
+        };
         /** SharingChanged */
         SharingChanged: {
             /** Audiences */
@@ -2834,6 +2844,16 @@ export interface components {
              * @enum {string}
              */
             type: "sharing.changed";
+        };
+        /** SharingSelection */
+        SharingSelection: {
+            /** Audiences */
+            audiences: ("clinician" | "family")[];
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
         };
         /** SourceCorrection */
         SourceCorrection: {
@@ -2973,6 +2993,11 @@ export interface components {
             provider: "fixture" | "cartesia" | "unavailable";
             /** Provider Model */
             provider_model: string;
+            /**
+             * Quiet For Seconds
+             * @default 0
+             */
+            quiet_for_seconds: number;
             /** Quiet Seconds */
             quiet_seconds: number;
             /** Receipts */

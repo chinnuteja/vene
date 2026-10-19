@@ -263,6 +263,7 @@ def create_app(settings: Settings | None = None, engine=None):
         token = request.cookies.get(COOKIE)
         await asyncio.to_thread(authorized_view, db, token, encounter_id)
         return StreamingResponse(view_stream(db, token, encounter_id, request.is_disconnected,
+                                             interval=1 if settings.demo_guided else .35,
                                              settings=settings if request.query_params.get('services') == 'true' else None),
                                   media_type="text/event-stream", headers={"X-Accel-Buffering": "no"})
 

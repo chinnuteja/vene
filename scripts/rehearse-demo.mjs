@@ -11,11 +11,12 @@ if(!destination.startsWith(path.resolve('.local/evidence')))throw new Error('Dem
 fs.mkdirSync(destination,{recursive:true});
 const recorded=fs.existsSync('.local/chromium.json')?JSON.parse(fs.readFileSync('.local/chromium.json','utf8').replace(/^\uFEFF/,'')):null;
 const browser=await chromium.launch({...recorded?{executablePath:recorded.executable}:{channel:'chromium'},headless:true});
+const verify=expect.configure({timeout:20000});
 const results=[];
 try{
   for(let i=0;i<count;i++){
     const context=await browser.newContext({viewport:{width:1440,height:1050},recordVideo:i===0?{dir:path.join(destination,'demo-video'),size:{width:1440,height:1050}}:undefined});
-    const page=await context.newPage();page.setDefaultTimeout(45000);let passed=false;
+    const page=await context.newPage();page.setDefaultTimeout(45000);let passed=false;const began=Date.now();
     const errors=[];page.on('pageerror',e=>errors.push(e.message));
     try{
       await page.goto(base+'/demo');
@@ -23,24 +24,27 @@ try{
       await page.getByRole('button',{name:'Start demo',exact:true}).click();
       const p=page.frameLocator('iframe[title="Maria’s private phone"]'),d=page.frameLocator('iframe[title="Dr. Chen’s clinician view"]');
       await p.getByRole('button',{name:'Allow private checks',exact:true}).click();
-      await expect(p.getByRole('button',{name:'Pause understanding',exact:true})).toBeEnabled();
+      await verify(p.getByRole('button',{name:'Pause understanding',exact:true})).toBeEnabled();
       await d.getByRole('button',{name:'Try the sample instruction'}).click();
-      await expect(p.getByLabel('Private appointment alternative')).toContainText('Riverside Lab has no slot before Friday — Northside has Thursday 9am.',{timeout:20000});
+      await verify(p.getByLabel('Private appointment alternative')).toContainText('Riverside Lab has no slot before Friday — Northside has Thursday 9am.',{timeout:20000});
       // Before sharing, the doctor's own payload and visible DOM must lack the private fact.
-      await expect(d.getByText('Only what Maria shares.',{exact:true})).toBeVisible();
+      await verify(d.getByText('Only what Maria shares.',{exact:true})).toBeVisible();
       const doctorFrame=page.frames().find(f=>f.url().endsWith('/clinician'));
       const privatePayload=await doctorFrame.evaluate(async()=>{const parts=location.pathname.split('/'),run=parts[3],root='/api/demo/'+run+'/clinician/encounters/'+run;return [await(await fetch(root)).text(),await(await fetch(root+'/feasibility')).text()];});
       if(privatePayload.join('').includes('Riverside')||privatePayload.join('').includes('Northside'))throw new Error('Private preference leaked into the clinician API.');
       if(i===0){await page.screenshot({path:path.join(destination,'demo-private-desktop.png'),fullPage:true});await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(destination,'demo-private-mobile.png'),fullPage:true});await page.setViewportSize({width:1440,height:1050});}
       await p.getByRole('button',{name:'Raise this with Dr. Chen'}).click();
       await d.getByRole('button',{name:'Confirm & send lab order'}).click();
-      await expect(p.getByRole('button',{name:'Book Thursday 9am'})).toBeEnabled();
+      await verify(p.getByRole('button',{name:'Book Thursday 9am'})).toBeEnabled();
       await p.getByRole('button',{name:'Book Thursday 9am'}).click();
-      await expect(p.getByLabel('Confirmed reservation')).toContainText('Reservation confirmed');
+      await verify(p.getByLabel('Confirmed reservation')).toContainText('Reservation confirmed');
       await p.getByText('View the actual receipt').click();
       if(i===0)await page.screenshot({path:path.join(destination,'demo-receipt-desktop.png'),fullPage:true});
+      // End this fictional visit's standing checks before closing its browser session.
+      await p.getByRole('button',{name:'Pause understanding',exact:true}).click();
+      await verify(p.getByRole('button',{name:'Allow private checks',exact:true})).toBeEnabled();
       if(errors.length)throw new Error('Browser errors: '+errors.join('; '));
-      results.push({trial:i+1,result:'passed',private_api:true,actual_sandbox_receipt:true,url:page.url()});
+      results.push({trial:i+1,result:'passed',private_api:true,actual_sandbox_receipt:true,duration_ms:Date.now()-began,url:page.url()});
       passed=true;
       console.log('Demo rehearsal '+(i+1)+' passed.');
     }catch(error){await page.screenshot({path:path.join(destination,'demo-failure.png'),fullPage:true});throw error;}

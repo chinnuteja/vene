@@ -156,6 +156,16 @@ class SharingChanged(Contract):
     audiences: list[Audience] = Field(max_length=2)
 
 
+class SharingSelection(Contract):
+    item_id: UUID
+    audiences: list[Audience] = Field(max_length=2)
+
+
+class SharingBatchChanged(Contract):
+    type: Literal['sharing.batch_changed']
+    changes: list[SharingSelection] = Field(min_length=1,max_length=20)
+
+
 class PreparationApproved(Contract):
     type: Literal["preparation.approved"]
     approved: StrictBool
@@ -180,7 +190,7 @@ class SuggestionReviewed(Contract):
     decision: Literal["accepted", "rejected"]
 
 
-Command = Annotated[TitleChanged | PrioritySelectionChanged | SharingChanged | PreparationApproved |
+Command = Annotated[TitleChanged | PrioritySelectionChanged | SharingChanged | SharingBatchChanged | PreparationApproved |
                     PriorityEdited | SuggestionAdded | SuggestionReviewed, Field(discriminator="type")]
 
 

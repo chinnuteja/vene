@@ -742,6 +742,7 @@
                 "preparation.approved": "#/components/schemas/PreparationApproved",
                 "priority.edited": "#/components/schemas/PriorityEdited",
                 "priority.selection_changed": "#/components/schemas/PrioritySelectionChanged",
+                "sharing.batch_changed": "#/components/schemas/SharingBatchChanged",
                 "sharing.changed": "#/components/schemas/SharingChanged",
                 "suggestion.added": "#/components/schemas/SuggestionAdded",
                 "suggestion.reviewed": "#/components/schemas/SuggestionReviewed"
@@ -757,6 +758,9 @@
               },
               {
                 "$ref": "#/components/schemas/SharingChanged"
+              },
+              {
+                "$ref": "#/components/schemas/SharingBatchChanged"
               },
               {
                 "$ref": "#/components/schemas/PreparationApproved"
@@ -1536,6 +1540,7 @@
                 "preparation.approved": "#/components/schemas/PreparationApproved",
                 "priority.edited": "#/components/schemas/PriorityEdited",
                 "priority.selection_changed": "#/components/schemas/PrioritySelectionChanged",
+                "sharing.batch_changed": "#/components/schemas/SharingBatchChanged",
                 "sharing.changed": "#/components/schemas/SharingChanged",
                 "suggestion.added": "#/components/schemas/SuggestionAdded",
                 "suggestion.reviewed": "#/components/schemas/SuggestionReviewed"
@@ -1551,6 +1556,9 @@
               },
               {
                 "$ref": "#/components/schemas/SharingChanged"
+              },
+              {
+                "$ref": "#/components/schemas/SharingBatchChanged"
               },
               {
                 "$ref": "#/components/schemas/PreparationApproved"
@@ -3598,6 +3606,31 @@
         "title": "ScopeRequest",
         "type": "object"
       },
+      "SharingBatchChanged": {
+        "additionalProperties": false,
+        "properties": {
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/SharingSelection"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Changes",
+            "type": "array"
+          },
+          "type": {
+            "const": "sharing.batch_changed",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "changes"
+        ],
+        "title": "SharingBatchChanged",
+        "type": "object"
+      },
       "SharingChanged": {
         "additionalProperties": false,
         "properties": {
@@ -3630,6 +3663,34 @@
           "audiences"
         ],
         "title": "SharingChanged",
+        "type": "object"
+      },
+      "SharingSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "audiences": {
+            "items": {
+              "enum": [
+                "clinician",
+                "family"
+              ],
+              "type": "string"
+            },
+            "maxItems": 2,
+            "title": "Audiences",
+            "type": "array"
+          },
+          "item_id": {
+            "format": "uuid",
+            "title": "Item Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "audiences"
+        ],
+        "title": "SharingSelection",
         "type": "object"
       },
       "SourceCorrection": {
@@ -3985,6 +4046,11 @@
           "provider_model": {
             "title": "Provider Model",
             "type": "string"
+          },
+          "quiet_for_seconds": {
+            "default": 0,
+            "title": "Quiet For Seconds",
+            "type": "number"
           },
           "quiet_seconds": {
             "title": "Quiet Seconds",

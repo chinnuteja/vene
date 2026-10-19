@@ -249,6 +249,7 @@ def view(session,encounter,call,row,source,member,settings):
     name,model=provider(settings)
     return SpeechView(observed_at=utc_now(),mode=row.mode,mode_revision=row.mode_revision,revision=row.revision,
         floor=floor,provider=name,provider_model=model,quiet_seconds=settings.speech_quiet_seconds,
+        quiet_for_seconds=max(0,(utc_now()-row.last_human_at).total_seconds()) if row.last_human_at else 0,
         consents=consents,cues=cues,receipts=receipts,message='Private cues stay with the patient. Playback receipts do not prove what a person heard.')
 
 

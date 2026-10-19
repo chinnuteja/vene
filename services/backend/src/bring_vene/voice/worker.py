@@ -102,7 +102,11 @@ class RoomWorker:
                 can_update_own_metadata=False)).to_jwt()
         try:
             print('Owned runtime connecting.',flush=True)
-            await finish_connect_before_cancellation(self.room,self.settings.livekit_url,token,rtc.RoomOptions(auto_subscribe=False,single_peer_connection=True))
+            # The native single-PC handshake stalled at wait_pc_connection in actual
+            # occupied Windows rooms. Use the SDK default two-PC transport; explicit
+            # subscription and consent fences remain identical. Browser clients keep
+            # their separate single-PC admission flow.
+            await finish_connect_before_cancellation(self.room,self.settings.livekit_url,token,rtc.RoomOptions(auto_subscribe=False,single_peer_connection=False))
             print('Owned runtime connected.',flush=True)
             if not await asyncio.to_thread(service.worker_started,self.engine,self.visit_id,self.generation,self.instance):return
             # Publish an empty authorized output before the first contribution; never synthesize text here.

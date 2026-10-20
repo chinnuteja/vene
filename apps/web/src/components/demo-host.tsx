@@ -77,6 +77,17 @@ export function DemoHost(){
         {family&&<section className="demo-family-column"><div className="demo-pane-caption"><span>ELENA</span>Only what Maria chooses.</div><iframe ref={el=>{panes.current.family=el;}} src={'/demo/pane/'+demo.run+'/family'} title="Elena’s family view"/></section>}
       </div>
     </main>}
+    {!demo&&<section className="demo-capabilities" aria-label="Full product capabilities">
+      <div className="demo-capability-heading"><div><span className="eyebrow">THE WHOLE VISIT, NOT JUST THE LAB</span><h2>One conversation. Several next steps.</h2>
+        <p>The short tour follows one lab booking. The complete workspace carries preparation, other errands and what happens afterward.</p></div>
+        <a className="secondary-button" href="/dev">Open complete workspace <ArrowRight size={17}/></a></div>
+      <div className="demo-capability-grid">
+        <article><span className="eyebrow small">BEFORE</span><h3>Bring unfinished things.</h3><p>Draft an agenda from open questions and unfinished steps. The patient reviews it and chooses what to share.</p></article>
+        <article><span className="eyebrow small">DURING</span><h3>Catch the obstacle privately.</h3><p>Check availability, coverage, pharmacy stock and missing documents. Raise the fact while the right person can respond.</p></article>
+        <article><span className="eyebrow small">BEFORE YOU LEAVE</span><h3>Start every ready errand.</h3><p>Labs, imaging, specialist intake and prescription pickup each have their own approvals and receipt. Prior-authorization submissions follow the same approval path.</p></article>
+        <article><span className="eyebrow small">AFTER</span><h3>Keep the thread.</h3><p>Compare after-visit documents, approve a scoped family update, ask for practical help and carry open questions into the next visit.</p></article>
+      </div><p className="demo-capability-boundary">Fictional offices and health-plan responses throughout. A confirmed arrangement is not a completed appointment, a dispensed medicine or a clinical decision. The workspace opens with ordinary invitations for each role.</p>
+    </section>}
     {error&&<p className="demo-error" role="alert">{error}</p>}
     <footer className="demo-footer">Built to fit Vene’s follow-through. Clinical decisions stay with the clinician.</footer>
   </div>;

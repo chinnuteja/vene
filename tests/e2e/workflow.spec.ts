@@ -85,7 +85,8 @@ test('sandbox execution completes the conversation loop with a reconciled office
     expect(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await p.screenshot({path:evidence('phase-06-confirmed-mobile.png'),fullPage:true});
     await region.screenshot({path:evidence('phase-06-office-mobile.png')});
-    await post(patient,'/execution/items/'+itemId+'/scope',{allowed:false});
+    await step.getByRole('button',{name:'Withdraw office permission',exact:true}).click();
+    await expect(region.getByRole('status')).toContainText('confirmed reservations are not cancelled');
     expect((await state(patient)).actions[0].receipt.receipt_id).toBe(confirmed.receipt.receipt_id);
     expect(await (await family.request.get(office)).text()).not.toContain('session_hash');
     expect(errors).toEqual([]);

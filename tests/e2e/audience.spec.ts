@@ -57,7 +57,7 @@ test('patient, clinician and family remain isolated through approval and live re
     await f.getByRole('button',{name:'Suggest to Maria'}).click();
     await expect(p.getByRole('heading',{name:'Could I help with transport?'}).last()).toBeVisible();
     await p.getByRole('button',{name:'Keep off my list'}).last().click();
-    await expect(f.locator('.suggestion').last().getByText('Maria kept this off her list')).toBeVisible();
+    await expect(f.locator('.suggestion').last().getByText('Maria kept this off the list')).toBeVisible();
     expect((await doctor.request.get(base+'/evidence/'+privateId)).status()).toBe(404);
     expect((await family.request.get(base+'?role=patient')).status()).toBe(200);
     for(const page of [d,f]) {

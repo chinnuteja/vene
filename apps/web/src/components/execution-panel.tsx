@@ -111,8 +111,8 @@ export function ExecutionPanel({visit,viewer}:{visit:Encounter;viewer:Identity})
       {patient&&!unresolved&&<div className="office-controls"><label>Appointment window<select aria-label={'Appointment window for '+item.title} value={windows[item.id]??(latest?.slot?.window==='afternoon'?'afternoon':'morning')} onChange={e=>setWindows({...windows,[item.id]:e.target.value as 'morning'|'afternoon'})}><option value="morning">Morning</option><option value="afternoon">Afternoon</option></select></label><div className="office-buttons">
         <button className="secondary-button" disabled={busy||!view?.configured||unresolved} onClick={()=>void change('/items/'+item.id+'/scope',{allowed:true})}>Allow office checks</button>
         <button className="primary-button" disabled={busy||!view?.configured||unresolved} onClick={()=>void change('/items/'+item.id+'/lookup',{window:windows[item.id]??'morning',location:places[item.id]??defaultPlace,day:days[item.id]??defaultDay})}>Check this window</button>
-        <button className="text-link" disabled={busy||!view?.configured} onClick={()=>void change('/items/'+item.id+'/scope',{allowed:false})}>Withdraw office permission</button>
       </div></div>}
+      {patient&&<button className="text-link" disabled={busy||!view?.configured} onClick={()=>void change('/items/'+item.id+'/scope',{allowed:false})}>Withdraw office permission</button>}
       {latest?info(latest):view&&<p className="muted">No office check has been requested. Sharing a step does not authorize dispatch.</p>}
       {patient&&latest?.state==='confirmed'&&family.map(member=>{const open=asks.find(r=>r.action_id===latest.id&&r.recipient_id===member.id&&['asked','accepted','declined'].includes(r.state));
         return open?null:<button key={member.id} className="secondary-button" disabled={busy} onClick={()=>void change('/rides',{action_id:latest.id,recipient_id:member.id},circleRoot)}>Ask {member.name.split(' ')[0]} to help with this</button>;})}

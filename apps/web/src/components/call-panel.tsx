@@ -165,7 +165,7 @@ export function CallPanel({visit,viewer,compact=false}:{visit:Encounter;viewer:I
   const allAgreed=Boolean(call?.participants.filter(p=>p.present).length&&call?.participants.filter(p=>p.present).every(p=>p.consent==='agreed'));
   if(compact)return <section className="demo-call" aria-label="Visit conversation">
     <span className={'demo-live-dot '+(call?.state==='active'?'active':'')}/><strong>{room?labels[call?.state??'waiting']:'Join this fictional conversation'}</strong>
-    {!room?<><p>Audio can be processed into private notes. No recording. Vene may speak when Maria invites it. {viewer.role==='patient'?'I also allow private understanding and read-only scheduling checks.':''}</p>
+    {!room?<><p>Audio can be processed into private notes. No recording. Vene may speak when {visit.patient.preferred_name} invites it. {viewer.role==='patient'?'I also allow private understanding and read-only scheduling checks.':''}</p>
       <button className="primary-button" disabled={busy} onClick={()=>void join(viewer.role==='clinician')}><Phone size={15}/>{busy?'Connecting…':'Join and agree'}</button></>:<><RoomContext.Provider value={room}><RoomAudioRenderer volume={viewer.role==='patient'?1:0}/></RoomContext.Provider>
       <div className="button-row">{viewer.role==='patient'&&call?.state!=='active'&&<button className="primary-button" disabled={busy||!allAgreed||!call?.worker_ready} onClick={()=>void control('resume')}><Play size={14}/>Start listening</button>}
       {call?.state==='active'&&<button className="small-button" disabled={busy} onClick={()=>void control('pause')}><Pause size={14}/>Pause</button>}

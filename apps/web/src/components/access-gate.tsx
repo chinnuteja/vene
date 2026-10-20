@@ -6,7 +6,7 @@ import { request, redeemInvite } from '@/lib/api/client';
 export function AccessGate({ ended = false }: { ended?: boolean }) {
   const [development, setDevelopment] = useState(false);
   useEffect(() => { request<{enabled: boolean}>('/dev/fixture').then(x => setDevelopment(x.enabled)).catch(() => {}); }, []);
-  return <main className="access-page"><div className="access-card"><span className="brand-mark">v<span /></span><div className="eyebrow">BRING VENE</div><h1>{ended ? 'This visit is no longer open.' : 'Your visit, by invitation.'}</h1><p>{ended ? 'Your session has ended or access was withdrawn. The visit information has been cleared from this window.' : 'Open the invitation Maria shared with you. It gives you access to the parts of this visit she chose to share.'}</p>{development && <Link className="primary-button" href="/dev">Open the fictional preview</Link>}<small>An invitation gives access. It does not approve an action or a clinical decision.</small></div></main>;
+  return <main className="access-page"><div className="access-card"><span className="brand-mark">v<span /></span><div className="eyebrow">BRING VENE</div><h1>{ended ? 'This visit is no longer open.' : 'Your visit, by invitation.'}</h1><p>{ended ? 'Your session has ended or access was withdrawn. The visit information has been cleared from this window.' : 'Open the invitation the patient shared with you. It gives access to the parts of this visit they chose to share.'}</p>{development && <Link className="primary-button" href="/dev">Open the fictional preview</Link>}<small>An invitation gives access. It does not approve an action or a clinical decision.</small></div></main>;
 }
 
 export function FixtureLauncher() {
@@ -36,7 +36,7 @@ export function JoinInvitation() {
     consumed.current = true;
     const token = new URLSearchParams(window.location.hash.slice(1)).get('invite');
     window.history.replaceState(null, '', '/join');
-    if (!token) { setError('This invitation is missing. Open the complete link Maria shared.'); return; }
+    if (!token) { setError('This invitation is missing. Open the complete invitation link you received.'); return; }
     redeemInvite(token).then(() => window.location.replace('/prepare')).catch(() => setError('This invitation has expired, was already used, or was withdrawn. Ask for a new invitation.'));
   }, []);
   return <main className="access-page"><div className="access-card"><div className="eyebrow">BRING VENE</div><h1>{error ? 'A new invitation is needed.' : 'Opening your visit…'}</h1>{error && <p role="alert">{error}</p>}</div></main>;

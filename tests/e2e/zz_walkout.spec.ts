@@ -100,6 +100,22 @@ test('walk-out follow-through confirms several errands and a family member answe
     const receipts=(await stepStates(env,Object.values(STEPS))).map(a=>a.receipt!.receipt_id);
     expect(new Set(receipts).size).toBe(3);
 
+    await p.goto('/follow-up');
+    const overview=p.getByLabel('Next-step overview',{exact:true});
+    for(const [title,label] of [[STEPS.imaging,'Imaging appointment confirmed'],[STEPS.pharmacy,'Pickup confirmed'],[STEPS.referral,'Specialist appointment confirmed']])
+      await expect(overview.getByRole('article',{name:'Next-step status: '+title,exact:true})).toContainText(label);
+    await expect(overview.getByText('Nothing for you to relay yet.',{exact:true})).toHaveCount(0);
+    await overview.screenshot({path:evidence('product-follow-up-desktop.png')});
+    await p.setViewportSize({width:390,height:844});
+    expect(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    await overview.screenshot({path:evidence('product-follow-up-mobile.png')});
+    await p.setViewportSize({width:1280,height:720});
+    // Even a completed arrangement retains the patient's permission control.
+    const confirmedPharmacy=p.getByRole('region',{name:'Office follow-through',exact:true}).getByRole('article',{name:'Office follow-through: '+STEPS.pharmacy,exact:true});
+    await confirmedPharmacy.getByRole('button',{name:'Withdraw office permission',exact:true}).click();
+    await expect(confirmedPharmacy).toContainText('Pickup confirmed');
+    await p.goto('/visit');
+
     // A scoped ask: the family member sees purpose, when and where, and answers for themselves.
     const pharmacy=region.getByRole('article',{name:'Office follow-through: '+STEPS.pharmacy,exact:true});
     await pharmacy.getByRole('button',{name:'Ask Nina to help with this',exact:true}).click();

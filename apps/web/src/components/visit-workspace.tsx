@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic';
 import {UnderstandingPanel,EvolvingVisitCard,ConversationSourceCorrection} from './understanding-panel';
 import {ExecutionPanel} from './execution-panel';
 import {ContinuityPanel} from './continuity-panel';
+import {FollowUpOverview} from './follow-up-overview';
 import {InRoomChecks} from './in-room-checks';
 import {DraftedAgenda} from './drafted-agenda';
 import {InRoomMode} from './in-room-mode';
@@ -142,10 +143,7 @@ export function VisitWorkspace({ stage }: { stage: Stage }) {
               <div className="card-foot"><ShieldCheck size={17} /><span>Choosing a question adds it to your list. It does not send a message.</span></div>
             </section>
             <aside className="right-column"><section className="companion-card"><div className="companion-icon"><Sparkles size={24} /></div><h2>Your questions,<br />{' '}coming with you.</h2><p>You don't have to hold everything in your head. Your list will stay here throughout the visit.</p><Link className="primary-button" href="/visit">Review your visit <ArrowRight size={17} /></Link></section><section className="card compact"><h3>A little context</h3><div className="context-row"><span>Prepared for</span><strong>{visit.patient.name}</strong></div><div className="context-row"><span>Conversation with</span><strong>{visit.clinician}</strong></div><div className="context-row"><span>Questions selected</span><strong>{selected.length}</strong></div></section></aside>
-          </div> : stage === 'visit' ? <EvolvingVisitCard visit={visit} patient={patient} onSource={openSource} onReplace={setVisit} sharing={mutate} disabled={saving!==null}/> : <div className="content-grid">
-            <section className="card follow-card"><div className="section-heading"><div><div className="eyebrow small">KEEPING THINGS CLEAR</div><h2>Still to be resolved</h2></div><span className="pill amber">{visit.plan.length} open {visit.plan.length===1?'item':'items'}</span></div>{visit.plan.map(item => <div className="follow-item" key={item.id}><div className="timeline-dot" /><div><h3>{item.title}</h3><p>{item.detail}</p><div className="detail-tags"><span>Owner: {item.owner||'not yet clarified'}</span><span>When: {item.timeframe||'not yet clarified'}</span>{item.location&&<span>Where: {item.location}</span>}<span>External completion: {item.external_completed?'reported complete':'unconfirmed'}</span></div></div></div>)}<div className="soft-note"><ShieldCheck size={20} /><p>Discussing a next step doesn't mean it's done. Any action will need the right confirmation and your approval.</p></div></section>
-            <aside className="right-column"><section className="card compact"><h3>Nothing for you to relay yet.</h3><p className="muted">An update for family can be prepared once the next steps are clear and you choose what to share.</p><Link className="text-link" href="/visit">Back to your visit <ArrowRight size={15} /></Link></section><div className="gentle-note"><Leaf size={18} /><p>Care moves forward<br />one clear step at a time.</p></div></aside>
-          </div>}
+          </div> : stage === 'visit' ? <EvolvingVisitCard visit={visit} patient={patient} onSource={openSource} onReplace={setVisit} sharing={mutate} disabled={saving!==null}/> : viewer&&<FollowUpOverview visit={visit} viewer={viewer}/>}
           {stage === 'prepare' && patient && <PreparationControls visit={visit} mutate={mutate} disabled={saving !== null} onSource={openSource} onReplace={setVisit} />}
           {stage === 'prepare' && patient && viewer && <details className="preparation-option"><summary>Practical checks during the visit</summary><InRoomChecks visit={visit} viewer={viewer} mode="permission"/></details>}
           {stage === 'prepare' && patient && <details className="preparation-option"><summary>Invite someone by phone</summary><DialIn visit={visit}/></details>}

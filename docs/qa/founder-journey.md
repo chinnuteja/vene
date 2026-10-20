@@ -43,8 +43,8 @@ A founder opening the link would not have seen most of the product.
 3. **Prescription pickup before the visit.** The pharmacy calendar offered Oct 15–16 and the demo visit is Oct 19. It now offers Oct 22–23, after both fictional visits. Saved local calendars pick this up at office start-up.
 4. **Family update text was unreadable.** It was one run-on line per step: "Step 1 · Step: … · Office: Sandbox: …". It is now one short block per step, with the same fields and allow-list.
 5. **Approving right after adding found questions.** This could fail with a stale version. The found-questions card now refreshes the visit as soon as its add succeeds.
-7. **Pause and resume used a moment-old call revision.** If anything moved the revision between polls, resume failed with "Everyone in the room needs to agree…". Controls now read the current call first, as *End* already did. The server still checks agreement, worker readiness and the room gate.
 6. **Connection exhaustion in the demo (found in browser).** Each pane opened a live stream per chapter. With three panes, six streams used every HTTP/1.1 connection the browser allows per host, and later requests hung. Each pane now holds one shared stream that every chapter reads.
+7. **Pause and resume used a moment-old call revision.** If anything moved the revision between polls, resume failed with "Everyone in the room needs to agree…". Controls now read the current call first, as *End* already did. The server still checks agreement, worker readiness and the room gate.
 
 ## Verification
 

@@ -31,7 +31,14 @@ def target(view,item_id):
 def plan_fingerprint(view,item_id):
     item=target(view,item_id)
     refs={str(e.id):e.model_dump(mode='json') for e in view.evidence if e.id in item.evidence_refs}
-    return fingerprint({'item':item.model_dump(mode='json'),'sources':refs})
+    snapshot={'item':item.model_dump(mode='json'),'sources':refs}
+    if item.kind=='authorization':
+        from bring_vene.feasibility.service import authorization_item_id
+        parent=next((p for p in view.plan if p.kind=='imaging' and authorization_item_id(view,p.id)==item.id),None)
+        # A plan's approval applies to the exact imaging intention and sources.
+        # Changing that intention preserves the old receipt, not its authority.
+        snapshot['authorized_imaging']=plan_fingerprint(view,parent.id) if parent else None
+    return fingerprint(snapshot)
 
 def access(session,visit_id,token,csrf=None):
     encounter,view=lock(session,visit_id)
@@ -279,6 +286,7 @@ def finish_result(action,result):
         'message':'Confirmed by the sandbox '+errand.place+' with a persisted receipt.' if action.state=='confirmed' else 'Rejected by the sandbox '+errand.place+'. Nothing is reserved.'}
 
 def dispatch(engine,settings,claimed=None,gateway=None):
+    from bring_vene.feasibility.service import requires_authorization
     claimed=claimed or claim(engine)
     if not claimed:return False
     action_id,lease_id=claimed
@@ -294,7 +302,8 @@ def dispatch(engine,settings,claimed=None,gateway=None):
         if action.state in TERMINAL:session.delete(job);return True
         reconcile=bool(action.content.get('send_started'))
         if not reconcile and (not scope_valid(session,view,action) or not fresh(action) or
-            action.content.get('approval_digest')!=action_digest(action) or not action.content.get('order_id') or not action.content.get('clinician_id')):
+            action.content.get('approval_digest')!=action_digest(action) or not action.content.get('order_id') or
+            not action.content.get('clinician_id') or requires_authorization(session,view,action)):
             action.state='invalidated';action.content={**action.content,'message':'Scope, approval or prerequisite changed before dispatch. No request sent.'}
             session.delete(job);return True
         if not reconcile:
@@ -320,7 +329,8 @@ def dispatch(engine,settings,claimed=None,gateway=None):
                     _,view=lock(session,visit_id);action=session.get(ExecutionRecord,action_id)
                     job=session.get(ExecutionOutboxRecord,action_id,with_for_update=True)
                     if not job or job.lease_id!=lease_id:return True
-                    if not scope_valid(session,view,action) or not fresh(action) or action.content.get('approval_digest')!=action_digest(action):
+                    if (not scope_valid(session,view,action) or not fresh(action) or
+                        action.content.get('approval_digest')!=action_digest(action) or requires_authorization(session,view,action)):
                         action.state='cancelled';action.content={**action.content,'message':'Office reports no reservation; current permission or availability no longer permits dispatch.'}
                         session.delete(job);return True
                     action.state='in_flight'

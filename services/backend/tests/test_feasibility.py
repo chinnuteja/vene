@@ -202,6 +202,82 @@ def test_denied_authorization_keeps_imaging_blocked(visit_engine):
     outcome=execution.approve_bundle(visit_engine,FIXTURE_VISIT,*cred(p),BundleRequest(digests=[action(visit_engine,p,imaging).digest])).outcomes[0]
     assert outcome.outcome=='waiting' and b.calls.count('/bookings')==1
 
+
+@pytest.mark.parametrize('uncertain',[False,True])
+def test_new_coverage_requirement_stops_an_unsent_or_provably_absent_request(visit_engine,uncertain):
+    p,d,_,items,b=setup(visit_engine)
+    imaging=check(visit_engine,p,items['imaging'],b,'imaging');ready(visit_engine,p,d,imaging,b)
+    approved=execution.approve_bundle(visit_engine,FIXTURE_VISIT,*cred(p),
+        BundleRequest(digests=[action(visit_engine,p,imaging).digest]))
+    assert approved.outcomes[0].outcome=='queued'
+    if uncertain:
+        class LostBeforeWrite:
+            def call(self,path,payload=None):
+                if path=='/bookings':raise TimeoutError('Synthetic loss before any office commit')
+                return b.call(path,payload)
+        execution.dispatch(visit_engine,SETTINGS,gateway=LostBeforeWrite())
+        assert action(visit_engine,p,imaging).state=='unknown'
+    # Coverage finishes after approval, but before the office has committed.
+    grant(p,['coverage']);work(visit_engine,b)
+    assert any(o['kind']=='prior_authorization_required' for o in obstacles(p))
+    from bring_vene.persistence.models import ExecutionOutboxRecord
+    from bring_vene.domain.service import utc_now
+    with Session(visit_engine) as session,session.begin():
+        session.get(ExecutionOutboxRecord,imaging).next_at=utc_now()
+    execution.dispatch(visit_engine,SETTINGS,gateway=b)
+    result=action(visit_engine,p,imaging)
+    assert result.state==('cancelled' if uncertain else 'invalidated')
+    assert result.receipt is None and b.calls.count('/bookings')==0
+
+
+def test_authorization_with_no_review_available_never_becomes_approvable(visit_engine):
+    p,d,_,_,b=setup(visit_engine);grant(p,['coverage']);work(visit_engine,b)
+    class NoReview:
+        def call(self,path,payload=None):
+            response=b.call(path,payload)
+            if path=='/lookup' and payload.get('institution')=='plan':response['slot']=None
+            return response
+    feasibility.resolve(visit_engine,FIXTURE_VISIT,UUID(obstacles(d)[0]['id']),*cred(d),
+        ResolveRequest(choice='office_will_submit'),SETTINGS,NoReview())
+    with Session(visit_engine) as session:
+        request=session.scalar(select(ExecutionRecord).where(ExecutionRecord.content['kind'].astext=='authorization'))
+    shown=action(visit_engine,p,request.id)
+    assert shown.state=='no_slot' and shown.digest is None
+    assert b.calls.count('/bookings')==0
+
+
+def test_old_authorization_cannot_satisfy_a_corrected_imaging_plan(visit_engine):
+    p,d,_,items,b=setup(visit_engine);grant(p,['coverage']);work(visit_engine,b)
+    feasibility.resolve(visit_engine,FIXTURE_VISIT,UUID(obstacles(d)[0]['id']),*cred(d),
+        ResolveRequest(choice='office_will_submit'),SETTINGS,b)
+    with Session(visit_engine) as session:
+        prior=session.scalar(select(ExecutionRecord).where(ExecutionRecord.content['kind'].astext=='authorization'))
+    execution.approve_bundle(visit_engine,FIXTURE_VISIT,*cred(p),BundleRequest(digests=[action(visit_engine,p,prior.id).digest]))
+    while execution.dispatch(visit_engine,SETTINGS,gateway=b):pass
+    original_receipt=action(visit_engine,p,prior.id).receipt
+    assert original_receipt['status']=='confirmed'
+    correct(visit_engine,items['imaging']);work(visit_engine,b)
+    imaging=check(visit_engine,p,items['imaging'],b,'imaging');ready(visit_engine,p,d,imaging,b)
+    outcome=execution.approve_bundle(visit_engine,FIXTURE_VISIT,*cred(p),
+        BundleRequest(digests=[action(visit_engine,p,imaging).digest])).outcomes[0]
+    assert outcome.outcome=='waiting' and 'approved prior authorization' in outcome.message
+    earlier=action(visit_engine,p,prior.id)
+    assert earlier.receipt==original_receipt and earlier.fingerprint is None
+    # The clinician can prepare a fresh submission for the changed intention.
+    fresh_obstacle=next(o for o in obstacles(d) if o['kind']=='prior_authorization_required' and o['state']=='open')
+    feasibility.resolve(visit_engine,FIXTURE_VISIT,UUID(fresh_obstacle['id']),*cred(d),
+        ResolveRequest(choice='office_will_submit'),SETTINGS,b)
+    auth_actions=[a for a in execution.state(visit_engine,FIXTURE_VISIT,cred(p)[0],SETTINGS).actions if a.kind=='authorization']
+    renewed=auth_actions[0]
+    assert renewed.id!=prior.id and renewed.state=='suggested'
+    execution.approve_bundle(visit_engine,FIXTURE_VISIT,*cred(p),BundleRequest(digests=[renewed.digest]))
+    while execution.dispatch(visit_engine,SETTINGS,gateway=b):pass
+    assert action(visit_engine,p,renewed.id).state=='confirmed'
+    assert execution.approve_bundle(visit_engine,FIXTURE_VISIT,*cred(p),
+        BundleRequest(digests=[action(visit_engine,p,imaging).digest])).outcomes[0].outcome=='queued'
+    while execution.dispatch(visit_engine,SETTINGS,gateway=b):pass
+    assert action(visit_engine,p,imaging).state=='confirmed'
+
 def test_a_resolved_fact_is_not_reopened_by_a_new_permission_revision(visit_engine):
     p,d,f,items,b=setup(visit_engine);grant(p,['coverage']);work(visit_engine,b)
     feasibility.resolve(visit_engine,FIXTURE_VISIT,UUID(obstacles(d)[0]['id']),*cred(d),ResolveRequest(choice='review_later'),SETTINGS,b)

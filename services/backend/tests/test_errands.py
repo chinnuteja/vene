@@ -70,6 +70,28 @@ def test_each_kind_reserves_at_its_own_institution_with_its_own_document(visit_e
         order=session.get(OfficeRequestRecord,UUID(next(r.content['payload']['order_id'] for r in writes(visit_engine))))
         assert order.content.get('institution','lab')==institution
 
+
+@pytest.mark.parametrize('kind,institution',[('lab','lab'),('imaging','imaging'),('referral','specialist'),('prescription','pharmacy')])
+def test_each_kind_reconciles_a_lost_receipt_after_permission_is_withdrawn(visit_engine,kind,institution):
+    p,d,_,items,b=setup(visit_engine,(kind,))
+    aid=check(visit_engine,p,items[kind],b,kind);ready(visit_engine,p,d,aid,b)
+    bundle(visit_engine,p,[action(visit_engine,p,aid).digest])
+    b.fail_after_write=True
+    service.dispatch(visit_engine,SETTINGS,gateway=b)
+    assert action(visit_engine,p,aid).state=='unknown'
+    # A lost response does not mean the office failed. Revocation prevents new
+    # work but cannot erase the actual write; reconcile it without another one.
+    service.scope(visit_engine,FIXTURE_VISIT,items[kind],*cred(p),ScopeRequest(allowed=False))
+    from bring_vene.persistence.models import ExecutionOutboxRecord
+    from bring_vene.domain.service import utc_now
+    with Session(visit_engine) as session,session.begin():
+        session.get(ExecutionOutboxRecord,aid).next_at=utc_now()
+    service.dispatch(visit_engine,SETTINGS,gateway=b)
+    done=action(visit_engine,p,aid)
+    assert done.state=='confirmed' and done.receipt['request_id']==str(aid)
+    assert not done.scope_allowed and len(writes(visit_engine,institution))==1
+    assert reserved(visit_engine,institution)==[done.slot['id']]
+
 def test_unclassified_step_and_wrong_location_are_refused_before_the_office_is_called(visit_engine):
     p,d,f,items,b=setup(visit_engine,('imaging',))
     with Session(visit_engine) as session,session.begin():

@@ -460,8 +460,12 @@ def open_review(engine, visit_id, auth_id, clinician_id, settings, gateway=None)
     from bring_vene.execution import service as execution
     with Session(engine) as session, session.begin():
         _, view = execution.lock(session, visit_id)
-        if session.scalar(select(ExecutionRecord.id).where(ExecutionRecord.encounter_id == visit_id,
-                                                           ExecutionRecord.item_id == auth_id)):
+        current_fingerprint=plan_fingerprint(view,auth_id)
+        prior=session.scalars(select(ExecutionRecord).where(ExecutionRecord.encounter_id==visit_id,
+                                                          ExecutionRecord.item_id==auth_id)).all()
+        if any(a.state in {'in_flight','unknown'} for a in prior):
+            raise DomainError(409,'Reconcile the existing health-plan submission before starting another.')
+        if any(a.content['plan_fingerprint']==current_fingerprint and a.state in {'checking','suggested','queued','confirmed'} for a in prior):
             return
         scope = session.get(ExecutionScopeRecord, (visit_id, auth_id))
         action = ExecutionRecord(id=uuid4(), encounter_id=visit_id, item_id=auth_id, state='checking', created_at=utc_now(),
@@ -478,14 +482,21 @@ def open_review(engine, visit_id, auth_id, clinician_id, settings, gateway=None)
     try:
         review = adapter.call('/lookup', {'window': 'morning', 'location': 'Evergreen Health Plan', 'day': '2026-10-15',
                                           'institution': 'plan'})
-        order = adapter.call('/orders', {'request_id': str(order_id), 'institution': 'plan'})
+        order = adapter.call('/orders', {'request_id': str(order_id), 'institution': 'plan'}) if review.get('slot') else None
     except Exception as error:
         log.warning('Authorization preparation failed (%s)', type(error).__name__)
         review = order = None
     with Session(engine) as session, session.begin():
         _, view = execution.lock(session, visit_id)
         action = session.get(ExecutionRecord, action_id)
-        if not review or not order or order.get('status') != 'available' or not execution.scope_valid(session, view, action):
+        if (review and 'slot' in review and review['slot'] is None and review.get('institution')=='plan'
+            and execution.scope_valid(session,view,action)):
+            action.state='no_slot'
+            action.content={**action.content,'message':'The sandbox health plan could not offer a review. Nothing was sent; check again.'}
+            return
+        if (not review or not review.get('slot') or not order or order.get('status')!='available' or
+            order.get('order_id')!=str(order_id) or order.get('institution')!='plan' or order.get('sandbox_run')!=(str(sandbox_run) if sandbox_run else None) or
+            review['slot'].get('institution')!='plan' or not execution.scope_valid(session,view,action)):
             action.state = 'unavailable'
             action.content = {**action.content, 'message': 'The sandbox health plan did not return a verified result. Nothing was sent.'}
             return
@@ -507,9 +518,12 @@ def requires_authorization(session, view, action):
         .order_by(FeasibilityCheckRecord.finished_at.desc()).limit(1))
     if not check or not check.content.get('result', {}).get('prior_authorization_required'):
         return False
+    auth_id=authorization_item_id(view,action.item_id)
+    try:current_fingerprint=execution_fingerprint(view,auth_id)
+    except DomainError:return True
     approved = session.scalar(select(ExecutionRecord.id).where(
-        ExecutionRecord.encounter_id == view.id, ExecutionRecord.item_id == authorization_item_id(view, action.item_id),
-        ExecutionRecord.state == 'confirmed'))
+        ExecutionRecord.encounter_id == view.id, ExecutionRecord.item_id == auth_id,
+        ExecutionRecord.state == 'confirmed',ExecutionRecord.content['plan_fingerprint'].astext==current_fingerprint))
     return not approved
 
 

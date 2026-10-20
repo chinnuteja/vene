@@ -4,6 +4,31 @@ Updated: 20 October 2026.
 
 ## Current state
 
+**20 October, founder journey (Linux).** `/demo` now walks through the whole visit in four chapters in the same side-by-side frame: Before, During, Before you leave and After. It runs on the ordinary services and each pane's own session:
+- open-loop memory from a per-run July visit;
+- the lab-deadline catch;
+- a private prior-authorization cue answered by the clinician;
+- lab, imaging, pharmacy and health-plan errands, each with its own receipt;
+- a scoped family update and a ride the family member answers.
+
+Six product defects were fixed, each with a mutation-checked test where it is backend logic:
+1. Re-interpreting more conversation silently unshared unchanged steps and retired their confirmed bookings.
+2. Sharing a booked step afterwards made its receipt stale, for family updates, clinician views and ride asks.
+3. Pharmacy pickup was offered before the visit.
+4. The family update text was unreadable.
+5. Approving quickly after adding found questions hit a stale version.
+6. Pause and resume used a moment-old call revision, which made resume fail with a misleading message.
+
+Demo panes also exhausted the browser's connections with one stream per chapter; each pane now holds one shared stream.
+
+Results:
+- `scripts/check.sh --all`: 225 backend tests passed. Browser: 31 passed, including the new `zz_n_demo_journey`; 6 explicit live, timing and Firefox/WebKit gates skipped.
+- Guided rehearsal of all four chapters: 3 of 3 on the local preview, and 3 of 3 on the hosted single-process runner run locally (21–25 s per tour).
+
+The Render service has automatic deploys off. It still serves the previous build until **Manual Deploy** is selected.
+
+Not verified: live voice for chapters 3–4, a re-recorded video (Playwright's ffmpeg is missing here) and Windows/macOS re-runs. See docs/qa/founder-journey.md.
+
 20 October whole-product audit: Phases 1–12 are integrated on `claude/venehealth-codebase-review-hop817`; `main` remains unchanged. The application has a real FastAPI/PostgreSQL backend, scoped sessions/SSE and persisted errand outboxes/receipts. Fixed newly reproduced authorization defects: a late coverage requirement now blocks an unsent or provably absent imaging request; approval is bound to the exact imaging intention and sources; a corrected intention needs a fresh submission, while old receipts remain history; a missing review offer cannot become approvable. Added lost-receipt/withdrawal regressions for all four errand kinds. All 221 backend tests, both Node regressions, contracts, TypeScript and the production build passed.
 
 The complete Windows browser run did **not** pass: 29 passed, 4 explicit provider/timing gates skipped, two assertions needed updates for changed copy/accessible names, and native voice recovery after an actual media-server restart stalled beyond 45 seconds. The corrected audience/entry tests and multi-errand follow-up passed together afterward (3 focused scenarios); 31 of the 32 ordinary scenarios are verified, with media recovery still intermittent. Preserve this failure rather than relying on yesterday's green run. Evidence: `.local/evidence/product-audit-full-browser.json`, `product-audit-focused-browser.json` and `product-audit-media-recovery-failure.zip`. A fresh actual Deepgram → DeepSeek → Cartesia → sandbox receipt gate also passed in 38.6 seconds; today's keys work. Physical acoustics and real telephony remain unverified.

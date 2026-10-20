@@ -43,6 +43,7 @@ A founder opening the link would not have seen most of the product.
 3. **Prescription pickup before the visit.** The pharmacy calendar offered Oct 15–16 and the demo visit is Oct 19. It now offers Oct 22–23, after both fictional visits. Saved local calendars pick this up at office start-up.
 4. **Family update text was unreadable.** It was one run-on line per step: "Step 1 · Step: … · Office: Sandbox: …". It is now one short block per step, with the same fields and allow-list.
 5. **Approving right after adding found questions.** This could fail with a stale version. The found-questions card now refreshes the visit as soon as its add succeeds.
+7. **Pause and resume used a moment-old call revision.** If anything moved the revision between polls, resume failed with "Everyone in the room needs to agree…". Controls now read the current call first, as *End* already did. The server still checks agreement, worker readiness and the room gate.
 6. **Connection exhaustion in the demo (found in browser).** Each pane opened a live stream per chapter. With three panes, six streams used every HTTP/1.1 connection the browser allows per host, and later requests hung. Each pane now holds one shared stream that every chapter reads.
 
 ## Verification
@@ -57,7 +58,12 @@ A founder opening the link would not have seen most of the product.
   - Local preview: 3 of 3 passed.
   - The hosted single-process runner (`bring_vene.hosted_fixture` with `next start`), run locally: 3 of 3 passed, 21–25 s per complete tour.
 - **Screen sizes:** desktop at 1440 px and phone at 390 px reviewed in screenshots. No horizontal overflow.
-- **Full suite:** see the BUILD_STATUS entry for the `scripts/check.sh --all` result.
+- **Full suite:** `scripts/check.sh --all` on Linux (`.local/logs/check-all-journey2.log`), exit 0.
+  - 225 backend tests passed.
+  - Browser: 31 passed, 6 skipped. The skips are the explicit live-provider, speech-timing and Firefox/WebKit smoke gates.
+  - The first full run failed two call-control tests that pass on their own:
+    - Device-loss cleanup: the test helper's end request raced the page's own end. The helper now accepts a conflict only when the call has ended.
+    - Room resume: the client sent a stale call revision. This is defect 7 below.
 
 ## Not verified
 

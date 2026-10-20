@@ -58,7 +58,7 @@ export function DemoHost(){
   }
   const guided=providers?.transport==='guided';
   const index=CHAPTERS.findIndex(c=>c.id===chapter),current=CHAPTERS[index];
-  const mode=guided?'Guided fixture · device voice':providers?.stt==='deepgram'?'Live voice selected':'Offline voice · real WebRTC';
+  const mode=guided?'Sample visit · no microphone':providers?.stt==='deepgram'?'Live voice selected':'Offline voice · real WebRTC';
   return <div className={'demo-host'+(demo?' running':'')}>
     <header className="demo-nav"><a href="/demo" className="demo-brand"><span className="brand-mark">v<span/></span>bring vene</a>
       <div className="demo-nav-right"><span className="demo-sandbox"><ShieldCheck size={14}/>Fictional visit · sandbox offices</span>
@@ -66,8 +66,8 @@ export function DemoHost(){
     {!demo?<main className="demo-welcome"><div className="demo-intro"><div className="eyebrow">THE MOMENT CARE STARTS MOVING</div>
       <h1>Don’t take the<br/>whole visit home.</h1><p>Your questions come in. The practical obstacles come out.<br className="desktop-only"/>The next step starts before you leave.</p>
       <button className="primary-button demo-start" disabled={busy} onClick={()=>void start()}>{busy?'Preparing Maria’s visit…':'Start demo'}<ArrowRight size={19}/></button>
-      <p className="demo-start-note">One fictional visit. Separate patient and clinician sessions.<br/>Every booking still needs Maria’s approval.</p>
-      <div className="demo-provider-chips"><span><i/>{mode}</span><span>{guided?'Separate server sessions':'LiveKit'}</span><span>{providers?.model==='fixture'?'Fixture interpreter':providers?.model??'Checking interpreter'}</span><span>{guided?'Device voice preview':providers?.tts==='fixture'?'Offline voice':providers?.tts??'Checking voice'}</span></div>
+      <p className="demo-start-note">One fictional visit in four short chapters, about three minutes.<br/>Every booking still needs Maria’s approval.</p>
+      <div className="demo-provider-chips"><span><i/>{mode}</span><span>{guided?'A real session per person':'LiveKit'}</span><span>{providers?.model==='fixture'?'Rule-based sample interpreter':providers?.model??'Checking interpreter'}</span><span>{guided?'Device voice preview':providers?.tts==='fixture'?'Offline voice':providers?.tts??'Checking voice'}</span></div>
     </div><div className="demo-preview-art" aria-label="A preview of the private appointment cue"><div className="demo-art-phone"><div className="phone-island"/><span className="demo-art-time">9:41</span>
       <div className="demo-art-avatar">M</div><h2>Here with you,<br/>Maria.</h2><p>YOUR VISIT WITH DR. CHEN</p>
       <div className="demo-art-wave">{Array.from({length:19},(_,i)=><i key={i} style={{height:[8,14,22,32,18,40,27,17,34,46,26,15,34,21,12,29,19,13,7][i]}}/>)}</div>
@@ -87,13 +87,13 @@ export function DemoHost(){
           <iframe ref={el=>{panes.current.patient=el;}} src={'/demo/pane/'+demo.run+'/patient'} title="Maria’s private phone" allow="microphone; autoplay"/></div></section>
         <section className="demo-clinician-column"><div className="demo-pane-caption"><span>DR. CHEN</span>Only what Maria shares.</div><div className="demo-clinician-window"><div className="demo-window-bar"><i/><i/><i/><span>Visit with Maria</span></div>
           <iframe ref={el=>{panes.current.clinician=el;}} src={'/demo/pane/'+demo.run+'/clinician'} title="Dr. Chen’s clinician view" allow="microphone; autoplay"/></div>
-          {chapter==='during'&&<details className="demo-prompt"><summary>The 60-second path</summary><p>{guided?'Allow private checks as Maria, then try the labelled sample instruction as Dr. Chen.':'Join and agree in both panes, then choose Start listening as Maria.'}</p><blockquote>“Please get labs done within three days. We can send the lab order today.”</blockquote><p>Maria reviews the private cue and chooses whether to raise it. Dr. Chen sends the lab order. Maria approves the offered booking.</p></details>}</section>
+          {chapter==='during'&&<details className="demo-prompt"><summary>The 60-second path</summary><p>{guided?'Allow private checks as Maria, then choose Say this as Dr. Chen.':'Join and agree in both panes, then choose Start listening as Maria.'}</p><blockquote>“Please get labs done within three days. We can send the lab order today.”</blockquote><p>Maria reviews the private cue and chooses whether to raise it. Dr. Chen sends the lab order. Maria approves the offered booking.</p></details>}</section>
         {family&&<section className="demo-family-column"><div className="demo-pane-caption"><span>ELENA</span>Only what Maria chooses.</div><iframe ref={el=>{panes.current.family=el;}} src={'/demo/pane/'+demo.run+'/family'} title="Elena’s family view"/></section>}
       </div>
     </main>}
     {!demo&&<section className="demo-capabilities" aria-label="Full product capabilities">
       <div className="demo-capability-heading"><div><span className="eyebrow">THE WHOLE VISIT, NOT JUST THE LAB</span><h2>One conversation. Several next steps.</h2>
-        <p>The short tour follows one lab booking. The complete workspace carries preparation, other errands and what happens afterward.</p></div>
+        <p>The tour follows Maria from her preparation to the ride home, on the same services as the complete workspace. Every step below is in it.</p></div>
         <a className="secondary-button" href="/dev">Open complete workspace <ArrowRight size={17}/></a></div>
       <div className="demo-capability-grid">
         <article><span className="eyebrow small">BEFORE</span><h3>Bring unfinished things.</h3><p>Draft an agenda from open questions and unfinished steps. The patient reviews it and chooses what to share.</p></article>

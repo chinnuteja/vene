@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { ArrowRight, CalendarDays, Check, ChevronRight, CircleHelp, FileText, Heart, Leaf, LoaderCircle, MessageCircle, RefreshCw, ShieldCheck, Sparkles, X } from 'lucide-react';
 import { AccessError, choosePriority, loadVisit, logoutSession, request, sendCommand, type Command, type Encounter, type Evidence, type Identity } from '@/lib/api/client';
 import { AccessGate } from './access-gate';
@@ -16,6 +16,7 @@ import {InRoomMode} from './in-room-mode';
 import {DialIn} from './dial-in';
 import {VisitUpdates,type ServiceViews} from '@/lib/visit-updates';
 import {apiBase} from '@/lib/api/demo-scope';
+import {DemoVisit} from '@/lib/demo-visit';
 const CallPanel=dynamic(()=>import('./call-panel').then(m=>m.CallPanel),{ssr:false});
 
 type Stage = 'prepare' | 'visit' | 'follow-up';
@@ -48,7 +49,15 @@ export function VisitWorkspace({ stage, embedded=false }: { stage: Stage; embedd
   const [ended, setEnded] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const sourceTrigger = useRef<HTMLElement | null>(null);
+  // Inside the single-tab demo, the pane already holds this session's one live stream.
+  const shared = useContext(DemoVisit);
   useEffect(() => {
+    if (!shared) return;
+    if (shared.visit) setVisit(current => !current || shared.visit!.version >= current.version ? shared.visit : current);
+    setViewer(shared.viewer); setServiceViews(shared.services); setReady(!!shared.visit); setLoading(!shared.visit && !shared.error); setError(shared.error);
+  }, [shared]);
+  useEffect(() => {
+    if (shared) return;
     const controller = new AbortController();
     setLoading(true);
     loadVisit(controller.signal).then(result => {
@@ -58,7 +67,7 @@ export function VisitWorkspace({ stage, embedded=false }: { stage: Stage; embedd
     return () => controller.abort();
   }, [refresh]);
   useEffect(() => {
-    if (!visit?.id || !viewer) return;
+    if (shared || !visit?.id || !viewer) return;
     const stream = new EventSource(apiBase()+'/encounters/' + visit.id + '/stream?services=true');
     function update(event: MessageEvent) {
       const incoming: Encounter = JSON.parse(event.data);
@@ -133,7 +142,7 @@ export function VisitWorkspace({ stage, embedded=false }: { stage: Stage; embedd
           {stage==='visit'&&viewer&&!embedded&&<InRoomMode visit={visit} viewer={viewer}/>}
           {stage==='visit'&&viewer&&!embedded&&<CallPanel visit={visit} viewer={viewer}/>}
           {stage==='visit'&&patient&&!embedded&&<UnderstandingPanel visit={visit} onReplace={setVisit}/>}
-          {stage === 'prepare' && patient && <DraftedAgenda visit={visit}/>}
+          {stage === 'prepare' && patient && <DraftedAgenda visit={visit} onReplace={next => setVisit(current => !current || next.version >= current.version ? next : current)}/>}
           {stage === 'prepare' && !patient ? <GuestPreparation visit={visit} mutate={mutate} disabled={saving !== null} onSource={openSource} /> : stage === 'prepare' ? <div className="content-grid">
             <section className="card priorities"><div className="section-heading"><div><div className="eyebrow small">START WITH YOU</div><h2>What would you like to discuss?</h2></div><span className="count-pill">{selected.length} on your list</span></div><p className="muted intro">Choose what matters today. You can change your list.</p>
               <div className="priority-list">{visit.priorities.map((p, i) => <div key={p.id} className={'priority-card ' + (p.selected ? 'selected' : '')}>

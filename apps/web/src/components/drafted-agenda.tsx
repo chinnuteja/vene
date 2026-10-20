@@ -7,12 +7,13 @@ type View=components['schemas']['MemoryView'];
 
 // Patient only. Open loops from earlier visits, each with its stored source and age.
 // Keeping an item adds a private draft question; the patient still approves the list.
-export function DraftedAgenda({visit}:{visit:Encounter}){
+// onReplace: the visit right after a change, so a quick next action never uses a stale version.
+export function DraftedAgenda({visit,onReplace}:{visit:Encounter;onReplace?:(v:Encounter)=>void}){
   const [view,setView]=useState<View|null>(null),[dropped,setDropped]=useState<Set<string>>(new Set());
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
   const root='/encounters/'+visit.id+'/memory';
   useEffect(()=>{const c=new AbortController();request<View>(root,{signal:c.signal}).then(setView).catch(e=>{if(!c.signal.aborted)setError((e as Error).message);});return()=>c.abort();},[root,visit.version]);
-  async function post(path:string,body:unknown,message:string){setBusy(true);setError('');setNotice('');try{setView(await request<View>(root+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}));setDropped(new Set());setNotice(message);}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
+  async function post(path:string,body:unknown,message:string){setBusy(true);setError('');setNotice('');try{setView(await request<View>(root+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}));setDropped(new Set());setNotice(message);if(onReplace)onReplace(await request<Encounter>('/encounters/'+visit.id));}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
   if(!view)return error?<p role="alert">{error}</p>:null;
   const kept=view.loops.filter(l=>!dropped.has(l.key));
   const count=view.loops.length;

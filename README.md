@@ -8,16 +8,18 @@ Bring Vene catches that practical obstacle while the patient and clinician are s
 
 Try the [fictional hosted demo](https://bring-vene-concept.onrender.com/demo). It uses sample text and a labelled device voice preview. Actual live voice runs locally.
 
-## Try it in 60 seconds
+## Try it in three minutes
 
-Open `/demo`, then **Start demo**. Maria’s phone and Dr. Chen’s window have separate authenticated server sessions. Elena’s optional family view sees only what Maria shares.
+Open `/demo`, then **Start demo**. Maria's phone and Dr. Chen's window have separate authenticated server sessions. Tick **Show Elena's view** to add her family pane; she sees only what Maria sends.
 
-1. As Maria, allow private checks. In local voice mode, join and agree in both panes, then start listening as Maria.
-2. As Dr. Chen, try the labelled sample instruction, or say it through the agreed live microphone: “Please get labs done within three days. We can send the lab order today.”
-3. Maria privately sees: “Riverside Lab has no slot before Friday — Northside has Thursday 9am.” Choose **Raise this with Dr. Chen** to share the necessary sources and invite the contribution.
-4. Dr. Chen confirms and sends the sandbox order. Maria taps **Book Thursday 9am**. Inspect the persisted office receipt.
+The chapter bar walks through one visit:
 
-The fictional visit is Monday, October 19, 2026. Every fresh demo has its own calendar.
+1. **Before.** Vene reads Maria's July visit and finds what was left open: unfinished labs, an unanswered question and a pharmacy message. She approves her list; Dr. Chen sees only the approved questions.
+2. **During.** Dr. Chen asks for labs within three days. Only Maria sees “Riverside Lab has no slot before Friday — Northside has Thursday 9am.” She raises it, Dr. Chen sends the order, and she books it.
+3. **Before you leave.** An MRI and a new prescription come up. Vene privately finds that her plan requires prior authorization; Dr. Chen's office takes it on. Every errand checks with its own office, waits for the clinician's part and Maria's approval, and returns its own receipt.
+4. **After.** Maria sends Elena only what's booked and asks her for a ride; Elena answers in her own pane. Unanswered questions carry into the next visit.
+
+The fictional visit is Monday, October 19, 2026. Every fresh demo has its own calendars and history. [The three-minute script](docs/DEMO_SCRIPT.md) has the exact clicks.
 
 ## Run locally
 
@@ -47,12 +49,12 @@ Passing prototype tests does not establish clinical, regulatory or production re
 
 ## For the Vene team
 
-[One-page overview](docs/ONE_PAGER.md) · [Integration seams](docs/INTEGRATION.md) · [90-second script](docs/DEMO_SCRIPT.md) · [Hosted operation](docs/HOSTING.md)
+[One-page overview](docs/ONE_PAGER.md) · [Integration seams](docs/INTEGRATION.md) · [Three-minute script](docs/DEMO_SCRIPT.md) · [Hosted operation](docs/HOSTING.md)
 
-The integration boundaries fit LiveKit, Deepgram and Cartesia, while permissions and external completion remain in domain services. Full preparation, phone-on-the-table, open-loop memory and follow-through remain at `/prepare`, `/visit` and `/follow-up`, using local `/dev` invitations.
+The integration boundaries fit LiveKit, Deepgram and Cartesia, while permissions and external completion remain in domain services. The demo chapters use the same services as the complete workspace at `/prepare`, `/visit` and `/follow-up` (opened through `/dev` invitations), which adds phone-on-the-table room mode, dial-in, document comparison and next-visit preparation.
 
 Historical research and plans are preserved under [docs/background](docs/background). [Third-party notices](THIRD_PARTY_NOTICES.md) and [reuse manifest](reuse-manifest.json) record adapted code origins and licenses.
 
 ## Verification
 
-`scripts\check.ps1 -All` / `./scripts/check.sh --all` runs the isolated database regression, contracts, TypeScript, production build and browser scenarios. Live gates are separate. `DEMO_REHEARSALS=10` with `node scripts/rehearse-demo.mjs` rehearses the guided demo against a running preview, saving actual results, screenshots and a video under ignored `.local/evidence`.
+`scripts\check.ps1 -All` / `./scripts/check.sh --all` runs the isolated database regression, contracts, TypeScript, production build and browser scenarios. Live gates are separate. `DEMO_REHEARSALS=10` with `node scripts/rehearse-demo.mjs` rehearses all four guided chapters against a running preview, saving actual results, screenshots and a video under ignored `.local/evidence`.

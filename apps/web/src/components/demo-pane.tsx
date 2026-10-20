@@ -5,6 +5,7 @@ import {DemoExperience} from './demo-experience';
 import {VisitWorkspace} from './visit-workspace';
 import {DemoLeave} from './demo-leave';
 import {DemoAfter} from './demo-after';
+import {DemoVisitProvider} from '@/lib/demo-visit';
 type Role='patient'|'clinician'|'family';
 export type Chapter='before'|'during'|'leave'|'after';
 
@@ -42,7 +43,9 @@ export function DemoPane({run,role}:{run:string;role:Role}){
   },[run,role]);
   if(error)return <p className="demo-error" role="alert">{error}</p>;
   if(!ready)return <div className="demo-pane-loading" role="status">Opening your own visit session…</div>;
-  if(chapter==='during')return <div className={'demo-embedded '+role}><DemoExperience/></div>;
+  // The conversation view stays mounted so a live call survives moving between chapters.
   // Preparation is the full product screen; the other chapters are focused views over the same services.
-  return <div className={'demo-embedded chapter-'+chapter+' '+role}>{chapter==='before'?<VisitWorkspace stage="prepare" embedded/>:chapter==='leave'?<DemoLeave run={run}/>:<DemoAfter/>}</div>;
+  return <DemoVisitProvider><div className={'demo-embedded chapter-'+chapter+' '+role}>
+    <div hidden={chapter!=='during'}><DemoExperience/></div>
+    {chapter==='before'?<VisitWorkspace stage="prepare" embedded/>:chapter==='leave'?<DemoLeave run={run}/>:chapter==='after'?<DemoAfter/>:null}</div></DemoVisitProvider>;
 }

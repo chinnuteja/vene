@@ -1,10 +1,10 @@
 'use client';
-import {useEffect,useState} from 'react';
+import {useContext,useEffect,useState} from 'react';
 import dynamic from 'next/dynamic';
 import {ArrowRight,CalendarCheck,Check,LockKeyhole,Mic,ShieldCheck,Sparkles,Volume2} from 'lucide-react';
-import {loadVisit,request,sendCommand,type Encounter,type Identity} from '@/lib/api/client';
-import {apiBase} from '@/lib/api/demo-scope';
-import {VisitUpdates,type ServiceViews} from '@/lib/visit-updates';
+import {request,sendCommand,type Encounter} from '@/lib/api/client';
+import {DemoVisit} from '@/lib/demo-visit';
+import {VisitUpdates} from '@/lib/visit-updates';
 import type {components} from '../../../../packages/contracts/schema';
 const CallPanel=dynamic(()=>import('./call-panel').then(m=>m.CallPanel),{ssr:false});
 type Speech=components['schemas']['SpeechView'];
@@ -12,24 +12,14 @@ const SCRIPT='Please get labs done within three days. We can send the lab order 
 const delay=(ms:number)=>new Promise(r=>setTimeout(r,ms));
 
 export function DemoExperience(){
-  const [visit,setVisit]=useState<Encounter|null>(null),[viewer,setViewer]=useState<Identity|null>(null);
-  const [services,setServices]=useState<ServiceViews|null>(null),[speech,setSpeech]=useState<Speech|null>(null);
+  const pane=useContext(DemoVisit);if(!pane)throw new Error('DemoExperience needs a DemoVisitProvider.');
+  const {visit,viewer,services,setVisit}=pane;
+  const [speech,setSpeech]=useState<Speech|null>(null);
   const [config,setConfig]=useState<Record<string,string>|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const [shared,setShared]=useState(false),[preview,setPreview]=useState(false);
   const [checksReady,setChecksReady]=useState(false),[sampleSent,setSampleSent]=useState(false);
-  useEffect(()=>{const controller=new AbortController();loadVisit(controller.signal).then(r=>{setVisit(r.visit);setViewer(r.viewer);}).catch(e=>setError(e.message));
+  useEffect(()=>{const controller=new AbortController();
     fetch('/api/dev/demo-info',{cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw new Error('Demo configuration is unavailable.');setConfig(await r.json());}).catch(e=>{if(!controller.signal.aborted)setError(e.message);});return()=>controller.abort();},[]);
-  useEffect(()=>{
-    if(!visit?.id)return;
-    const stream=new EventSource(apiBase()+'/encounters/'+visit.id+'/stream?services=true');
-    const update=(event:MessageEvent)=>setVisit(JSON.parse(event.data));
-    stream.addEventListener('snapshot',update as EventListener);stream.addEventListener('update',update as EventListener);
-    stream.addEventListener('services',((event:MessageEvent)=>setServices(JSON.parse(event.data))) as EventListener);
-    const clear=()=>{stream.close();setVisit(null);setServices(null);setSpeech(null);setError('This session ended. Start a fresh demo.');};
-    stream.addEventListener('access_revoked',clear);stream.addEventListener('unavailable',clear);
-    stream.onerror=()=>{stream.close();setError('Live updates disconnected. Reload and start a fresh demo.');};
-    return()=>stream.close();
-  },[visit?.id]);
   useEffect(()=>{
     if(!visit?.id||config?.transport==='guided')return;
     let stopped=false;const controller=new AbortController();
@@ -83,13 +73,13 @@ export function DemoExperience(){
     }
     throw new Error('The alternative was shared and checked. Spoken permission or a fresh cue is still needed; no speech was approved.');
   }
-  if(!visit||!viewer)return <div className="demo-pane-loading" role="status">{error||'Opening your visit…'}</div>;
+  if(!visit||!viewer)return <div className="demo-pane-loading" role="status">{error||pane.error||'Opening your visit…'}</div>;
   return <VisitUpdates.Provider value={services}><main className={'demo-experience '+viewer.role}>
     <div className="demo-person-header"><div className="demo-person-avatar">{patient?'M':doctor?'C':'E'}</div><div><span>{patient?'YOUR PRIVATE SPACE':doctor?'CLINICIAN VIEW':'FAMILY VIEW'}</span><h1>{patient?'Here with you, Maria.':doctor?'With Maria, today.':'Here for Maria.'}</h1></div></div>
-    {guided?<section className="demo-call"><span className="demo-live-dot"/><strong>Guided fixture · no microphone</strong><p>Sample text goes through the same understanding, private checks and booking services. Audio preview uses this device’s synthetic voice.</p>
+    {guided?<section className="demo-call"><span className="demo-live-dot"/><strong>Sample visit · no microphone</strong><p>Dr. Chen’s words are typed for this preview. They go through the same understanding, private checks and booking services as live speech.</p>
       {patient&&<button className="primary-button" disabled={busy} onClick={()=>void act(async()=>{if(visit.understanding?.enabled){await post('/understanding/processing',{command_id:crypto.randomUUID(),enabled:false});await post('/feasibility/standing',{kinds:[]});}else await allow();})}>{visit.understanding?.enabled?'Pause understanding':'Allow private checks'}</button>}</section>:viewer.role!=='family'?<CallPanel visit={visit} viewer={viewer} compact/>:null}
     {patient&&<p className="demo-private-note"><LockKeyhole size={12}/>Your sources and suggestions stay private until you share.</p>}
-    {doctor&&fixture&&<section className="demo-sample"><span className="eyebrow small">SAMPLE INSTRUCTION · FIXTURE INPUT</span><blockquote>“{SCRIPT}”</blockquote><button className="primary-button" disabled={busy||!checksReady||sampleSent} onClick={()=>void act(async()=>{await post('/demo/turn',{token:crypto.randomUUID()});setSampleSent(true);})}>{sampleSent?'Instruction received':checksReady?'Try the sample instruction':'Waiting for Maria’s permission'} <ArrowRight size={15}/></button><small>Text simulation. This does not test speech recognition.</small></section>}
+    {doctor&&fixture&&<section className="demo-sample"><span className="eyebrow small">DR. CHEN SAYS · SAMPLE WORDS</span><blockquote>“{SCRIPT}”</blockquote><button className="primary-button" disabled={busy||!checksReady||sampleSent} onClick={()=>void act(async()=>{await post('/demo/turn',{token:crypto.randomUUID()});setSampleSent(true);})}>{sampleSent?'Heard':checksReady?'Say this':'Waiting for Maria’s permission'} <ArrowRight size={15}/></button><small>Typed, not spoken: this preview does not test speech recognition.</small></section>}
     {doctor&&!fixture&&<section className="demo-sample"><span className="eyebrow small"><Mic size={12}/>SAY THIS INTO THE AGREED MICROPHONE</span><blockquote>“{SCRIPT}”</blockquote><small>Real Deepgram → {config?.model} → Cartesia. No scripted fallback.</small></section>}
     {patient&&!item&&<section className="demo-waiting"><div className="demo-listening-wave">{[12,23,36,18,29,43,26,16,32,20,11].map((h,i)=><i key={i} style={{height:h}}/>)}</div><h2>A little less to carry.</h2><p>{visit.understanding?.enabled?'Ready for Dr. Chen’s next step.':'Agree to private understanding to begin.'}</p></section>}
     {item&&<section className="demo-step"><span className="eyebrow small">{patient?'FROM YOUR CONVERSATION':'SHARED NEXT STEP'}</span><h2>Labs, {item.timeframe||'timing to clarify'}.</h2><p>{item.timeframe} · proposed by the clinician</p><small>Source: {visit.evidence.find(e=>item.evidence_refs.includes(e.id))?.speaker||'visit instruction'}</small></section>}

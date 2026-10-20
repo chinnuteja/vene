@@ -1,5 +1,5 @@
 'use client';
-import {useState} from 'react';
+import {useEffect,useState} from 'react';
 import {ArrowRight} from 'lucide-react';
 import {request} from '@/lib/api/client';
 
@@ -8,12 +8,13 @@ const LINES=['Maria will schedule the MRI at Lakeside Imaging on Wednesday after
 
 // Later in the same fictional visit. The server accepts only its own allow-listed sample lines.
 export function DemoLaterLine({run}:{run:string}){
-  const [state,setState]=useState<'idle'|'busy'|'sent'>('idle'),[error,setError]=useState('');
+  const [state,setState]=useState<'idle'|'busy'|'sent'>('idle'),[error,setError]=useState(''),[live,setLive]=useState(false);
+  useEffect(()=>{fetch('/api/dev/demo-info',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(c=>setLive(!!c&&c.stt!=='fixture')).catch(()=>{});},[]);
   async function send(){setState('busy');setError('');
     try{await request('/encounters/'+run+'/demo/turn',{method:'POST',body:JSON.stringify({token:crypto.randomUUID(),line:'errands'})});setState('sent');}
     catch(e){setState('idle');setError((e as Error).message);}}
-  return <section className="demo-sample later"><span className="eyebrow small">LATER IN THE VISIT · SAMPLE WORDS</span>
+  return <section className="demo-sample later"><span className="eyebrow small">{live?'LATER IN THE VISIT · SAY THIS INTO THE AGREED MICROPHONE':'LATER IN THE VISIT · DR. CHEN SAYS'}</span>
     {LINES.map(line=><blockquote key={line}>“{line}”</blockquote>)}
-    <button className="primary-button" disabled={state!=='idle'} onClick={()=>void send()}>{state==='sent'?'Heard':state==='busy'?'Sending…':'Say this'} <ArrowRight size={15}/></button>
+    {live?<small>Live recognition and interpretation. No scripted fallback.</small>:<button className="primary-button" disabled={state!=='idle'} onClick={()=>void send()}>{state==='sent'?'Heard':state==='busy'?'Sending…':'Say this'} <ArrowRight size={15}/></button>}
     {error&&<p role="alert">{error}</p>}</section>;
 }

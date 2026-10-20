@@ -12,6 +12,7 @@ test('single-screen demo follows actual STT model speech and approved receipt',a
   const result:Record<string,unknown>={physical_acoustics:false,fixture_fallback:false,stt:'deepgram',tts:'cartesia',sample_count:1};
   try{
     await page.goto('/demo');await page.getByRole('button',{name:'Start demo',exact:true}).click();
+    await page.getByRole('button',{name:'Next: During'}).click();
     const p=page.frameLocator('iframe[title="Maria’s private phone"]'),d=page.frameLocator('iframe[title="Dr. Chen’s clinician view"]');
     await p.getByRole('button',{name:'Join and agree',exact:true}).click();
     await expect(p.getByText('Withdraw agreement',{exact:true})).toBeVisible({timeout:45000});

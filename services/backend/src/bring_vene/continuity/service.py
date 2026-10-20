@@ -37,7 +37,7 @@ def family_input(session,view,recipient_id,plan_ids,fields):
                     .order_by(ExecutionRecord.created_at.desc()).limit(1))
                 if row and receipt_current(view,row):
                     errand=errands.for_action(row.content)
-                    values[field]=('Sandbox: '+errand.confirmed if row.state=='confirmed' else
+                    values[field]=(errand.confirmed+' (sandbox)' if row.state=='confirmed' else
                         'The '+errand.place+' rejected the request' if row.state=='rejected' else 'Completion remains '+row.state)
                     if row.state=='confirmed' and row.content.get('slot'):values[field]+=' · '+row.content['slot']['label']
                 else:values[field]='No current office completion has been verified'
@@ -46,9 +46,12 @@ def family_input(session,view,recipient_id,plan_ids,fields):
             elif field=='timeframe':values[field]=item.timeframe or 'Timing needs clarification'
         inputs.append({'step':index,'values':values,'plan_id':str(item_id)})
     # The formatter gets only the requested, permitted field dictionary.
-    text='Next steps shared with you:\n'+'\n'.join(' · '.join(
-        ('Step '+str(entry['step']),*[{'title':'Step','owner':'Who','timeframe':'When','office_status':'Office'}[k]+': '+str(v)
-        for k,v in entry['values'].items()])) for entry in inputs)
+    # One short block per step: the title as its heading (when chosen), then each other chosen field.
+    def block(entry):
+        values=entry['values'];lines=['• '+values['title'] if 'title' in values else '• Step '+str(entry['step'])]
+        lines+=['  '+{'owner':'Who','timeframe':'When','office_status':'Office'}[k]+': '+str(v) for k,v in values.items() if k!='title']
+        return '\n'.join(lines)
+    text='Next steps shared with you:\n'+'\n'.join(block(entry) for entry in inputs)
     if len(text)>2000:raise DomainError(422,'Choose fewer steps or fields for this update.')
     scope_hash=fingerprint({'recipient':str(member.id),'epoch':view.consent_epoch,'inputs':inputs,'source_versions':{
         str(x):plan_fingerprint(view,x) for x in plan_ids}})

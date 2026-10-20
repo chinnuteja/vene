@@ -1,15 +1,49 @@
-# The 90-second tour
+# The three-minute tour
 
-**0–15s:** “The obstacle often appears after the visit. Bring Vene catches it while the patient and clinician can still fix it.” Open `/demo`, Start demo. Point out separate sessions and Elena's optional empty family view.
+Open `/demo` and choose **Start demo**. Maria's phone and Dr. Chen's window each have their own server session. Tick **Show Elena's view** at any point to add her family pane. The chapter bar moves between the four moments of one visit; **Next** always leads to the following one.
 
-**15–30s:** Maria allows private checks. Dr. Chen clicks the labelled fixture instruction. In local live mode, join and agree in both panes, start listening as Maria, and say: “Please get labs done within three days. We can send the lab order today.” Never describe sample text as speech recognition.
+## 1. Before · 30 seconds
 
-**30–45s:** Show Maria's private alternative. “Her usual lab misses the deadline. Another lab has Thursday morning.” Dr. Chen's session does not contain this private preference or cue.
+“Vene read Maria's July visit and her pharmacy message and found what is still open.”
 
-**45–60s:** Maria chooses Raise this with Dr. Chen. “She shares the relevant instruction and preference and invites this exact contribution.” Guided audio is a synthetic preview on this device; local live audio uses Cartesia in the actual room.
+- Maria's phone opens with *Vene found 3 things worth bringing up*. Each item says where it came from.
+- Choose **Add 3 to my visit list**, then **Approve my visit list**.
+- Dr. Chen's window now shows the approved questions, and only those. Her optional morning note is not sent.
 
-**60–75s:** Dr. Chen confirms and sends the sandbox order. “An extracted instruction isn't an order. The clinician still makes that decision.”
+## 2. During · 60 seconds
 
-**75–90s:** Maria taps Book Thursday 9am. Open the actual receipt. “The office confirms completion. Maria leaves with the next step underway.”
+“The obstacle usually shows up after the visit. Here it shows up while the doctor can still help.”
 
-All people, dates, institutions and bookings are fictional. If a provider fails, show the failure honestly. Select the guided configuration explicitly or play the recorded guided walkthrough under `.local/evidence/bring-vene-walkthrough.webm`. The recording is actual UI interaction, not evidence of live-provider performance.
+1. Maria allows private checks.
+2. Dr. Chen chooses **Say this**: “Please get labs done within three days. We can send the lab order today.”
+   - In local live mode, say it into the agreed microphone instead. Never describe typed sample words as speech recognition.
+3. Only Maria sees: “Riverside Lab has no slot before Friday — Northside has Thursday 9am.” Dr. Chen's session does not contain her preference or the cue.
+4. **Raise this with Dr. Chen**, then **Confirm & send lab order** in Dr. Chen's window. An extracted instruction is not an order; the clinician still decides.
+5. Maria taps **Book Thursday 9am** and opens the receipt.
+
+## 3. Before you leave · 60 seconds
+
+“Later in the visit, an MRI and a new prescription come up.”
+
+1. Dr. Chen chooses **Say this** on the later line.
+2. Only Maria sees the cue: “Evergreen Basic requires prior authorization for this imaging.” She chooses **Ask Dr. Chen now**.
+3. Dr. Chen answers **The office will submit prior authorization**. This prepares a health-plan submission; Maria still approves it.
+4. Maria chooses **Check all with the offices**. Dr. Chen confirms and sends the imaging order and the prescription.
+5. Maria approves the ready steps. The MRI waits for the plan's approval, then follows.
+6. Every row ends with its own office receipt: *All set before you leave.*
+
+## 4. After · 30 seconds
+
+“Elena gets only what Maria sends.”
+
+- **Send to Elena** shares only the step, its time and the office's answer.
+- **Ask Elena to drive** sends the time and place. Elena answers yes in her own pane.
+- *Still unanswered today* lists what Vene will bring to the next visit's preparation.
+
+## Notes
+
+All people, dates, institutions, plans and bookings are fictional. If a provider fails, show the failure honestly.
+
+Select the guided configuration explicitly, or play the recorded walkthrough under `.local/evidence/bring-vene-walkthrough.webm`. The recording is actual UI interaction, not evidence of live-provider performance.
+
+`DEMO_REHEARSALS=3 node scripts/rehearse-demo.mjs` drives all four chapters against a running preview and checks the clinician and family payloads for private facts. Add `DEMO_VIDEO=0` where Playwright's ffmpeg is not installed.

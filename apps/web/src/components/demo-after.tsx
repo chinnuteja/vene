@@ -21,7 +21,8 @@ export function DemoAfter(){
   if(!visit||!viewer)return <div className="demo-pane-loading" role="status">{error||'Opening your visit…'}</div>;
   async function act(fn:()=>Promise<void>){setBusy(true);setError('');try{await fn();}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
   const booked=steps.filter(s=>latest(s.id)?.state==='confirmed');
-  const lab=booked.map(s=>latest(s.id)!).find(a=>a.kind==='lab');
+  // A ride to an appointment: the lab if booked, otherwise the imaging.
+  const confirmed=booked.map(s=>latest(s.id)!),lab=confirmed.find(a=>a.kind==='lab')??confirmed.find(a=>a.kind==='imaging');
   const update=continuity?.family_updates[0];
   const rides=services?.circle.rides??[];const ride=rides.find(r=>r.state!=='withdrawn');
   const unanswered=visit.priorities.filter(p=>p.selected&&(p.status??'open')==='open');

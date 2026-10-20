@@ -151,9 +151,11 @@ export function CallPanel({visit,viewer,compact=false}:{visit:Encounter;viewer:I
   async function control(type:'pause'|'resume'|'silence'|'end'){
     if(!call)return;setBusy(true);setError('');
     try{
-      const reviewed=type==='end'?await request<Call>(base):call;
+      // Always act on the current revision: a poll can be a moment old. The server still re-checks
+      // agreement, worker readiness and the room before resuming, so nothing is bypassed.
+      const reviewed=await request<Call>(base);
       if(reviewed.generation!==call.generation)throw new Error('The conversation changed.');
-      setCall(await request<Call>(base+'/controls',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({command_id:crypto.randomUUID(),expected_revision:reviewed.revision,type,...(type==='silence'?{silenced:!call.output_silenced}:{})})}));}
+      setCall(await request<Call>(base+'/controls',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({command_id:crypto.randomUUID(),expected_revision:reviewed.revision,type,...(type==='silence'?{silenced:!reviewed.output_silenced}:{})})}));}
     catch{setError(type==='resume'?'Everyone in the room needs to agree, and the processing service must be ready. Please check the current call status.':'Could not confirm this control. Check the call status and retry.');}finally{setBusy(false);}
   }
   async function toggleMic(){

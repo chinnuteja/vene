@@ -38,5 +38,7 @@ export async function endCall(context:BrowserContext){
   const call=await (await context.request.get(base+'/call')).json();
   if(call.state==='ended'||!call.generation||!call.generation.replaceAll('0','').replaceAll('-',''))return;
   const result=await context.request.post(base+'/call/controls',{headers:{'x-vene-intent':'mutation','x-vene-csrf':me.csrf_token},data:{command_id:crypto.randomUUID(),type:'end',expected_revision:call.revision}});
+  // The page may have just ended the call itself; a conflict is fine only if the call is now ended.
+  if(result.status()===409){expect((await (await context.request.get(base+'/call')).json()).state).toBe('ended');return;}
   expect(result.status()).toBe(200);
 }

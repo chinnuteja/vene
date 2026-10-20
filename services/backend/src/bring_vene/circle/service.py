@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from bring_vene.domain.context import context_adapter
 from bring_vene.domain.service import DomainError, utc_now
-from bring_vene.execution.service import access, patient, plan_fingerprint
+from bring_vene.execution.service import access, patient, receipt_current
 from bring_vene.persistence.models import CareCircleRequestRecord, ExecutionRecord, MembershipRecord
 from bring_vene.circle.contracts import CircleView, RideView
 
@@ -25,11 +25,7 @@ def details(view, action, recipient):
     receipt = action.content.get('receipt') or {}
     if not item or action.state != 'confirmed' or receipt.get('status') != 'confirmed' or not slot:
         return None
-    try:
-        current = plan_fingerprint(view, action.item_id) == action.content['plan_fingerprint']
-    except DomainError:
-        current = False
-    if not current:
+    if not receipt_current(view, action):
         return None
     day, time = (slot['label'].split(' · ') + ['', ''])[:2]
     return {'purpose': item.title, 'when': day + (' · ' + time if time else ''), 'where': slot['location'] + ' (fictional)',

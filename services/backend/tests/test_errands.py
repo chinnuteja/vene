@@ -18,7 +18,7 @@ STEPS={
     'lab':('Arrange the lab visit','Maria will arrange the lab visit at Riverside Lab on Tuesday.','Riverside Lab','2026-10-20'),
     'imaging':('Schedule the imaging','Maria will schedule the MRI at Lakeside Imaging on Wednesday.','Lakeside Imaging','2026-10-21'),
     'referral':('Resolve the referral document','The office will send the referral to Riverside Cardiology.','Riverside Cardiology','2026-10-27'),
-    'prescription':('Pick up the new prescription','Maria will pick up the prescription at Main Street Pharmacy on Thursday.','Main Street Pharmacy','2026-10-15'),
+    'prescription':('Pick up the new prescription','Maria will pick up the prescription at Main Street Pharmacy on Thursday.','Main Street Pharmacy','2026-10-22'),
 }
 
 def setup(engine,kinds=('lab','imaging','referral','prescription'),shared=True):
@@ -113,7 +113,7 @@ def test_institutions_are_isolated_documents_cannot_cross_and_pharmacy_takes_no_
     assert action(visit_engine,p,check(visit_engine,p,items['imaging'],b,'imaging')).state=='no_slot'
     assert action(visit_engine,p,check(visit_engine,p,items['lab'],b,'lab')).state=='suggested'
     lab_order=uuid4();b.call('/orders',{'request_id':str(lab_order)})
-    slot=b.call('/lookup',{'window':'morning','location':'Main Street Pharmacy','day':'2026-10-15','institution':'pharmacy'})
+    slot=b.call('/lookup',{'window':'morning','location':'Main Street Pharmacy','day':'2026-10-22','institution':'pharmacy'})
     headers={'Authorization':'Bearer '+SETTINGS.office_token}
     payload={'request_id':str(uuid4()),'slot_id':slot['slot']['id'],'availability_revision':slot['revision'],
         'order_id':str(lab_order),'institution':'pharmacy'}

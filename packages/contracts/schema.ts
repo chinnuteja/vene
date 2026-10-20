@@ -1781,6 +1781,17 @@ export interface components {
             /** Expected Version */
             expected_version: number;
         };
+        /** DemoTurn */
+        DemoTurn: {
+            /**
+             * Line
+             * @default labs
+             * @enum {string}
+             */
+            line: "labs" | "errands";
+            /** Token */
+            token: string;
+        };
         /** Difference */
         Difference: {
             /** End */
@@ -4202,7 +4213,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RedeemRequest"];
+                "application/json": components["schemas"]["DemoTurn"];
             };
         };
         responses: {

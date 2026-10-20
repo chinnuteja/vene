@@ -2,11 +2,17 @@
 import {useEffect,useRef,useState} from 'react';
 import {loadVisit,redeemInvite,request,type Encounter,type Identity} from '@/lib/api/client';
 import {DemoExperience} from './demo-experience';
+import {VisitWorkspace} from './visit-workspace';
+import {DemoLeave} from './demo-leave';
+import {DemoAfter} from './demo-after';
 type Role='patient'|'clinician'|'family';
+export type Chapter='before'|'during'|'leave'|'after';
 
 export function DemoPane({run,role}:{run:string;role:Role}){
-  const [ready,setReady]=useState(false),[error,setError]=useState('');
+  const [ready,setReady]=useState(false),[error,setError]=useState(''),[chapter,setChapter]=useState<Chapter>('before');
   const used=useRef(false),identity=useRef<Identity|null>(null);
+  // The host page already carries the unofficial-concept banner once for all panes.
+  useEffect(()=>{document.body.classList.add('in-demo-pane');return()=>document.body.classList.remove('in-demo-pane');},[]);
   useEffect(()=>{
     const receive=async(event:MessageEvent)=>{
       if(event.origin!==location.origin||event.source!==parent||event.data?.run!==run)return;
@@ -20,6 +26,7 @@ export function DemoPane({run,role}:{run:string;role:Role}){
           setReady(true);
         }catch(e){setError((e as Error).message);}
       }
+      if(event.data.type==='vene-demo-chapter'&&['before','during','leave','after'].includes(event.data.chapter)){setChapter(event.data.chapter);window.scrollTo(0,0);}
       if(event.data.type==='vene-end-demo'&&role==='patient'&&identity.current){
         try{
           const root='/encounters/'+run+'/call',call=await request<{revision:number;state:string}>(root);
@@ -35,5 +42,7 @@ export function DemoPane({run,role}:{run:string;role:Role}){
   },[run,role]);
   if(error)return <p className="demo-error" role="alert">{error}</p>;
   if(!ready)return <div className="demo-pane-loading" role="status">Opening your own visit session…</div>;
-  return <div className={'demo-embedded '+role}><DemoExperience/></div>;
+  if(chapter==='during')return <div className={'demo-embedded '+role}><DemoExperience/></div>;
+  // Preparation is the full product screen; the other chapters are focused views over the same services.
+  return <div className={'demo-embedded chapter-'+chapter+' '+role}>{chapter==='before'?<VisitWorkspace stage="prepare" embedded/>:chapter==='leave'?<DemoLeave run={run}/>:<DemoAfter/>}</div>;
 }

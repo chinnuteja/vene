@@ -4,6 +4,13 @@ import {ArrowRight,Check,Leaf,RotateCcw,ShieldCheck,Sparkles,Users} from 'lucide
 import {request} from '@/lib/api/client';
 type Role='patient'|'clinician'|'family';
 type Setup={run:string;invitations:Record<Role,string>;synthetic:true;visit_day:string};
+type Chapter='before'|'during'|'leave'|'after';
+const CHAPTERS:{id:Chapter;label:string;title:string;lead:string}[]=[
+  {id:'before',label:'Before',title:'Bring what was left unfinished.',lead:'Vene read Maria’s July visit and her pharmacy message, and found what is still open. She decides what joins her list and what Dr. Chen sees.'},
+  {id:'during',label:'During',title:'Catch the obstacle while everyone is still here.',lead:'Dr. Chen asks for labs within three days. Vene checks the calendars privately and tells only Maria what it found. She chooses whether to raise it.'},
+  {id:'leave',label:'Before you leave',title:'Start every errand before you reach the car.',lead:'Later in the visit, an MRI and a new prescription come up. Each errand checks with its own office, waits for the clinician’s part and Maria’s approval, and returns its own receipt.'},
+  {id:'after',label:'After',title:'Keep the thread after the door closes.',lead:'Maria sends Elena only the parts she picks, asks for a ride, and carries anything unanswered into her next visit.'},
+];
 
 export function DemoHost(){
   const [demo,setDemo]=useState<Setup|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -11,6 +18,8 @@ export function DemoHost(){
   const panes=useRef<Partial<Record<Role,HTMLIFrameElement|null>>>({});
   const checksAllowed=useRef(false);
   const [milestones,setMilestones]=useState<string[]>([]);
+  const [chapter,setChapter]=useState<Chapter>('before');const chapterRef=useRef<Chapter>('before');
+  function go(next:Chapter){chapterRef.current=next;setChapter(next);for(const pane of Object.values(panes.current))pane?.contentWindow?.postMessage({type:'vene-demo-chapter',run:demo?.run,chapter:next},location.origin);}
   useEffect(()=>{request<Record<string,string>>('/dev/demo-info').then(setProviders).catch(()=>{});},[]);
   useEffect(()=>{
     if(!demo)return;
@@ -18,8 +27,9 @@ export function DemoHost(){
       if(event.origin!==location.origin||event.data?.run!==demo.run)return;
       const role=event.data?.role as Role;
       if(!['patient','clinician','family'].includes(role)||event.source!==panes.current[role]?.contentWindow)return;
-      if(event.data.type==='vene-pane-ready')panes.current[role]?.contentWindow?.postMessage({type:'vene-demo-invitation',
+      if(event.data.type==='vene-pane-ready'){panes.current[role]?.contentWindow?.postMessage({type:'vene-demo-invitation',
         run:demo.run,role,token:demo.invitations[role]},location.origin);
+        panes.current[role]?.contentWindow?.postMessage({type:'vene-demo-chapter',run:demo.run,chapter:chapterRef.current},location.origin);}
       if(event.data.type==='vene-demo-checks'&&role==='patient'){
         checksAllowed.current=event.data.enabled===true;
         panes.current.clinician?.contentWindow?.postMessage({type:'vene-demo-checks-state',run:demo.run,enabled:checksAllowed.current},location.origin);
@@ -43,10 +53,11 @@ export function DemoHost(){
       }
       const created=await request<Setup>('/dev/demo',{method:'POST'});
       checksAllowed.current=false;
-      setMilestones([]);setFamily(false);setDemo(created);
+      setMilestones([]);setFamily(false);chapterRef.current='before';setChapter('before');setDemo(created);
     }catch(e){setError((e as Error).message);}finally{setBusy(false);}
   }
   const guided=providers?.transport==='guided';
+  const index=CHAPTERS.findIndex(c=>c.id===chapter),current=CHAPTERS[index];
   const mode=guided?'Guided fixture · device voice':providers?.stt==='deepgram'?'Live voice selected':'Offline voice · real WebRTC';
   return <div className={'demo-host'+(demo?' running':'')}>
     <header className="demo-nav"><a href="/demo" className="demo-brand"><span className="brand-mark">v<span/></span>bring vene</a>
@@ -63,17 +74,20 @@ export function DemoHost(){
       <div className="demo-art-cue"><span><Sparkles size={13}/>JUST FOR YOU</span><strong>There’s a way to get<br/>this done on time.</strong><p>Northside has Thursday at 9am.</p><div>Let’s bring it up <ArrowRight size={15}/></div></div>
       <small>Illustrative preview · start to check actual availability</small></div><div className="demo-art-note"><Leaf size={18}/><span>A little less to carry.</span></div></div>
     </main>:<main className="demo-stage">
-      <div className="demo-stage-heading"><div><span className="eyebrow">ONE VISIT, TWO PERSPECTIVES</span><h1>Before you reach the car.</h1><p>{demo.visit_day} · {mode}</p></div>
-        <label className="demo-family-toggle"><input type="checkbox" checked={family} onChange={e=>setFamily(e.target.checked)}/><Users size={16}/>Elena’s view</label></div>
-      <div className="demo-story"><span className={milestones.includes('heard')?'done':''}><i>{milestones.includes('heard')?<Check size={12}/>:1}</i>Hear the next step</span>
+      <div className="demo-stage-heading"><div><span className="eyebrow">MARIA’S VISIT WITH DR. CHEN · {demo.visit_day.toUpperCase()}</span><h1>{current.title}</h1><p>{current.lead}</p></div>
+        <label className="demo-family-toggle"><input type="checkbox" checked={family} onChange={e=>setFamily(e.target.checked)}/><Users size={16}/>Show Elena’s view</label></div>
+      <nav className="demo-chapters" aria-label="Visit chapters">{CHAPTERS.map((c,i)=><button key={c.id} aria-current={chapter===c.id?'step':undefined} className={(chapter===c.id?'current ':'')+(i<index?'done':'')} onClick={()=>go(c.id)}>
+        <i>{i<index?<Check size={12}/>:i+1}</i>{c.label}</button>)}
+        {index<CHAPTERS.length-1&&<button className="demo-next" onClick={()=>go(CHAPTERS[index+1].id)}>Next: {CHAPTERS[index+1].label} <ArrowRight size={14}/></button>}</nav>
+      {chapter==='during'&&<div className="demo-story"><span className={milestones.includes('heard')?'done':''}><i>{milestones.includes('heard')?<Check size={12}/>:1}</i>Hear the next step</span>
         <span className={milestones.includes('obstacle')?'done':''}><i>{milestones.includes('obstacle')?<Check size={12}/>:2}</i>Catch the obstacle privately</span>
-        <span className={milestones.includes('booked')?'done':''}><i>{milestones.includes('booked')?<Check size={12}/>:3}</i>Leave with a receipt</span></div>
+        <span className={milestones.includes('booked')?'done':''}><i>{milestones.includes('booked')?<Check size={12}/>:3}</i>Leave with a receipt</span></div>}
       <div className={'demo-panes'+(family?' with-family':'')}>
         <section className="demo-patient-column"><div className="demo-pane-caption"><span>MARIA</span>Her phone. Her choice.</div><div className="demo-phone"><div className="phone-island"/>
           <iframe ref={el=>{panes.current.patient=el;}} src={'/demo/pane/'+demo.run+'/patient'} title="Maria’s private phone" allow="microphone; autoplay"/></div></section>
         <section className="demo-clinician-column"><div className="demo-pane-caption"><span>DR. CHEN</span>Only what Maria shares.</div><div className="demo-clinician-window"><div className="demo-window-bar"><i/><i/><i/><span>Visit with Maria</span></div>
           <iframe ref={el=>{panes.current.clinician=el;}} src={'/demo/pane/'+demo.run+'/clinician'} title="Dr. Chen’s clinician view" allow="microphone; autoplay"/></div>
-          <details className="demo-prompt"><summary>The 60-second path</summary><p>{guided?'Allow private checks as Maria, then try the labelled sample instruction as Dr. Chen.':'Join and agree in both panes, then choose Start listening as Maria.'}</p><blockquote>“Please get labs done within three days. We can send the lab order today.”</blockquote><p>Maria reviews the private cue and chooses whether to raise it. Dr. Chen sends the lab order. Maria approves the offered booking.</p></details></section>
+          {chapter==='during'&&<details className="demo-prompt"><summary>The 60-second path</summary><p>{guided?'Allow private checks as Maria, then try the labelled sample instruction as Dr. Chen.':'Join and agree in both panes, then choose Start listening as Maria.'}</p><blockquote>“Please get labs done within three days. We can send the lab order today.”</blockquote><p>Maria reviews the private cue and chooses whether to raise it. Dr. Chen sends the lab order. Maria approves the offered booking.</p></details>}</section>
         {family&&<section className="demo-family-column"><div className="demo-pane-caption"><span>ELENA</span>Only what Maria chooses.</div><iframe ref={el=>{panes.current.family=el;}} src={'/demo/pane/'+demo.run+'/family'} title="Elena’s family view"/></section>}
       </div>
     </main>}

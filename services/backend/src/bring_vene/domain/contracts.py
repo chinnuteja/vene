@@ -244,6 +244,11 @@ class RedeemRequest(Contract):
     token: str = Field(min_length=30, max_length=128)
 
 
+class DemoTurn(Contract):
+    token: str = Field(min_length=30, max_length=128)
+    line: Literal["labs", "errands"] = "labs"
+
+
 class FixtureLaunch(Contract):
     persona: Role
     case: Literal['maria','james','asha']='maria'

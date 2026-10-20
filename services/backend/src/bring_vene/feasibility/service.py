@@ -470,7 +470,8 @@ def open_review(engine, visit_id, auth_id, clinician_id, settings, gateway=None)
         scope = session.get(ExecutionScopeRecord, (visit_id, auth_id))
         action = ExecutionRecord(id=uuid4(), encounter_id=visit_id, item_id=auth_id, state='checking', created_at=utc_now(),
             content={'kind': 'authorization', 'title': next(p.title for p in view.plan if p.id == auth_id), 'window': 'morning',
-                     'plan_fingerprint': plan_fingerprint(view, auth_id), 'location': 'Evergreen Health Plan', 'day': '2026-10-15',
+                     'plan_fingerprint': plan_fingerprint(view, auth_id), 'intent_fingerprint': execution.intent_fingerprint(view, auth_id),
+                     'location': 'Evergreen Health Plan', 'day': '2026-10-15',
                      'scope_revision': scope.revision, 'session_hash': scope.session_hash,
                      'message': 'Preparing the submission with the sandbox health plan.'})
         sandbox_run=view.demo_run

@@ -37,7 +37,7 @@ ERRANDS = {
         (('2026-10-27', 'Tue, Oct 27'), ('2026-10-28', 'Wed, Oct 28'))),
     'prescription': Errand('prescription', 'pharmacy', 'pharmacy', 'prescription', 'pickup window', 'Pickup confirmed',
         ('Main Street Pharmacy', 'Harbor Pharmacy'),
-        (('2026-10-15', 'Thu, Oct 15'), ('2026-10-16', 'Fri, Oct 16'))),
+        (('2026-10-22', 'Thu, Oct 22'), ('2026-10-23', 'Fri, Oct 23'))),
     # Created only when a clinician says the office will submit it (Phase 10); never proposed by a model.
     'authorization': Errand('authorization', 'plan', 'health plan', 'authorization request', 'review',
         'Prior authorization approved', ('Evergreen Health Plan',), (('2026-10-15', 'Thu, Oct 15'),)),

@@ -248,3 +248,23 @@ def test_cancelled_room_join_finishes_native_handshake_before_cleanup():
         except asyncio.CancelledError:pass
         assert events==['started','native-ready','disconnect']
     asyncio.run(scenario())
+
+
+def test_sharing_a_booked_step_later_keeps_its_receipt_but_a_changed_step_does_not(visit_engine):
+    # Booked while shared with Dr. Chen only; Maria tells family afterwards.
+    p,d,f,item,b=setup(visit_engine)
+    with Session(visit_engine) as session,session.begin():
+        record,view=execution.lock(session,FIXTURE_VISIT);execution.target(view,item).audiences=['clinician'];record.projection=view.model_dump(mode='json')
+    aid=check(visit_engine,p,item,b);ready(visit_engine,p,d,aid,b);authorize(visit_engine,p,aid);execution.dispatch(visit_engine,SETTINGS,gateway=b)
+    assert action(visit_engine,p,aid).state=='confirmed'
+    with Session(visit_engine) as session,session.begin():
+        record,view=execution.lock(session,FIXTURE_VISIT);execution.target(view,item).audiences=['clinician','family'];record.projection=view.model_dump(mode='json')
+    doctor=execution.state(visit_engine,FIXTURE_VISIT,d.cookies.get(COOKIE),SETTINGS).actions
+    assert [a.state for a in doctor if a.id==aid]==['confirmed']
+    family=execution.state(visit_engine,FIXTURE_VISIT,f.cookies.get(COOKIE),SETTINGS).actions
+    assert [a.state for a in family if a.id==aid]==['confirmed']
+    assert 'Office: Sandbox:' in family_draft(visit_engine,p,item).text
+    # Changing the step itself still retires the old receipt for everyone but the patient.
+    correct(visit_engine,item)
+    assert all(a.id!=aid for a in execution.state(visit_engine,FIXTURE_VISIT,d.cookies.get(COOKIE),SETTINGS).actions)
+    assert 'No current office completion has been verified' in family_draft(visit_engine,p,item).text

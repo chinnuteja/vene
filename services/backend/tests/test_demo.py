@@ -55,3 +55,33 @@ def test_sample_instruction_is_own_clinician_only_and_never_a_live_fallback(visi
     assert len([e for e in clients['patient'].get(root).json()['evidence'] if e.get('origin')=='fixture'])==1
     settings.voice_provider='deepgram'
     assert clients['clinician'].post(root+'/demo/turn',json={'token':str(uuid4())}).status_code==409
+
+
+def test_each_demo_has_its_own_history_and_a_second_allow_listed_line(visit_engine):
+    settings=Settings(bring_vene_development=True,cookie_secure=False,voice_provider='fixture',model_provider='fixture')
+    app=create_app(settings,visit_engine);bootstrap=TestClient(app)
+    runs=[bootstrap.post('/dev/demo',headers={'x-vene-intent':'mutation'}).json() for _ in range(2)]
+    clients=[]
+    for demo in runs:
+        roles={}
+        for role,invite in demo['invitations'].items():
+            client=TestClient(app);viewer=client.post('/auth/redeem',headers={'x-vene-intent':'mutation'},json={'token':invite}).json()
+            client.headers.update({'x-vene-intent':'mutation','x-vene-csrf':viewer['csrf_token']});roles[role]=client
+        clients.append(roles)
+    root='/encounters/'+runs[0]['run']
+    memory=clients[0]['patient'].get(root+'/memory').json()
+    assert memory['past_visits']==1 and len(memory['loops'])>=2
+    # A run's history belongs to that run's fictional patient only, and guests never read it.
+    assert clients[0]['clinician'].get(root+'/memory').status_code in (403,404)
+    patients={c['patient'].get('/encounters/'+d['run']).json()['patient']['id'] for c,d in zip(clients,runs)}
+    assert len(patients)==2
+    assert clients[0]['clinician'].post(root+'/demo/turn',json={'token':str(uuid4()),'line':'anything'}).status_code==422
+    clients[0]['patient'].post(root+'/understanding/processing',json={'command_id':str(uuid4()),'enabled':True})
+    assert clients[0]['clinician'].post(root+'/demo/turn',json={'token':str(uuid4()),'line':'errands'}).status_code==200
+    import asyncio
+    from bring_vene.understanding import service as understanding
+    from bring_vene.understanding.gateway import ModelGateway
+    run_id,snapshot=understanding.prepare(visit_engine,UUID(runs[0]['run']),settings)
+    assert understanding.apply_result(visit_engine,run_id,asyncio.run(ModelGateway(settings).extract(snapshot)),settings)
+    plan={step['kind']:step for step in clients[0]['patient'].get(root).json()['plan']}
+    assert plan['imaging']['location']=='Lakeside Imaging' and plan['prescription']['location']=='Main Street Pharmacy'

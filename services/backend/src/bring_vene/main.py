@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from bring_vene.auth import COOKIE, FIXTURE_MEMBERS, FIXTURE_VISIT, authenticate, identity, issue_invitation, redeem, digest
 from bring_vene.config import Settings
 from bring_vene.domain.context import context_adapter
-from bring_vene.domain.contracts import (CommandEnvelope, CommandResult, ContextView, EncounterSummary,
+from bring_vene.domain.contracts import (CommandEnvelope, DemoTurn, CommandResult, ContextView, EncounterSummary,
     EncounterView, Evidence, FixtureLaunch, Health, Identity, Invitation, InviteRequest, MemberView, RedeemRequest, Audience)
 from bring_vene.domain.service import DomainError, apply_command, utc_now
 from bring_vene.persistence.database import make_engine
@@ -192,10 +192,10 @@ def create_app(settings: Settings | None = None, engine=None):
         return create(db)
 
     @application.post('/encounters/{encounter_id}/demo/turn',dependencies=[Depends(mutation)])
-    def demo_turn(encounter_id:UUID,body:RedeemRequest,request:Request):
+    def demo_turn(encounter_id:UUID,body:DemoTurn,request:Request):
         if not fixture_enabled(request):raise DomainError(404,'Not found.')
         from bring_vene.demo import fixture_turn
-        return fixture_turn(db,encounter_id,*credentials(request),body.token,settings)
+        return fixture_turn(db,encounter_id,*credentials(request),body.token,settings,body.line)
 
     @application.post("/auth/redeem", response_model=Identity, dependencies=[Depends(mutation)])
     def redeem_invitation(body: RedeemRequest, response: Response, request: Request):

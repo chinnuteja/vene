@@ -66,6 +66,23 @@ def test_later_date_and_ambiguous_owner_update_the_same_sourced_step(visit_engin
     assert third['owner'] is None and third['needs_clarification']
 
 
+
+def test_more_conversation_leaves_an_unchanged_step_and_its_sharing_alone(visit_engine):
+    c=client(visit_engine);post(c,'/processing',enabled=True);turn(c);run(visit_engine)
+    first=next(i for i in c.get(VISIT).json()['plan'] if i['origin']=='interpretation')
+    version=c.get(VISIT).json()['version']
+    shared=c.post(VISIT+'/commands',json={'command_id':str(uuid4()),'expected_version':version,
+        'command':{'type':'sharing.changed','item_id':first['id'],'audiences':['clinician']}})
+    assert shared.status_code==200
+    turn(c,'Maria will pick up the new prescription at Main Street Pharmacy on Thursday.');run(visit_engine)
+    plan=c.get(VISIT).json()['plan'];lab=next(i for i in plan if i['id']==first['id'])
+    assert lab['revision']==first['revision'] and lab['audiences']==['clinician']
+    assert any(i['kind']=='prescription' for i in plan)
+    # A changed detail is a new reading: it is re-proposed privately with a new revision.
+    turn(c,'Actually, the lab visit is Tuesday, not Thursday. Maria will arrange it at Riverside Lab after the office sends the order.')
+    run(visit_engine);lab=next(i for i in c.get(VISIT).json()['plan'] if i['id']==first['id'])
+    assert lab['timeframe']=='Tuesday' and lab['revision']>first['revision'] and lab['audiences']==[]
+
 def test_source_correction_removes_dependencies_before_reextraction_and_old_result_is_fenced(visit_engine):
     c=client(visit_engine);post(c,'/processing',enabled=True);turn(c);run(visit_engine)
     post(c,'/retry');old_id,snapshot=service.prepare(visit_engine,FIXTURE_VISIT,SETTINGS)

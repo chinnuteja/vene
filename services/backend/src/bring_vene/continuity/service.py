@@ -7,7 +7,7 @@ from bring_vene.auth import issue_invitation
 from bring_vene.domain.contracts import EncounterView,Evidence,Priority
 from bring_vene.domain.context import context_adapter
 from bring_vene.domain.service import DomainError,utc_now
-from bring_vene.execution.service import access,patient,plan_fingerprint
+from bring_vene.execution.service import access,patient,plan_fingerprint,receipt_current
 from bring_vene.understanding.service import fingerprint
 from bring_vene.persistence.models import (EncounterRecord,EvidenceRecord,MembershipRecord,SessionRecord,ExecutionRecord,
     DocumentRecord,FamilyUpdateRecord,FamilyOutboxRecord,NextVisitRecord,OfficeCallbackRecord,CallRecord,OperationTraceRecord,
@@ -35,7 +35,7 @@ def family_input(session,view,recipient_id,plan_ids,fields):
             if field=='office_status':
                 row=session.scalar(select(ExecutionRecord).where(ExecutionRecord.encounter_id==view.id,ExecutionRecord.item_id==item_id)
                     .order_by(ExecutionRecord.created_at.desc()).limit(1))
-                if row and row.content['plan_fingerprint']==plan_fingerprint(view,item_id):
+                if row and receipt_current(view,row):
                     errand=errands.for_action(row.content)
                     values[field]=('Sandbox: '+errand.confirmed if row.state=='confirmed' else
                         'The '+errand.place+' rejected the request' if row.state=='rejected' else 'Completion remains '+row.state)

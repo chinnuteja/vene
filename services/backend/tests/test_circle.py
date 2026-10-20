@@ -74,3 +74,16 @@ def test_withdrawn_or_revoked_family_cannot_answer(visit_engine):
         session.get(MembershipRecord,FIXTURE_MEMBERS['family']).revoked_at=utc_now()
     assert f.post(CIRCLE+f"/rides/{fresh['id']}/answer",json={'answer':'yes'}).status_code==401
     assert next(r for r in p.get(CIRCLE).json()['rides'] if r['id']==fresh['id'])['state']=='unavailable'
+
+
+def test_a_step_shared_with_family_after_booking_can_still_be_asked(visit_engine):
+    p,d,f,items,aid=confirmed(visit_engine,shared=False)
+    assert p.post(CIRCLE+'/rides',json={'action_id':str(aid),'recipient_id':FAMILY}).status_code==409
+    with Session(visit_engine) as session,session.begin():
+        record=session.get(EncounterRecord,FIXTURE_VISIT);view=EncounterView.model_validate(record.projection)
+        item=next(i for i in view.plan if i.id==items['lab'])
+        for source in view.evidence:
+            if source.id in item.evidence_refs:source.audiences=sorted({*source.audiences,'family'})
+        item.audiences=['clinician','family'];record.projection=view.model_dump(mode='json')
+    response=p.post(CIRCLE+'/rides',json={'action_id':str(aid),'recipient_id':FAMILY})
+    assert response.status_code==200 and response.json()['rides'][0]['state']=='asked'

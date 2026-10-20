@@ -230,6 +230,10 @@ def valid_citations(citations,sources):
         c.quote.strip() in sources[str(c.source_id)]['text'] for c in citations)
 
 
+SAME_STEP={'title','detail','owner','timeframe','location','dependencies','status','evidence_refs','origin',
+           'needs_clarification','explanation','kind'}
+
+
 def apply_result(engine,run_id,result,settings):
     with Session(engine) as session,session.begin():
         run=session.get(InterpretationRunRecord,run_id)
@@ -274,6 +278,9 @@ def apply_result(engine,run_id,result,settings):
                 status='draft',evidence_refs=list(dict.fromkeys(c.source_id for c in proposal.citations)),origin='interpretation',
                 needs_clarification=proposal.needs_clarification,explanation=proposal.explanation,
                 revision=(old.revision+1 if old else 1),audiences=[],kind=proposal.topic)
+            # Hearing more of the conversation is not a change to this step. An identical reading keeps its
+            # revision, sharing and anything built on it; any changed detail still resets them.
+            if old and old.model_dump(mode='json',include=SAME_STEP)==item.model_dump(mode='json',include=SAME_STEP):continue
             view.plan=[i for i in view.plan if i.id!=item_id];view.plan.append(item)
         # Untrusted citation failures never publish invented details or change approvals.
         if invalid:

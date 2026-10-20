@@ -60,7 +60,7 @@ export function CallPanel({visit,viewer,compact=false}:{visit:Encounter;viewer:I
     try{
       if(compact&&viewer.role==='patient'){
         await request('/encounters/'+visit.id+'/understanding/processing',{method:'POST',body:JSON.stringify({command_id:crypto.randomUUID(),enabled:true})});
-        await request('/encounters/'+visit.id+'/feasibility/standing',{method:'POST',body:JSON.stringify({kinds:['scheduling']})});
+        await request('/encounters/'+visit.id+'/feasibility/standing',{method:'POST',body:JSON.stringify({kinds:['scheduling','coverage']})});
         await request('/encounters/'+visit.id+'/speech/mode',{method:'POST',body:JSON.stringify({command_id:crypto.randomUUID(),mode:'on_request'})});
       }
       stopMeter();meterContext.current=new AudioContext();void meterContext.current.resume();

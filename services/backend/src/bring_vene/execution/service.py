@@ -40,6 +40,25 @@ def plan_fingerprint(view,item_id):
         snapshot['authorized_imaging']=plan_fingerprint(view,parent.id) if parent else None
     return fingerprint(snapshot)
 
+def intent_fingerprint(view,item_id):
+    """What a request asked for: the step and its sources, without who may see them."""
+    item=target(view,item_id)
+    refs={str(e.id):e.model_dump(mode='json',exclude={'audiences'}) for e in view.evidence if e.id in item.evidence_refs}
+    snapshot={'item':item.model_dump(mode='json',exclude={'audiences'}),'sources':refs}
+    if item.kind=='authorization':
+        from bring_vene.feasibility.service import authorization_item_id
+        parent=next((p for p in view.plan if p.kind=='imaging' and authorization_item_id(view,p.id)==item.id),None)
+        snapshot['authorized_imaging']=intent_fingerprint(view,parent.id) if parent else None
+    return fingerprint(snapshot)
+
+def receipt_current(view,row):
+    """Pending work needs the exact current step. A confirmed receipt stays current when the step was only
+    shared differently afterwards; any change to the step or its sources still retires it."""
+    try:
+        if plan_fingerprint(view,row.item_id)==row.content['plan_fingerprint']:return True
+        return row.state=='confirmed' and bool(row.content.get('intent_fingerprint')) and row.content['intent_fingerprint']==intent_fingerprint(view,row.item_id)
+    except DomainError:return False
+
 def access(session,visit_id,token,csrf=None):
     encounter,view=lock(session,visit_id)
     member,credential=authenticate(session,token,visit_id,csrf,mutate=csrf is not None)
@@ -101,7 +120,7 @@ def state(engine,visit_id,token,settings):
             if row.item_id not in visible:continue
             # Even if a changed plan is shared again, the old request cannot inherit its audience.
             current=plan_fingerprint(view,row.item_id)==row.content['plan_fingerprint']
-            if member.role!='patient' and not current:continue
+            if member.role!='patient' and not receipt_current(view,row):continue
             data=row.content;allowed=scope_valid(session,view,row);shown=row.state;message=data.get('message','')
             if row.state not in TERMINAL and row.state not in {'unknown','in_flight'} and not allowed:
                 shown='invalidated';message='The step, source or permission changed. Check again.'
@@ -153,7 +172,7 @@ def lookup(engine,visit_id,item_id,token,csrf,request,settings,gateway=None):
         for old in existing:
             if old.state not in TERMINAL:old.state='invalidated'
         action=ExecutionRecord(id=uuid4(),encounter_id=visit_id,item_id=item_id,state='checking',created_at=utc_now(),content={
-            'kind':errand.kind,'title':item.title,'window':request.window,'plan_fingerprint':plan_fingerprint(view,item_id),
+            'kind':errand.kind,'title':item.title,'window':request.window,'plan_fingerprint':plan_fingerprint(view,item_id),'intent_fingerprint':intent_fingerprint(view,item_id),
             'location':request.location,'day':request.day,
             'scope_revision':grant.revision,'session_hash':credential.token_hash,'message':'Checking the local sandbox '+errand.place+'.'})
         if sandbox_run:action.content={**action.content,'sandbox_run':str(sandbox_run)}

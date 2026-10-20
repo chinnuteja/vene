@@ -33,7 +33,8 @@ function date(value: string, options: Intl.DateTimeFormatOptions) {
   return new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', ...options }).format(new Date(value));
 }
 
-export function VisitWorkspace({ stage }: { stage: Stage }) {
+// embedded: the same screens inside the single-tab demo, without navigation or call controls.
+export function VisitWorkspace({ stage, embedded=false }: { stage: Stage; embedded?: boolean }) {
   const [visit, setVisit] = useState<Encounter | null>(null);
   const [serviceViews,setServiceViews]=useState<ServiceViews|null>(null);
   const [error, setError] = useState('');
@@ -125,13 +126,13 @@ export function VisitWorkspace({ stage }: { stage: Stage }) {
         <div className="mobile-brand"><span className="brand-mark">v<span /></span><strong>vene</strong><span>Bring Vene</span></div>
         <nav className="steps" aria-label="Visit progress">{stages.map((s, i) => <Link key={s.id} href={s.href} aria-current={stage === s.id ? 'step' : undefined} className={stage === s.id ? 'current' : ''}><span>{i + 1}</span>{s.label}</Link>)}</nav>
         <section className="hero"><div><div className="eyebrow">{text.eyebrow}</div><h1>{text.title}</h1><p>{text.description}</p></div><div className="hero-flower" aria-hidden="true"><span className="petal p1" /><span className="petal p2" /><span className="petal p3" /><span className="petal p4" /><span className="flower-center"><Sparkles size={27} /></span><i className="orbit" /></div></section>
-        {viewer && <div className="viewer-strip"><span>{patient ? 'Your private space' : `${viewer.role === 'family' ? 'Family' : 'Clinician'} view · Shared by ${visit?.patient.preferred_name ?? 'the patient'}`}</span><button className="source-link" onClick={() => void leave()}>Leave this session</button></div>}
+        {viewer && !embedded && <div className="viewer-strip"><span>{patient ? 'Your private space' : `${viewer.role === 'family' ? 'Family' : 'Clinician'} view · Shared by ${visit?.patient.preferred_name ?? 'the patient'}`}</span><button className="source-link" onClick={() => void leave()}>Leave this session</button></div>}
         {error && <div className="error-banner" role="alert" aria-label="Visit error"><CircleHelp size={20} /><div><strong>We couldn't update your visit.</strong><p>{error}</p></div><button onClick={() => setRefresh(r => r + 1)}><RefreshCw size={16} />Try again</button></div>}
         {loading && !visit ? <div className="loading" role="status"><LoaderCircle size={24} className="spin" /><p>Getting your visit ready…</p></div> : visit ? <>
           <div className="visit-strip"><div className="calendar-icon"><CalendarDays size={22} /></div><div><strong>{visit.title}</strong><span>{date(visit.visit_at, { weekday: 'long', month: 'short', day: 'numeric' })} · {date(visit.visit_at, { hour: 'numeric', minute: '2-digit' })} ET</span></div><span className="pill">Upcoming visit</span></div>
-          {stage==='visit'&&viewer&&<InRoomMode visit={visit} viewer={viewer}/>}
-          {stage==='visit'&&viewer&&<CallPanel visit={visit} viewer={viewer}/>}
-          {stage==='visit'&&patient&&<UnderstandingPanel visit={visit} onReplace={setVisit}/>}
+          {stage==='visit'&&viewer&&!embedded&&<InRoomMode visit={visit} viewer={viewer}/>}
+          {stage==='visit'&&viewer&&!embedded&&<CallPanel visit={visit} viewer={viewer}/>}
+          {stage==='visit'&&patient&&!embedded&&<UnderstandingPanel visit={visit} onReplace={setVisit}/>}
           {stage === 'prepare' && patient && <DraftedAgenda visit={visit}/>}
           {stage === 'prepare' && !patient ? <GuestPreparation visit={visit} mutate={mutate} disabled={saving !== null} onSource={openSource} /> : stage === 'prepare' ? <div className="content-grid">
             <section className="card priorities"><div className="section-heading"><div><div className="eyebrow small">START WITH YOU</div><h2>What would you like to discuss?</h2></div><span className="count-pill">{selected.length} on your list</span></div><p className="muted intro">Choose what matters today. You can change your list.</p>
@@ -142,7 +143,7 @@ export function VisitWorkspace({ stage }: { stage: Stage }) {
               </div>)}</div>
               <div className="card-foot"><ShieldCheck size={17} /><span>Choosing a question adds it to your list. It does not send a message.</span></div>
             </section>
-            <aside className="right-column"><section className="companion-card"><div className="companion-icon"><Sparkles size={24} /></div><h2>Your questions,<br />{' '}coming with you.</h2><p>You don't have to hold everything in your head. Your list will stay here throughout the visit.</p><Link className="primary-button" href="/visit">Review your visit <ArrowRight size={17} /></Link></section><section className="card compact"><h3>A little context</h3><div className="context-row"><span>Prepared for</span><strong>{visit.patient.name}</strong></div><div className="context-row"><span>Conversation with</span><strong>{visit.clinician}</strong></div><div className="context-row"><span>Questions selected</span><strong>{selected.length}</strong></div></section></aside>
+            <aside className="right-column">{!embedded&&<section className="companion-card"><div className="companion-icon"><Sparkles size={24} /></div><h2>Your questions,<br />{' '}coming with you.</h2><p>You don't have to hold everything in your head. Your list will stay here throughout the visit.</p><Link className="primary-button" href="/visit">Review your visit <ArrowRight size={17} /></Link></section>}<section className="card compact"><h3>A little context</h3><div className="context-row"><span>Prepared for</span><strong>{visit.patient.name}</strong></div><div className="context-row"><span>Conversation with</span><strong>{visit.clinician}</strong></div><div className="context-row"><span>Questions selected</span><strong>{selected.length}</strong></div></section></aside>
           </div> : stage === 'visit' ? <EvolvingVisitCard visit={visit} patient={patient} onSource={openSource} onReplace={setVisit} sharing={mutate} disabled={saving!==null}/> : viewer&&<FollowUpOverview visit={visit} viewer={viewer}/>}
           {stage === 'prepare' && patient && <PreparationControls visit={visit} mutate={mutate} disabled={saving !== null} onSource={openSource} onReplace={setVisit} />}
           {stage === 'prepare' && patient && viewer && <details className="preparation-option"><summary>Practical checks during the visit</summary><InRoomChecks visit={visit} viewer={viewer} mode="permission"/></details>}

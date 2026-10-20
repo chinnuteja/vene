@@ -13,9 +13,13 @@ from bring_vene.persistence.models import EncounterRecord,EvidenceRecord,Members
 ROOT=Path(__file__).resolve().parents[4]
 
 SCRIPT='Please get labs done within three days. We can send the lab order today.'
+# Later in the same visit. Each sentence is its own turn so every step keeps its own source.
+LINES={'labs':[SCRIPT],
+       'errands':['Maria will schedule the MRI at Lakeside Imaging on Wednesday after the office sends the order.',
+                  'Maria will pick up the new prescription at Main Street Pharmacy on Thursday.']}
 
 
-def fixture_turn(engine,visit_id,token,csrf,command,settings):
+def fixture_turn(engine,visit_id,token,csrf,command,settings,line='labs'):
     from bring_vene.understanding import service
     from bring_vene.understanding.contracts import Mutation
     from bring_vene.understanding.gateway import configuration
@@ -30,8 +34,15 @@ def fixture_turn(engine,visit_id,token,csrf,command,settings):
         if not view.demo_run or member.role!='clinician':raise DomainError(403,'Only the invited fictional clinician can send this sample instruction.')
         if not row.enabled:raise DomainError(409,'Maria must first allow private understanding.')
         if service.mutation(session,visit_id,member,request,'demo_fixture_turn'):
-            service.add_source(session,encounter,row,view,member,SCRIPT,'fixture',settings)
-    return {'accepted':True,'origin':'fixture','text':SCRIPT}
+            for text in LINES[line]:service.add_source(session,encounter,row,view,member,text,'fixture',settings)
+    return {'accepted':True,'origin':'fixture','text':' '.join(LINES[line])}
+
+
+def seed_history(engine,remap):
+    """Maria's fictional July visit, for this run's Maria only, so preparation can find what was left open."""
+    from bring_vene.seed import seed_history as add
+    history=remap(json.loads((ROOT/'fixtures/maria-history.json').read_text(encoding='utf-8')))
+    add(engine,EncounterView.model_validate(history))
 
 
 def create(engine):
@@ -49,7 +60,8 @@ def create(engine):
                 visit_at='2026-10-19T15:00:00Z',updated_at=utc_now().isoformat(),preparation_approved=False,
                 processing_state='preparing',understanding=None,demo_run=str(run))
     for question in data['priorities']:
-        question.update(approved=False,audiences=[])
+        # Questions Maria already chose are addressed to Dr. Chen; approval still releases them.
+        question.update(approved=False,audiences=['clinician'] if question.get('selected') else [])
     preference=data['evidence'][2]
     preference['text']='I usually go to Riverside Lab. Mornings are easier for me, and Elena can drive me on Thursday.'
     data['lab_preference']={'location':'Riverside Lab','source_id':preference['id']}
@@ -70,4 +82,5 @@ def create(engine):
             member=MembershipRecord(id=uuid4(),encounter_id=run,role=role,name=name)
             session.add(member);session.flush()
             invitations[role]=issue_invitation(session,member).token
+    seed_history(engine,remap)
     return {'run':str(run),'invitations':invitations,'visit_day':'Monday, October 19, 2026','synthetic':True}

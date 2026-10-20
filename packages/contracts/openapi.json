@@ -1050,6 +1050,31 @@
         "title": "DeleteRequest",
         "type": "object"
       },
+      "DemoTurn": {
+        "additionalProperties": false,
+        "properties": {
+          "line": {
+            "default": "labs",
+            "enum": [
+              "labs",
+              "errands"
+            ],
+            "title": "Line",
+            "type": "string"
+          },
+          "token": {
+            "maxLength": 128,
+            "minLength": 30,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "title": "DemoTurn",
+        "type": "object"
+      },
       "Difference": {
         "additionalProperties": false,
         "properties": {
@@ -5799,7 +5824,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RedeemRequest"
+                "$ref": "#/components/schemas/DemoTurn"
               }
             }
           },

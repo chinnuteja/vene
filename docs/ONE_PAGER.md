@@ -20,4 +20,4 @@ Separate authenticated patient, clinician and family views make the privacy boun
 
 The hosted demo uses fictional people and offices, sample-text input and labelled device speech. It demonstrates the same domain services and approvals; it does not test STT or contact a real lab. Actual live voice runs locally. Physical acoustics, production operations and clinical/regulatory readiness remain outside the demonstrated claims.
 
-See [INTEGRATION.md](INTEGRATION.md) for ports, contracts and adapter boundaries, and the [60-second tour](../README.md#try-it-in-60-seconds).
+See [INTEGRATION.md](INTEGRATION.md) for ports, contracts and adapter boundaries, and the [three-minute tour](DEMO_SCRIPT.md).

@@ -7,6 +7,9 @@ const root=process.cwd(),base=process.env.BRING_VENE_BASE_URL??'http://127.0.0.1
 const count=Number(process.env.DEMO_REHEARSALS??1);
 // DEMO_VIDEO=0 skips the walkthrough video where Playwright's ffmpeg is not installed.
 const record=process.env.DEMO_VIDEO!=='0';
+// Optional reading time for the first recorded tour; later reliability trials stay fast.
+const pace=Number(process.env.DEMO_PACE_MS??0);
+if(!Number.isFinite(pace)||pace<0||pace>15000)throw new Error('Choose a video reading pause from 0–15000 ms.');
 if(!Number.isInteger(count)||count<1||count>10)throw new Error('Choose 1–10 rehearsals.');
 const destination=path.resolve(process.env.DEMO_EVIDENCE_DIR??'.local/evidence');
 if(!destination.startsWith(path.resolve('.local/evidence')))throw new Error('Demo evidence must stay project-local.');
@@ -19,13 +22,15 @@ try{
   for(let i=0;i<count;i++){
     const context=await browser.newContext({viewport:{width:1440,height:1050},recordVideo:record&&i===0?{dir:path.join(destination,'demo-video'),size:{width:1440,height:1050}}:undefined});
     const page=await context.newPage();page.setDefaultTimeout(45000);let passed=false;const began=Date.now();
+    const hold=async()=>{if(record&&i===0&&pace)await page.waitForTimeout(pace);};
     const errors=[];page.on('pageerror',e=>errors.push(e.message));
     try{
       await page.goto(base+'/demo');
       if(i===0)await page.screenshot({path:path.join(destination,'demo-welcome-desktop.png'),fullPage:true});
+      await hold();
       await page.getByRole('button',{name:'Start demo',exact:true}).click();
       const p=page.frameLocator('iframe[title="Maria’s private phone"]'),d=page.frameLocator('iframe[title="Dr. Chen’s clinician view"]');
-      const shot=async name=>{if(i===0)await page.screenshot({path:path.join(destination,name),fullPage:true});};
+      const shot=async name=>{if(i===0){await page.screenshot({path:path.join(destination,name),fullPage:true});await hold();}};
       // Before: memory from her July visit, then an approved list for Dr. Chen only.
       await verify(p.getByText(/Vene found \d things worth bringing up/)).toBeVisible();
       await p.getByRole('button',{name:/^Add \d to my visit list$/}).click();
@@ -45,6 +50,7 @@ try{
       const doctorFrame=page.frames().find(f=>f.url().endsWith('/clinician'));
       const privatePayload=await doctorFrame.evaluate(async()=>{const parts=location.pathname.split('/'),run=parts[3],root='/api/demo/'+run+'/clinician/encounters/'+run;return [await(await fetch(root)).text(),await(await fetch(root+'/feasibility')).text()];});
       if(privatePayload.join('').includes('Riverside')||privatePayload.join('').includes('Northside'))throw new Error('Private preference leaked into the clinician API.');
+      await hold();
       if(i===0){await page.screenshot({path:path.join(destination,'demo-private-desktop.png'),fullPage:true});await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(destination,'demo-private-mobile.png'),fullPage:true});await page.setViewportSize({width:1440,height:1050});}
       await p.getByRole('button',{name:'Raise this with Dr. Chen'}).click();
       await d.getByRole('button',{name:'Confirm & send lab order'}).click();
@@ -58,6 +64,7 @@ try{
       await page.getByRole('button',{name:'Next: Before you leave'}).click();
       await d.getByRole('button',{name:'Say this',exact:true}).click();
       await verify(p.getByLabel('Private coverage cue')).toContainText('requires prior authorization');
+      await hold();
       await p.getByRole('button',{name:'Ask Dr. Chen now'}).click();
       await d.getByRole('button',{name:'The office will submit prior authorization'}).click();
       await p.getByRole('button',{name:/with the offices$/}).click();
@@ -72,6 +79,8 @@ try{
         await page.waitForTimeout(2500);
       }
       await verify(p.getByText('All set before you leave.')).toBeVisible({timeout:30000});
+      await verify(list.getByRole('listitem')).toHaveCount(4);
+      await verify(list.locator('.demo-receipt-line')).toHaveCount(4);
       await shot('demo-leave-desktop.png');
       // After: a scoped family update, a ride Elena answers herself, and what carries forward.
       await page.getByRole('button',{name:'Next: After'}).click();

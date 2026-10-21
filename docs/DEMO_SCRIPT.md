@@ -36,7 +36,7 @@ Open `/demo` and choose **Start demo**. Maria's phone and Dr. Chen's window each
 
 “Elena gets only what Maria sends.”
 
-- **Send to Elena** shares only the step, its time and the office's answer.
+- Maria can review the supporting notes Elena will be allowed to open. **Send to Elena** shares the booked steps and those notes, then sends an update containing the step, timing and office outcome. Other private questions and preferences remain unshared.
 - **Ask Elena to drive** sends the time and place. Elena answers yes in her own pane.
 - *Still unanswered today* lists what Vene will bring to the next visit's preparation.
 
@@ -46,4 +46,4 @@ All people, dates, institutions, plans and bookings are fictional. If a provider
 
 Select the guided configuration explicitly, or play the recorded walkthrough under `.local/evidence/bring-vene-walkthrough.webm`. The recording is actual UI interaction, not evidence of live-provider performance.
 
-`DEMO_REHEARSALS=3 node scripts/rehearse-demo.mjs` drives all four chapters against a running preview and checks the clinician and family payloads for private facts. Add `DEMO_VIDEO=0` where Playwright's ffmpeg is not installed.
+`DEMO_REHEARSALS=3 node scripts/rehearse-demo.mjs` drives all four chapters against a running preview and checks four receipts and the clinician/family payloads for private facts. Add `DEMO_PACE_MS=9000` for reading pauses in the first recording, or `DEMO_VIDEO=0` where Playwright's ffmpeg is not installed. The new 21 October recording is in `.local/evidence/review-local-warm-2026-10-21/`; the uncut recording is preserved alongside a founder copy with initial navigation/loading removed.

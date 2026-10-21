@@ -2,6 +2,8 @@
 
 Date: 20 October 2026. Branch `claude/venehealth-codebase-review-hop817`.
 
+**21 October Windows follow-up:** 226 backend tests, contracts, TypeScript and production build passed. The full Windows run was 30 passed / 3 failed / 4 explicit gates skipped; native admission and media-server recovery remain intermittent. Fixed the demonstrated preparation save/approval race, receipt display validity, a cold model-SDK import in the independent family receiver, and inaccurate family-sharing copy. Four affected browser scenarios passed together after the fixes. All four guided chapters then passed 3/3 locally and 3/3 on the actual Render deployment (`8e80543`), with four receipts and the family reply. Desktop/390px captures and the new recording were inspected. Cold Render wake-up exceeded the first attempt's 45-second deadline; subsequent warm public tours took 64–85 seconds. Ignored evidence: `.local/evidence/review-*`. The Linux results and unverified list below are the 20 October snapshot; hosted deployment, video and Windows review have now been exercised. Later-chapter live voice, native reliability, macOS, physical acoustics and a real telephone bridge remain open.
+
 ## Why
 
 Before this work, `/demo` showed only the lab moment. Everything from Phases 9–12 was behind `/dev`, a developer launcher that asked for three browser profiles:

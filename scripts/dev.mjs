@@ -96,10 +96,10 @@ const execution=start('execution',python,['-m','bring_vene.execution.worker'],ro
 start('office-callbacks',python,['-m','bring_vene.continuity.office_worker'],root);
 const web = start('web', process.execPath, [path.join(root, 'apps/web/node_modules/next/dist/bin/next'), production ? 'start' : 'dev', '--hostname', '127.0.0.1', '--port', String(runtime.web_port)], path.join(root, 'apps/web'));
 writeFileSync(pidFile, JSON.stringify({ root, pid: process.pid, started_at: new Date(Date.now() - process.uptime() * 1000).toISOString(), api_pid: api.pid, web_pid: web.pid, media_pid:media.pid,voice_pid:voice.pid,execution_pid:execution.pid }, null, 2));
-async function waitReady(url) {
+async function waitReady(url,expectedStatus) {
   for (let i = 0; i < 90; i++) {
     if (closing) return;
-    try { if ((await fetch(url, { signal: AbortSignal.timeout(1500) })).ok) return; } catch {}
+    try { const response=await fetch(url, { signal: AbortSignal.timeout(1500) });if(expectedStatus?response.status===expectedStatus:response.ok)return; } catch {}
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   throw new Error('Readiness failed: ' + url + '. Inspect .local/logs.');
@@ -109,6 +109,13 @@ try {
   await waitReady(env.OFFICE_URL+'/health');
   await waitReady('http://127.0.0.1:'+runtime.livekit_port);
   await waitReady('http://127.0.0.1:' + runtime.web_port + '/prepare');
+  if(!production){
+    // Compile the demo shells/proxies before declaring the development server ready.
+    // This empty identifier opens no encounter and grants no session or permission.
+    const frontend='http://127.0.0.1:'+runtime.web_port,empty='00000000-0000-4000-8000-000000000000';
+    for(const route of ['/demo','/demo/pane/'+empty+'/patient','/api/dev/demo-info'])await waitReady(frontend+route);
+    await waitReady(frontend+'/api/demo/'+empty+'/patient/auth/me',401);
+  }
   let warmed=false;for(let i=0;i<120;i++){try{const ready=JSON.parse(readFileSync(env.VOICE_READY_FILE,'utf8'));if(ready.run_id===env.VOICE_RUN_ID&&ready.native_sdk_warmed){warmed=true;break;}}catch{}await new Promise(r=>setTimeout(r,500));}if(!warmed)throw new Error('Owned native voice SDK did not warm.');
   console.log('Local: http://127.0.0.1:' + runtime.web_port);
   console.log('Backend, PostgreSQL and real local LiveKit ready. STT mode: '+(voiceProvider==='fixture'?'fixture (transport evidence only)':'Deepgram; model: '+modelProvider+'; TTS: '+ttsProvider));

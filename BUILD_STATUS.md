@@ -1,8 +1,16 @@
 # Bring Vene — build status
 
-Updated: 20 October 2026.
+Updated: 21 October 2026.
 
 ## Current state
+
+**21 October, Windows review and deployed four-chapter journey.** The final backend run passed **226 tests**; contracts, TypeScript and the production build passed. The earlier complete Windows browser run reproduced three failures (30 passed, 3 failed, 4 explicit live/timing gates skipped): initial native voice admission, media-server recovery, and fast approval while remembered questions were still saving. The preparation race is fixed and covered by a deliberately held real request. Four affected browser scenarios then passed together: payload isolation/revocation, the chapter journey, multi-errand follow-through and remembered preparation. This is not a clean full-suite result: the two native Windows voice failures remain open.
+
+Also fixed receipt displays that treated audience-only sharing as a changed booking, and kept genuinely superseded receipts as history. A cold family receiver was importing the model/voice dependency tree while handling its first request; it now uses the same digest implementation from a lightweight domain module, with a fresh-process regression. The family-sharing screen explicitly discloses access to supporting notes and makes those notes reviewable. Unknown delivery stays unconfirmed. The development launcher warms the demo shells and proxies before announcing readiness.
+
+All four guided chapters passed **3/3 locally and 3/3 on the actual Render URL**, checking four receipts, private API payloads and the family's own ride reply. Hosted warm tours took 64–85 seconds. An initial public attempt exceeded the 45-second start-button deadline on Render's free-plan wake-up screen; warming does not guarantee an instant later visit. An initial local recording also exceeded its checkpoint while development routes compiled; the successful local recordings followed launcher warm-up. Evidence is under ignored `.local/evidence/review-*`, including the full failure report, final four-scenario report, desktop/390px captures and a new continuous four-chapter recording. The inspected founder copy is `.local/evidence/review-local-warm-2026-10-21/bring-vene-founder-walkthrough.webm` (104 seconds, 6.97 MB); only the initial 34 seconds of navigation/loading were removed, and the original is preserved.
+
+Runtime commit `8e80543` is live at https://bring-vene-concept.onrender.com/demo, Render deploy `dep-dbc493ei0phs73abgao0`. All application work remains together on `claude/venehealth-codebase-review-hop817`; **main has not been merged**. Hosted providers are labelled fixtures, institution connections are sandboxes and hosted storage is disposable. Live voice for the later chapters, physical-room acceptance, macOS, cancellation/rescheduling and manual exceptions remain open. **Phase 12b is partial: PIN/admission/DTMF contracts exist, but the inbound telephone bridge is not implemented or tested with a real call.** No new credentials are needed to run this guided review. The dated results below retain their historical scope.
 
 **20 October, founder journey (Linux).** `/demo` now walks through the whole visit in four chapters in the same side-by-side frame: Before, During, Before you leave and After. It runs on the ordinary services and each pane's own session:
 - open-loop memory from a per-run July visit;
@@ -76,7 +84,7 @@ The user authorized Codex in this chat to build using this plan. Continue withou
 | 9 | Walk-out follow-through | Implemented; local gates passed (Linux) | 160 backend + 25 browser | Before-you-leave checklist, bundle approval, care-circle ask |
 | 10 | In-room obstacle catch | Implemented; local gates passed (Linux) | 173 backend + 27 browser; 20-turn latency p95 930–938 ms | Private obstacle cues, resolver-only answers, prior-auth gating |
 | 11 | Preparation drafted from open loops | Implemented; local gates passed (Linux) | 185 backend + 28 browser | Found loops, 3-interaction approval, private drafts |
-| 12 | Phone on the table and dial-in | Implemented; local gates passed (Linux); telephony/diarization/acoustic gates open | 201 backend + 29 browser | 390 px phone in real local WebRTC, agreement gate, speaker naming, guest isolation, PIN issue |
+| 12 | Phone on the table and dial-in | 12a implemented; 12b PIN/admission/DTMF contracts only, inbound bridge unfinished; physical acoustics and real telephony unverified | 201 backend + 29 browser at original checkpoint | 390 px phone in real local WebRTC, agreement gate, speaker naming, guest isolation, PIN issue |
 
 Do not mark an entire phase passed when only its fixture configuration has passed and the phase requires a live gate. Independent work may continue while a specific gate remains unverified.
 

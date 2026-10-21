@@ -142,7 +142,7 @@ export function VisitWorkspace({ stage, embedded=false }: { stage: Stage; embedd
           {stage==='visit'&&viewer&&!embedded&&<InRoomMode visit={visit} viewer={viewer}/>}
           {stage==='visit'&&viewer&&!embedded&&<CallPanel visit={visit} viewer={viewer}/>}
           {stage==='visit'&&patient&&!embedded&&<UnderstandingPanel visit={visit} onReplace={setVisit}/>}
-          {stage === 'prepare' && patient && <DraftedAgenda visit={visit} onReplace={next => setVisit(current => !current || next.version >= current.version ? next : current)}/>}
+          {stage === 'prepare' && patient && <DraftedAgenda visit={visit} disabled={saving!==null} onBusyChange={busy=>setSaving(busy?'agenda':null)} onReplace={next => setVisit(current => !current || next.version >= current.version ? next : current)}/>}
           {stage === 'prepare' && !patient ? <GuestPreparation visit={visit} mutate={mutate} disabled={saving !== null} onSource={openSource} /> : stage === 'prepare' ? <div className="content-grid">
             <section className="card priorities"><div className="section-heading"><div><div className="eyebrow small">START WITH YOU</div><h2>What would you like to discuss?</h2></div><span className="count-pill">{selected.length} on your list</span></div><p className="muted intro">Choose what matters today. You can change your list.</p>
               <div className="priority-list">{visit.priorities.map((p, i) => <div key={p.id} className={'priority-card ' + (p.selected ? 'selected' : '')}>

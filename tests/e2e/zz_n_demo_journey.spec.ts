@@ -3,7 +3,7 @@ import {evidence} from './platform';
 
 // The single-tab demo beyond the lab moment: preparation memory, the plan's prior authorization,
 // every errand's receipt and the family follow-through, each pane on its own session.
-// Runs before zz_media_fault, which deliberately stops the media server.
+// Typed conversation exercises ordinary services; real WebRTC is covered separately.
 async function asPatient(frame:Frame,path:string,body:unknown){
   return frame.evaluate(async({path,body})=>{
     const run=location.pathname.split('/')[3],base='/api/demo/'+run+'/patient';
@@ -16,7 +16,7 @@ async function payload(frame:Frame,role:string,path=''){
   return frame.evaluate(async({role,path})=>{const run=location.pathname.split('/')[3];return (await fetch('/api/demo/'+run+'/'+role+'/encounters/'+run+path)).text();},{role,path});
 }
 
-test('demo chapters carry memory, a prior authorization, four receipts and a scoped family follow-through',async({page})=>{
+test('demo chapters carry memory, a prior authorization, independent receipts and a scoped family follow-through',async({page})=>{
   test.setTimeout(240000);
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
   await page.setViewportSize({width:1440,height:1050});
@@ -28,7 +28,13 @@ test('demo chapters carry memory, a prior authorization, four receipts and a sco
   await expect(p.getByText(/Vene found \d things worth bringing up/)).toBeVisible();
   const patient=()=>page.frames().find(f=>f.url().endsWith('/patient'))!,doctor=()=>page.frames().find(f=>f.url().endsWith('/clinician'))!;
   expect(await payload(doctor(),'clinician')).not.toContain('blood pressure');
+  // A slow carry request must prevent approval until the refreshed list is available.
+  let releaseCarry!:()=>void;
+  const carryHeld=new Promise<void>(resolve=>{releaseCarry=resolve;});
+  await page.route('**/memory/carry',async route=>{await carryHeld;await route.continue();});
   await p.getByRole('button',{name:/^Add \d to my visit list$/}).click();
+  try{await expect(p.getByRole('button',{name:'Approve my visit list'})).toBeDisabled();}
+  finally{releaseCarry();}
   await p.getByRole('button',{name:'Approve my visit list'}).click();
   await expect(p.getByRole('button',{name:'Withdraw approval'})).toBeVisible();
   await expect(d.getByRole('heading',{name:'Do I still need to keep my blood pressure log?'})).toBeVisible();
@@ -58,6 +64,8 @@ test('demo chapters carry memory, a prior authorization, four receipts and a sco
   await page.getByRole('button',{name:'Next: After'}).click();
   await page.getByLabel('Show Elena’s view').check();
   const f=page.frameLocator('iframe[title="Elena’s family view"]');
+  await expect(f.getByRole('heading',{name:'Maria chooses what comes here.',exact:true})).toBeVisible();
+  await expect(p.getByText('Elena will also be able to open these steps and their supporting notes.',{exact:false})).toBeVisible();
   await p.getByRole('button',{name:'Send to Elena'}).click();
   await expect(f.getByText('Update from Maria')).toBeVisible();
   await expect(f.locator('.demo-update-text')).toContainText('Imaging appointment confirmed (sandbox)');

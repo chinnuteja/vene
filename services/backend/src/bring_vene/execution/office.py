@@ -12,6 +12,7 @@ from bring_vene.config import Settings
 from bring_vene.persistence.database import make_engine
 from bring_vene.persistence.models import EncounterRecord,OfficeStateRecord, OfficeRequestRecord,OfficeCallbackOutboxRecord,OfficeFamilyReceiptRecord
 from bring_vene.domain.service import utc_now
+from bring_vene.domain.fingerprint import fingerprint
 from bring_vene.execution.contracts import Input, OfficeLookup, OfficeScenario, CoverageQuery, StockQuery,CalendarSearch
 from bring_vene.execution.errands import ERRANDS, BY_INSTITUTION
 
@@ -266,7 +267,6 @@ def office_app(settings=None,engine=None):
 
     @app.post('/family-updates',dependencies=[Depends(authorized)])
     def family_delivery(body:FamilyDelivery):
-        from bring_vene.understanding.service import fingerprint
         payload_hash=fingerprint(body.model_dump(mode='json'));delayed=False
         with Session(engine) as session,session.begin():
             office=serialize_writes(session)

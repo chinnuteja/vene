@@ -1,5 +1,4 @@
-import hashlib
-import json
+from bring_vene.domain.fingerprint import fingerprint
 from uuid import UUID, uuid4, uuid5, NAMESPACE_URL
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -11,10 +10,6 @@ from bring_vene.persistence.models import (EncounterRecord,EvidenceRecord,Unders
     SessionRecord,CallRecord,CallConnectionRecord)
 from bring_vene.understanding.gateway import configuration,PROMPT_VERSION
 from bring_vene.voice.service import gate as audio_gate
-
-
-def fingerprint(value):
-    return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':')).encode()).hexdigest()
 
 
 def lock(session,visit_id):

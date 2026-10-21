@@ -18,6 +18,7 @@ const scenarioLabels:Record<typeof scenarios[number],string>={normal:'Slots avai
 const LEGACY_LAB=/\b(lab|laboratory|blood)\b/i;
 
 function stateLabel(a:Action,errand?:Errand){
+  if(a.state==='confirmed'&&!a.receipt_current)return 'Earlier arrangement confirmed · plan changed';
   if(a.state==='confirmed'&&errand&&a.kind!=='lab')return errand.confirmed;
   return labels[a.state]??a.state;
 }
@@ -25,6 +26,7 @@ function documentName(errand?:Errand){return errand?errand.document:'order';}
 // One plain sentence for what this step is waiting on. Separate facts stay separate.
 function waitingOn(a:Action|undefined,errand?:Errand){
   if(!a)return 'Not checked yet';
+  if(a.state==='confirmed'&&!a.receipt_current)return 'Earlier arrangement confirmed · review the changed plan with the office';
   if(a.state==='confirmed')return a.kind==='authorization'?'Approved by the sandbox health plan':'Confirmed by the '+(errand?.place??'office')+' with a sandbox receipt';
   if(a.state==='queued'||a.state==='in_flight')return 'Sent to the '+(errand?.place??'office')+' · waiting for its receipt';
   if(a.state==='unknown')return 'Reconciling with the '+(errand?.place??'office')+' before any retry';
@@ -73,7 +75,7 @@ export function ExecutionPanel({visit,viewer}:{visit:Encounter;viewer:Identity})
   const ready=steps.map(s=>latestFor(s.item.id)).filter((a):a is Action=>!!a&&a.state==='suggested'&&!!a.digest&&a.clinician_confirmed&&a.order_available&&!a.patient_authorized);
 
   function info(a:Action){const errand=catalog.get(a.kind);const lab=a.kind==='lab';return <div className="office-result">
-    <span className={'pill '+(a.state==='confirmed'?'green':'amber')}>{stateLabel(a,errand)}</span>
+    <span className={'pill '+(a.receipt_current?'green':'amber')}>{stateLabel(a,errand)}</span>
     <p>{a.message}</p>{a.slot&&<strong>{String(a.slot.label)}</strong>}
     <p className="muted">{lab?a.source:'Local sandbox '+a.place}{a.checked_at?' · checked '+new Date(a.checked_at).toLocaleTimeString():''}</p>
     <div className="office-prerequisites"><span>Clinician: {a.clinician_confirmed?'confirmed':'awaiting confirmation'}</span><span>{lab?'Order: ':a.document.charAt(0).toUpperCase()+a.document.slice(1)+': '}{a.order_available?(lab?'sandbox order available':'sandbox '+a.document+' available'):(lab?'required order missing':'required '+a.document+' missing')}</span><span>Your booking approval: {a.patient_authorized?'recorded':'not given'}</span></div>
@@ -93,7 +95,7 @@ export function ExecutionPanel({visit,viewer}:{visit:Encounter;viewer:Identity})
     {view&&!view.configured&&<p className="soft-note">The sandbox offices are unavailable. No result or booking can be verified.</p>}
 
     {steps.length>0&&<ol className="walkout-list" aria-label="Before you leave checklist">
-      {steps.map(({item,kind})=>{const a=latestFor(item.id);const errand=catalog.get(kind!);const done=a?.state==='confirmed';const problem=a&&['no_slot','rejected','expired','invalidated','unavailable','cancelled'].includes(a.state);
+      {steps.map(({item,kind})=>{const a=latestFor(item.id);const errand=catalog.get(kind!);const done=!!a?.receipt_current;const problem=a&&(['no_slot','rejected','expired','invalidated','unavailable','cancelled'].includes(a.state)||(a.state==='confirmed'&&!a.receipt_current));
         return <li key={item.id} className={'walkout-row'+(done?' done':problem?' problem':'')}>
           {done?<CheckCircle2 size={20} aria-hidden/>:problem?<CircleAlert size={20} aria-hidden/>:a?<Clock size={20} aria-hidden/>:<Circle size={20} aria-hidden/>}
           <div><strong>{item.title}</strong><span className="muted"> · {errand?.place??kind}</span><p>{waitingOn(a,errand)}{done&&a?.slot?' · '+String(a.slot.label):''}</p>
@@ -114,7 +116,7 @@ export function ExecutionPanel({visit,viewer}:{visit:Encounter;viewer:Identity})
       </div></div>}
       {patient&&<button className="text-link" disabled={busy||!view?.configured} onClick={()=>void change('/items/'+item.id+'/scope',{allowed:false})}>Withdraw office permission</button>}
       {latest?info(latest):view&&<p className="muted">No office check has been requested. Sharing a step does not authorize dispatch.</p>}
-      {patient&&latest?.state==='confirmed'&&family.map(member=>{const open=asks.find(r=>r.action_id===latest.id&&r.recipient_id===member.id&&['asked','accepted','declined'].includes(r.state));
+      {patient&&latest?.receipt_current&&family.map(member=>{const open=asks.find(r=>r.action_id===latest.id&&r.recipient_id===member.id&&['asked','accepted','declined'].includes(r.state));
         return open?null:<button key={member.id} className="secondary-button" disabled={busy} onClick={()=>void change('/rides',{action_id:latest.id,recipient_id:member.id},circleRoot)}>Ask {member.name.split(' ')[0]} to help with this</button>;})}
       {actions.length>1&&<details><summary>Earlier office checks ({actions.length-1})</summary>{actions.slice(1).map(a=><div key={a.id}>{info(a)}</div>)}</details>}
     </article>;})}

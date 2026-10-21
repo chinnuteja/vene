@@ -19,13 +19,13 @@ async function encounter(browser:any,caseName:string){
     const r=await context.request.post(root+path,{headers:{'x-vene-intent':'mutation','x-vene-csrf':me.csrf_token},data});
     expect(r.status(),await r.text()).toBe(200);return r.json();
   }
-  async function share(id:string){
+  async function share(id:string,audiences=['clinician','family']){
     const v=await (await patient.request.get(root)).json();
-    return post(patient,'/commands',{command_id:crypto.randomUUID(),expected_version:v.version,command:{type:'sharing.changed',item_id:id,audiences:['clinician','family']}});
+    return post(patient,'/commands',{command_id:crypto.randomUUID(),expected_version:v.version,command:{type:'sharing.changed',item_id:id,audiences}});
   }
-  async function shareStep(title:string){
+  async function shareStep(title:string,audiences=['clinician','family']){
     const step=(await (await patient.request.get(root)).json()).plan.find((x:{title:string})=>x.title===title);
-    for(const ref of step.evidence_refs)await share(ref);await share(step.id);return step;
+    for(const ref of step.evidence_refs)await share(ref,audiences);await share(step.id,audiences);return step;
   }
   async function actions(context:BrowserContext){return (await (await context.request.get(root+'/execution')).json()).actions;}
   return {patient,doctor,family,root,post,shareStep,actions,close:()=>Promise.all([patient.close(),doctor.close(),family.close()])};
@@ -71,7 +71,7 @@ test('walk-out follow-through confirms several errands and a family member answe
   const errors:string[]=[];for(const page of [p,d,f])page.on('pageerror',e=>errors.push(e.name));
   try{
     await speak(env,'James');
-    for(const title of Object.values(STEPS))await env.shareStep(title);
+    for(const title of Object.values(STEPS))await env.shareStep(title,['clinician']);
     await Promise.all([p.goto('/visit'),d.goto('/visit'),f.goto('/follow-up')]);
     const region=p.getByRole('region',{name:'Office follow-through',exact:true});
     const checklist=region.getByRole('list',{name:'Before you leave checklist',exact:true});
@@ -99,6 +99,9 @@ test('walk-out follow-through confirms several errands and a family member answe
     await expect(checklist).toContainText('Confirmed by the pharmacy with a sandbox receipt');
     const receipts=(await stepStates(env,Object.values(STEPS))).map(a=>a.receipt!.receipt_id);
     expect(new Set(receipts).size).toBe(3);
+
+    // Sharing after confirmation changes approval fingerprints, not what the office booked.
+    for(const title of Object.values(STEPS))await env.shareStep(title);
 
     await p.goto('/follow-up');
     const overview=p.getByLabel('Next-step overview',{exact:true});

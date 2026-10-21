@@ -1385,6 +1385,11 @@ export interface components {
                 [key: string]: unknown;
             } | null;
             /**
+             * Receipt Current
+             * @default false
+             */
+            receipt_current: boolean;
+            /**
              * Scope Allowed
              * @default false
              */

@@ -8,9 +8,8 @@ export function FollowUpOverview({visit,viewer}:{visit:Encounter;viewer:Identity
   const updates=useVisitUpdates();
   const rows=visit.plan.map(item=>{
     const action=updates?.execution.actions.find(a=>a.item_id===item.id);
-    // Guest actions are already filtered against the current source fingerprint.
-    // Patients can also see old receipts, which must not confirm a corrected plan.
-    const current=!!action&&(viewer.role==='family'||!!action.fingerprint);
+    // The server distinguishes receipt validity from permission to approve new work.
+    const current=!!action?.receipt_current;
     const confirmed=current&&action?.state==='confirmed'&&action.receipt?.status==='confirmed';
     const errand=updates?.execution.errands.find(e=>e.kind===action?.kind);
     const label=!updates?'Checking saved office status…':!action?'No office arrangement checked':

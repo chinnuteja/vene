@@ -20,7 +20,9 @@ export function DemoAfter(){
   useEffect(()=>{if(!visit?.id||!patient)return;request<Member[]>(root+'/members').then(m=>setFamily(m.find(x=>x.role==='family'&&!x.revoked)??null)).catch(()=>{});},[visit?.id,patient,root]);
   if(!visit||!viewer)return <div className="demo-pane-loading" role="status">{error||'Opening your visit…'}</div>;
   async function act(fn:()=>Promise<void>){setBusy(true);setError('');try{await fn();}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
-  const booked=steps.filter(s=>latest(s.id)?.state==='confirmed');
+  const arranged=steps.filter(s=>latest(s.id)?.state==='confirmed');
+  const booked=arranged.filter(s=>latest(s.id)?.receipt_current);
+  const supporting=visit.evidence.filter(e=>booked.some(s=>s.evidence_refs.includes(e.id)));
   // A ride to an appointment: the lab if booked, otherwise the imaging.
   const confirmed=booked.map(s=>latest(s.id)!),lab=confirmed.find(a=>a.kind==='lab')??confirmed.find(a=>a.kind==='imaging');
   const update=continuity?.family_updates[0];
@@ -41,12 +43,14 @@ export function DemoAfter(){
       <h1>{patient?'A clear way forward.':doctor?'What Maria is leaving with.':'Here for Maria.'}</h1>
       <p>{patient?'Booked, sent and shared, with a receipt for each. The rest comes with you next time.':doctor?'Each step carries its own receipt. Nothing here needs a phone call back.':'You see only what Maria chose to send you.'}</p></div>
 
-    {!elena&&(booked.length?<Checklist steps={booked} catalog={catalog} latest={latest} patient={patient}/>
+    {!elena&&(arranged.length?<Checklist steps={arranged} catalog={catalog} latest={latest} patient={patient}/>
       :<section className="demo-guest-empty"><CalendarClock size={24}/><h2>Nothing booked yet.</h2><p>Finish “During” and “Before you leave” first.</p></section>)}
 
     {patient&&booked.length>0&&<section className="demo-after-card"><HeartHandshake size={20}/><div><h3>Tell {first} what’s booked.</h3>
-      {!update?<><p>Only the step, when, and the office’s answer. Nothing about your questions or health.</p><button className="primary-button" disabled={busy||!family} onClick={()=>void act(tell)}>Send to {first}</button></>
-        :<><p className="demo-shared">{update.state==='delivered'?'Delivered to '+first+'.':'Sending…'}</p><pre className="demo-update-text">{update.text}</pre></>}</div></section>}
+      {!update?<><p>The update contains the step, timing and office outcome. {first} will also be able to open these steps and their supporting notes.</p>
+        <details><summary>Review the notes {first} can open</summary>{supporting.map(e=><blockquote key={e.id}><strong>{e.title}</strong><p>{e.text}</p></blockquote>)}</details>
+        <button className="primary-button" disabled={busy||!family} onClick={()=>void act(tell)}>Send to {first}</button></>
+        :<><p className="demo-shared">{update.state==='delivered'?'Delivered to '+first+'.':update.state==='unknown'?'Delivery is not confirmed. Checking the receiver before any retry.':update.state==='invalidated'?'The selected details changed. Review them in the complete workspace before sending again.':'Waiting for the receiver’s delivery receipt…'}</p><pre className="demo-update-text">{update.text}</pre></>}</div></section>}
 
     {patient&&lab&&<section className="demo-after-card"><Car size={20}/><div><h3>Need a ride to {String(lab.slot?.location??'the lab')}?</h3>
       {!ride?<><p>{first} sees where and when, and answers for herself.</p><button className="secondary-button" disabled={busy||!family} onClick={()=>void act(askRide)}>Ask {first} to drive</button></>

@@ -19,6 +19,7 @@ const NAMES:Record<string,string>={lab:'Lab',imaging:'Imaging',prescription:'Pha
 // One plain sentence per step. Approval, the clinician's part and the office's receipt stay separate facts.
 export function stepStatus(a:Action|undefined,errand?:Errand,patient=true){
   if(!a)return 'Not checked yet';
+  if(a.state==='confirmed'&&!a.receipt_current)return 'Earlier arrangement confirmed · plan changed. Review with the office.';
   if(a.state==='confirmed')return a.kind==='authorization'?'Approved by the health plan':'Confirmed · receipt from the '+(errand?.place??'office');
   if(a.state==='checking')return 'Checking with the '+(errand?.place??'office')+'…';
   if(a.state==='queued'||a.state==='in_flight')return 'Sent · waiting for the '+(errand?.place??'office')+'’s receipt';
@@ -40,7 +41,7 @@ export function useErrands(visit:Encounter|null,services:ReturnType<typeof useDe
 
 export function Checklist({steps,catalog,latest,patient}:{steps:Step[];catalog:Map<string,Errand>;latest:(id:string)=>Action|undefined;patient:boolean}){
   return <ol className="demo-checklist" aria-label="Before you leave checklist">{steps.map(item=>{
-    const a=latest(item.id),errand=catalog.get(item.kind??''),done=a?.state==='confirmed',problem=a&&PROBLEM.includes(a.state);
+    const a=latest(item.id),errand=catalog.get(item.kind??''),done=a?.state==='confirmed'&&a.receipt_current,problem=a&&(PROBLEM.includes(a.state)||(a.state==='confirmed'&&!a.receipt_current));
     return <li key={item.id} className={done?'done':problem?'problem':a?'moving':''}>
       <span className="demo-check-icon">{done?<CheckCircle2 size={20}/>:problem?<CircleAlert size={20}/>:a?<Clock size={20}/>:<Circle size={20}/>}</span>
       <div><small>{NAMES[item.kind??'']??'Next step'}{(a?.slot?.location??item.location)?' · '+String(a?.slot?.location??item.location).replace('Fictional ',''):''}</small><strong>{item.title}</strong>
@@ -66,7 +67,7 @@ export function DemoLeave({run}:{run:string}){
   const unchecked=steps.filter(s=>s.kind!=='authorization'&&(!latest(s.id)||PROBLEM.includes(latest(s.id)!.state)));
   const ready=steps.map(s=>latest(s.id)).filter((a):a is Action=>!!a&&a.state==='suggested'&&!!a.digest&&a.clinician_confirmed&&a.order_available&&!a.patient_authorized);
   const yours=steps.map(s=>latest(s.id)).filter((a):a is Action=>!!a&&a.state==='suggested'&&!!a.fingerprint&&!(a.clinician_confirmed&&a.order_available));
-  const allDone=steps.length>1&&steps.every(s=>latest(s.id)?.state==='confirmed');
+  const allDone=steps.length>1&&steps.every(s=>latest(s.id)?.receipt_current);
   const later=steps.some(s=>s.kind!=='lab');
   async function checkAll(){
     await share(unchecked.map(s=>s.id),'clinician');

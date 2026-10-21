@@ -130,6 +130,7 @@ def state(engine,visit_id,token,settings):
             actions.append(ActionView(id=row.id,item_id=row.item_id,kind=errand.kind,place=errand.place,document=errand.document,
                 title=data['title'],window=data['window'],state=shown,
                 message=message,slot=data.get('slot'),checked_at=data.get('checked_at'),receipt=data.get('receipt'),
+                receipt_current=row.state=='confirmed' and receipt_current(view,row),
                 digest=action_digest(row) if member.role=='patient' and shown=='suggested' else None,
                 fingerprint=data['plan_fingerprint'] if member.role in {'patient','clinician'} and current else None,
                 clinician_confirmed=bool(data.get('clinician_id')),order_available=bool(data.get('order_id')),

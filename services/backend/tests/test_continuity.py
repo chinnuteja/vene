@@ -263,8 +263,13 @@ def test_sharing_a_booked_step_later_keeps_its_receipt_but_a_changed_step_does_n
     assert [a.state for a in doctor if a.id==aid]==['confirmed']
     family=execution.state(visit_engine,FIXTURE_VISIT,f.cookies.get(COOKIE),SETTINGS).actions
     assert [a.state for a in family if a.id==aid]==['confirmed']
+    # Display validity is distinct from the strict fingerprint used for new approvals.
+    patient_receipt=action(visit_engine,p,aid).model_dump()
+    assert patient_receipt['fingerprint'] is None
+    assert patient_receipt.get('receipt_current') is True
     assert 'confirmed (sandbox)' in family_draft(visit_engine,p,item).text
     # Changing the step itself still retires the old receipt for everyone but the patient.
     correct(visit_engine,item)
+    assert action(visit_engine,p,aid).model_dump().get('receipt_current') is False
     assert all(a.id!=aid for a in execution.state(visit_engine,FIXTURE_VISIT,d.cookies.get(COOKIE),SETTINGS).actions)
     assert 'No current office completion has been verified' in family_draft(visit_engine,p,item).text

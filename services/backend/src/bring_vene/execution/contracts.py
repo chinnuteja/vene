@@ -66,6 +66,8 @@ class ActionView(BaseModel):
     checked_at: str | None = None
     source: str = 'Local sandbox office'
     receipt: dict | None = None
+    # Display validity only; never an authorization for a new external request.
+    receipt_current: bool = False
     fingerprint: str | None = None
     clinician_confirmed: bool = False
     order_available: bool = False

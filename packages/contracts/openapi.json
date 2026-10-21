@@ -99,6 +99,11 @@
             ],
             "title": "Receipt"
           },
+          "receipt_current": {
+            "default": false,
+            "title": "Receipt Current",
+            "type": "boolean"
+          },
           "scope_allowed": {
             "default": false,
             "title": "Scope Allowed",

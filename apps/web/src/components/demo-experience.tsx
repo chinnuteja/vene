@@ -29,7 +29,7 @@ export function DemoExperience(){
   const root='/encounters/'+visit?.id;
   const patient=viewer?.role==='patient',doctor=viewer?.role==='clinician',guided=config?.transport==='guided',fixture=config?.stt==='fixture';
   const item=visit?.plan.find(p=>p.kind==='lab'),obstacle=services?.feasibility.obstacles.find(o=>o.item_id===item?.id&&o.alternative);
-  const action=services?.execution.actions.find(a=>a.item_id===item?.id),confirmed=action?.state==='confirmed';
+  const action=services?.execution.actions.find(a=>a.item_id===item?.id),confirmed=!!action?.receipt_current;
   const settled=visit?.understanding?.state==='ready'&&visit.understanding.revision===visit.understanding.processed_revision&&(fixture||!!speech&&speech.floor!=='paused'&&speech.quiet_for_seconds>=1);
   useEffect(()=>{if(action?.state==='invalidated')setShared(false);},[action?.state]);
   useEffect(()=>{

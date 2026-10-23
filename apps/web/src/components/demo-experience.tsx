@@ -13,11 +13,11 @@ const delay=(ms:number)=>new Promise(r=>setTimeout(r,ms));
 
 export function DemoExperience(){
   const pane=useContext(DemoVisit);if(!pane)throw new Error('DemoExperience needs a DemoVisitProvider.');
-  const {visit,viewer,services,setVisit}=pane;
+  const {visit,viewer,services,setVisit,checksAllowed}=pane;
   const [speech,setSpeech]=useState<Speech|null>(null);
   const [config,setConfig]=useState<Record<string,string>|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const [shared,setShared]=useState(false),[preview,setPreview]=useState(false);
-  const [checksReady,setChecksReady]=useState(false),[sampleSent,setSampleSent]=useState(false);
+  const [sampleSent,setSampleSent]=useState(false);
   useEffect(()=>{const controller=new AbortController();
     fetch('/api/dev/demo-info',{cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw new Error('Demo configuration is unavailable.');setConfig(await r.json());}).catch(e=>{if(!controller.signal.aborted)setError(e.message);});return()=>controller.abort();},[]);
   useEffect(()=>{
@@ -32,13 +32,6 @@ export function DemoExperience(){
   const action=services?.execution.actions.find(a=>a.item_id===item?.id),confirmed=!!action?.receipt_current;
   const settled=visit?.understanding?.state==='ready'&&visit.understanding.revision===visit.understanding.processed_revision&&(fixture||!!speech&&speech.floor!=='paused'&&speech.quiet_for_seconds>=1);
   useEffect(()=>{if(action?.state==='invalidated')setShared(false);},[action?.state]);
-  useEffect(()=>{
-    if(!visit||!viewer)return;
-    if(patient){parent.postMessage({type:'vene-demo-checks',run:visit.id,role:'patient',enabled:visit.understanding?.enabled===true},location.origin);return;}
-    const receive=(event:MessageEvent)=>{if(event.origin===location.origin&&event.source===parent&&event.data?.type==='vene-demo-checks-state'&&event.data.run===visit.id)setChecksReady(event.data.enabled===true);};
-    window.addEventListener('message',receive);parent.postMessage({type:'vene-demo-checks-request',run:visit.id,role:viewer.role},location.origin);
-    return()=>window.removeEventListener('message',receive);
-  },[visit?.id,viewer?.role,visit?.understanding?.enabled]);
   useEffect(()=>{if(patient&&obstacle&&!busy&&!shared&&!confirmed){const element=document.getElementById('private-alternative');if(element)window.scrollTo({top:element.offsetTop-20,behavior:'smooth'});}},[patient,obstacle?.id]);
   useEffect(()=>{if(!visit||!viewer)return;const send=(milestone:string)=>parent.postMessage({type:'vene-demo-milestone',run:visit.id,role:viewer.role,milestone},location.origin);
     if(item)send('heard');if(obstacle)send('obstacle');if(confirmed)send('booked');
@@ -79,7 +72,7 @@ export function DemoExperience(){
     {guided?<section className="demo-call"><span className="demo-live-dot"/><strong>Sample visit · no microphone</strong><p>Dr. Chen’s words are typed for this preview. They go through the same understanding, private checks and booking services as live speech.</p>
       {patient&&<button className="primary-button" disabled={busy} onClick={()=>void act(async()=>{if(visit.understanding?.enabled){await post('/understanding/processing',{command_id:crypto.randomUUID(),enabled:false});await post('/feasibility/standing',{kinds:[]});}else await allow();})}>{visit.understanding?.enabled?'Pause understanding':'Allow private checks'}</button>}</section>:viewer.role!=='family'?<CallPanel visit={visit} viewer={viewer} compact/>:null}
     {patient&&<p className="demo-private-note"><LockKeyhole size={12}/>Your sources and suggestions stay private until you share.</p>}
-    {doctor&&fixture&&<section className="demo-sample"><span className="eyebrow small">DR. CHEN SAYS · SAMPLE WORDS</span><blockquote>“{SCRIPT}”</blockquote><button className="primary-button" disabled={busy||!checksReady||sampleSent} onClick={()=>void act(async()=>{await post('/demo/turn',{token:crypto.randomUUID()});setSampleSent(true);})}>{sampleSent?'Heard':checksReady?'Say this':'Waiting for Maria’s permission'} <ArrowRight size={15}/></button><small>Typed, not spoken: this preview does not test speech recognition.</small></section>}
+    {doctor&&fixture&&<section className="demo-sample"><span className="eyebrow small">DR. CHEN SAYS · SAMPLE WORDS</span><blockquote>“{SCRIPT}”</blockquote><button className="primary-button" disabled={busy||!checksAllowed||sampleSent} onClick={()=>void act(async()=>{await post('/demo/turn',{token:crypto.randomUUID()});setSampleSent(true);})}>{sampleSent?'Heard':checksAllowed?'Say this':'Waiting for Maria’s permission'} <ArrowRight size={15}/></button><small>Typed, not spoken: this preview does not test speech recognition.</small></section>}
     {doctor&&!fixture&&<section className="demo-sample"><span className="eyebrow small"><Mic size={12}/>SAY THIS INTO THE AGREED MICROPHONE</span><blockquote>“{SCRIPT}”</blockquote><small>Real Deepgram → {config?.model} → Cartesia. No scripted fallback.</small></section>}
     {patient&&!item&&<section className="demo-waiting"><div className="demo-listening-wave">{[12,23,36,18,29,43,26,16,32,20,11].map((h,i)=><i key={i} style={{height:h}}/>)}</div><h2>A little less to carry.</h2><p>{visit.understanding?.enabled?'Ready for Dr. Chen’s next step.':'Agree to private understanding to begin.'}</p></section>}
     {item&&<section className="demo-step"><span className="eyebrow small">{patient?'FROM YOUR CONVERSATION':'SHARED NEXT STEP'}</span><h2>Labs, {item.timeframe||'timing to clarify'}.</h2><p>{item.timeframe} · proposed by the clinician</p><small>Source: {visit.evidence.find(e=>item.evidence_refs.includes(e.id))?.speaker||'visit instruction'}</small></section>}

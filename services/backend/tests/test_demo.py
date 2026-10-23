@@ -46,7 +46,9 @@ def test_sample_instruction_is_own_clinician_only_and_never_a_live_fallback(visi
     for role,invite in demo['invitations'].items():
         client=TestClient(app);viewer=client.post('/auth/redeem',headers={'x-vene-intent':'mutation'},json={'token':invite}).json()
         client.headers.update({'x-vene-intent':'mutation','x-vene-csrf':viewer['csrf_token']});clients[role]=client
-    assert clients['clinician'].post(root+'/demo/turn',json={'token':str(uuid4())}).status_code==409
+    refused=clients['clinician'].post(root+'/demo/turn',json={'token':str(uuid4()),'line':'errands'})
+    assert refused.status_code==409 and refused.json()['detail']=='Maria must first allow private understanding.'
+    assert not [e for e in clients['patient'].get(root).json()['evidence'] if e.get('origin')=='fixture']
     clients['patient'].post(root+'/understanding/processing',json={'command_id':str(uuid4()),'enabled':True})
     for role in ['patient','family']:
         assert clients[role].post(root+'/demo/turn',json={'token':str(uuid4())}).status_code==403

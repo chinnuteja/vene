@@ -4,7 +4,7 @@ import {loadVisit,request,sendCommand,type Encounter,type Identity} from '@/lib/
 import {apiBase} from '@/lib/api/demo-scope';
 import type {ServiceViews} from '@/lib/visit-updates';
 type Audience='clinician'|'family';
-type Shared={visit:Encounter|null;viewer:Identity|null;services:ServiceViews|null;error:string;setVisit:(v:Encounter)=>void};
+type Shared={visit:Encounter|null;viewer:Identity|null;services:ServiceViews|null;error:string;checksAllowed:boolean;setVisit:(v:Encounter)=>void};
 
 // One live stream per demo pane. Browsers allow only a few connections per host, so every
 // chapter in a pane reads this instead of opening its own.
@@ -13,9 +13,26 @@ export const DemoVisit=createContext<Shared|null>(null);
 export function DemoVisitProvider({children}:{children:ReactNode}){
   const [visit,setVisit]=useState<Encounter|null>(null),[viewer,setViewer]=useState<Identity|null>(null);
   const [services,setServices]=useState<ServiceViews|null>(null),[error,setError]=useState('');
+  const [checksReady,setChecksReady]=useState(false);
   useEffect(()=>{const controller=new AbortController();
     loadVisit(controller.signal).then(r=>{setVisit(r.visit);setViewer(r.viewer);}).catch(e=>{if(!controller.signal.aborted)setError(e.message);});
     return()=>controller.abort();},[]);
+  // Share only the permission signal through the host, never the patient's private view.
+  // Both conversation chapters use it, including when Chapter 2 is hidden.
+  useEffect(()=>{
+    if(!visit||!viewer||viewer.role==='family')return;
+    if(viewer.role==='patient'){
+      parent.postMessage({type:'vene-demo-checks',run:visit.id,role:'patient',enabled:visit.understanding?.enabled===true},location.origin);
+      return;
+    }
+    const receive=(event:MessageEvent)=>{
+      if(event.origin===location.origin&&event.source===parent&&event.data?.type==='vene-demo-checks-state'&&event.data.run===visit.id)
+        setChecksReady(event.data.enabled===true);
+    };
+    window.addEventListener('message',receive);
+    parent.postMessage({type:'vene-demo-checks-request',run:visit.id,role:viewer.role},location.origin);
+    return()=>window.removeEventListener('message',receive);
+  },[visit?.id,viewer?.role,visit?.understanding?.enabled]);
   useEffect(()=>{
     if(!visit?.id)return;
     const stream=new EventSource(apiBase()+'/encounters/'+visit.id+'/stream?services=true');
@@ -30,13 +47,14 @@ export function DemoVisitProvider({children}:{children:ReactNode}){
     return()=>stream.close();
   },[visit?.id]);
   const keep=(incoming:Encounter)=>setVisit(current=>!current||incoming.version>=current.version?incoming:current);
-  return createElement(DemoVisit.Provider,{value:{visit,viewer,services,error,setVisit:keep}},children);
+  const checksAllowed=viewer?.role==='patient'?visit?.understanding?.enabled===true:checksReady;
+  return createElement(DemoVisit.Provider,{value:{visit,viewer,services,error,checksAllowed,setVisit:keep}},children);
 }
 
 export function useDemoVisit(){
   const shared=useContext(DemoVisit);
   if(!shared)throw new Error('useDemoVisit needs a DemoVisitProvider.');
-  const {visit,viewer,services,setVisit}=shared;
+  const {visit,viewer,services,setVisit,checksAllowed}=shared;
   const [error,setError]=useState('');
   const root='/encounters/'+visit?.id;
   async function post<T=unknown>(path:string,body:unknown){return request<T>(root+path,{method:'POST',body:JSON.stringify(body)});}
@@ -54,5 +72,5 @@ export function useDemoVisit(){
     }
     if(changes.length)setVisit(await sendCommand(current,{type:'sharing.batch_changed',changes}));
   }
-  return {visit,viewer,services,setVisit,error:error||shared.error,setError,post,share,root};
+  return {visit,viewer,services,setVisit,checksAllowed,error:error||shared.error,setError,post,share,root};
 }

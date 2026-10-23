@@ -57,7 +57,7 @@ function dayFor(item:Step,errand?:Errand){
 }
 
 export function DemoLeave({run}:{run:string}){
-  const {visit,viewer,services,error,setError,post,share}=useDemoVisit();
+  const {visit,viewer,services,error,setError,post,share,setVisit}=useDemoVisit();
   const [busy,setBusy]=useState(false),[notice,setNotice]=useState('');
   const {steps,catalog,latest}=useErrands(visit,services);
   if(!visit||!viewer)return <div className="demo-pane-loading" role="status">{error||'Opening your visit…'}</div>;
@@ -89,7 +89,13 @@ export function DemoLeave({run}:{run:string}){
       <h1>{patient?'Everything Dr. Chen asked for.':doctor?'Your part, while Maria is here.':'What Maria shared.'}</h1>
       <p>{patient?'Vene sets each step up with its office. Nothing is booked or sent without you.':doctor?'Orders and responses you give now save a call later. Nothing private reaches this window.':'Only steps Maria shares with you appear here.'}</p></div>
 
-    {patient&&!later&&<section className="demo-waiting compact"><div className="demo-listening-wave">{[12,23,36,18,29,43,26,16,32,20,11].map((h,i)=><i key={i} style={{height:h}}/>)}</div><p>{visit.understanding?.enabled?'Listening for what Dr. Chen asks next…':'Allow private checks in “During” to begin.'}</p></section>}
+    {patient&&!visit.understanding?.enabled&&<section className="demo-call" aria-label="Private checks permission">
+      <h2>Private checks are paused.</h2><p>Allow Vene to process new visit instructions and check scheduling and coverage. This does not approve a booking or share your private notes.</p>
+      <button className="primary-button" disabled={busy} onClick={()=>void act(async()=>{
+        setVisit(await post<Encounter>('/understanding/processing',{command_id:crypto.randomUUID(),enabled:true}));
+        await post('/feasibility/standing',{kinds:['scheduling','coverage']});
+      })}>Allow private checks</button></section>}
+    {patient&&!later&&visit.understanding?.enabled&&<section className="demo-waiting compact"><div className="demo-listening-wave">{[12,23,36,18,29,43,26,16,32,20,11].map((h,i)=><i key={i} style={{height:h}}/>)}</div><p>Ready for Dr. Chen’s next instruction. In this demo, choose “Say this” in Dr. Chen’s pane to add the MRI and prescription conversation.</p></section>}
 
     {obstacles.map(o=>patient?<section key={o.id} className="demo-alternative coverage-cue" aria-label="Private coverage cue"><span><Sparkles size={14}/>JUST FOR YOU</span><h2>Your plan needs to approve this first.</h2><p>{o.fact}</p>
         {(visit.plan.find(p=>p.id===o.item_id)?.audiences??[]).includes('clinician')?<p className="demo-shared">Shared with Dr. Chen. Only the clinician can answer this.</p>

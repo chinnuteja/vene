@@ -22,6 +22,8 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
     if (response.status === 401) { csrf = ''; throw new AccessError('Your session has ended or access has been withdrawn.'); }
     if (response.status === 409) {
       const body = await response.json().catch(() => null);
+      if(body?.detail==='Maria must first allow private understanding.')
+        throw new Error('Ask Maria to allow private checks before adding sample words.');
       const guidance = new Set([
         'Share a next step and its sources with everyone present before requesting a closeout.',
         'Share the question or step and its sources with everyone present first.',

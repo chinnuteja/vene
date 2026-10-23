@@ -1,6 +1,6 @@
 # Chapter 3: paused checks and confusing demo input
 
-Date: 23 October 2026 (Asia/Calcutta).
+Date: 23–24 October 2026 (Asia/Calcutta).
 
 ## Reproduction and cause
 
@@ -28,4 +28,8 @@ Evidence (ignored): `.local/evidence/chapter3-backend.log`, `chapter3-typecheck.
 
 ## Deployment and limits
 
-Hosted update pending. No provider keys, real calls, clinical rules or institution integrations were changed. This is focused fixture verification, not a fresh full-suite, live-speech, hardware or production-readiness claim. Previously recorded native voice, real telephony and hosting persistence limitations remain open.
+Commit `3555bf1` contains the repair. Remote commit `649459a` added only PRODUCT.md; it was preserved by a merge, producing deployed commit `bbf818f`. The same existing Render Free service `srv-dbb1fcmi0phs73b5m49g`, in the user-confirmed workspace `tea-d7cd834p3tds739sa1d0`, serves that commit after deploy `dep-dbdqe4favr4c7391uar0` reached **live**. Auto-deploy remains off; no resources or paid compute were added. Main remains unchanged.
+
+The actual public browser verified a direct Chapter 3 entry with disabled sample input, explicit patient permission, accepted sample words, two private plan items and the MRI authorization warning. A separate complete `scripts/rehearse-demo.mjs` run against https://bring-vene-concept.onrender.com/demo passed all four chapters, four current sandbox receipts, private API checks and the family member's own ride answer in 98,525 ms. Evidence: `.local/evidence/chapter3-public/demo-rehearsals.json`, the corresponding tour screenshots and `.local/evidence/chapter3-fix/hosted-after.png`. This is a fresh fictional run; the user's old browser page had to load the new app version.
+
+No provider keys, real calls, clinical rules or institution integrations were changed. This is focused fixture verification, not a fresh full-suite, live-speech, hardware or production-readiness claim. Previously recorded native voice, real telephony and hosting persistence limitations remain open.

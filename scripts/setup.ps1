@@ -16,8 +16,11 @@ if (Test-Path -LiteralPath $runtimePath) {
 } else {
     $selectedMode = $DatabaseMode
     if ($selectedMode -eq 'auto') {
-        & docker version --format '{{.Server.Version}}' 2>$null | Out-Null
-        $selectedMode = if ($LASTEXITCODE -eq 0) { 'docker' } else { 'native' }
+        $selectedMode = 'native'
+        if (Get-Command docker -ErrorAction SilentlyContinue) {
+            & docker version --format '{{.Server.Version}}' 2>$null | Out-Null
+            if ($LASTEXITCODE -eq 0) { $selectedMode = 'docker' }
+        }
     }
     $port = Get-FreePort 5432
     $password = [guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N')

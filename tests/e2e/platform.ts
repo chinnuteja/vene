@@ -16,7 +16,7 @@ export function chromiumLaunch():{channel:'chromium'}|{executablePath:string}{
   const explicit=process.env.BRING_VENE_CHROMIUM_PATH??(fs.existsSync(recorded)?JSON.parse(fs.readFileSync(recorded,'utf8').replace(/^\uFEFF/,'')).executable:undefined);
   return explicit?{executablePath:explicit}:{channel:'chromium'};
 }
-// Test runs write evidence under ignored .local; selected files are promoted to docs/qa deliberately.
+// Test runs write evidence under ignored .local.
 export function evidence(name:string){
   const folder=process.env.BRING_VENE_EVIDENCE_DIR??path.resolve('.local/evidence');
   const file=path.join(folder,name);

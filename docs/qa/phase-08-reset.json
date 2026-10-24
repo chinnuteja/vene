@@ -1,8 +1,0 @@
-{
-  "checked_at": "2026-10-14T17:26:02.671620+00:00",
-  "database": "bring_vene_test",
-  "three_cases_reset_and_private": true,
-  "unrelated_synthetic_row_preserved": true,
-  "development_reset_without_explicit_switch_rejected_before_engine": true,
-  "saved_development_visit_reset": false
-}

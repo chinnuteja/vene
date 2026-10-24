@@ -17,3 +17,9 @@ playwright-report/
 coverage/
 .DS_Store
 
+# Local workspace guidance and generated review material are not product source.
+/AGENTS.md
+/BUILD_STATUS.md
+/docs/
+/.kilo/
+

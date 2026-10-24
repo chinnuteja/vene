@@ -12,6 +12,8 @@ node_modules
 **/tsconfig.tsbuildinfo
 test-results
 playwright-report
-research
-docs/background
+AGENTS.md
+BUILD_STATUS.md
+docs
+.kilo
 *.log

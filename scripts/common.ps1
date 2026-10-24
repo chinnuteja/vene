@@ -8,6 +8,7 @@ if (-not (Test-Path -LiteralPath $PnpmExe)) { $PnpmExe = (Get-Command pnpm.cmd).
 $UvExe = Join-Path $env:USERPROFILE '.local/bin/uv.exe'
 if (-not (Test-Path -LiteralPath $UvExe)) { $UvExe = (Get-Command uv.exe).Source }
 $PythonExe = Join-Path $BundledRoot 'python/python.exe'
+if (-not (Test-Path -LiteralPath $PythonExe)) { $PythonExe = '3.12' } # Let uv resolve an installed or managed Python.
 $env:PATH = (Split-Path $NodeExe) + ';' + $env:PATH
 $env:NEXT_TELEMETRY_DISABLED = '1'
 Set-Location -LiteralPath $ProjectRoot

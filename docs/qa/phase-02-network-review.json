@@ -1,9 +1,0 @@
-{
-  "checked_at": "2026-10-15T08:15:21.441Z",
-  "synthetic_only": true,
-  "shared_payloads_checked": 22,
-  "canary_leaks": 0,
-  "scope_revocation": "open source dialog cleared",
-  "membership_revocation": "stream closed and REST denied",
-  "old_session_after_new_invitation": "denied"
-}

@@ -9,4 +9,4 @@ try { Invoke-Checked $NodeExe @('scripts/browser-check.mjs') }
 finally { Remove-Item Env:BRING_VENE_LIVE_PROVIDER_GATE -ErrorAction SilentlyContinue;Remove-Item Env:BRING_VENE_E2E_GREP -ErrorAction SilentlyContinue }
 & "$PSScriptRoot/check-speech.ps1" -LiveTts
 if (-not $SkipSpeechMeasurement) { & "$PSScriptRoot/check-speech.ps1" -LiveTts -Measure }
-Write-Output 'Configured model, real STT/TTS conversation and sandbox end-to-end gates completed. Review the actual outputs in docs/qa; physical microphone and human acceptance remain separate.'
+Write-Output 'Configured model, real STT/TTS conversation and sandbox end-to-end gates completed. Review the actual outputs in .local/evidence; physical microphone and human acceptance remain separate.'

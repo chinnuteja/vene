@@ -1,7 +1,0 @@
-{
-  "openai_key_present": false,
-  "deepgram_key_present": false,
-  "cartesia_key_present": false,
-  "cartesia_voice_present": false,
-  "live_provider_checks_run": false
-}
